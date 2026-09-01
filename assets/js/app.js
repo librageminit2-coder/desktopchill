@@ -177,7 +177,7 @@ function openSettings() { $('#settingsPanel').hidden = false; }
 function closeSettings() { $('#settingsPanel').hidden = true; }
 
 /* ---------------- setters ---------------- */
-function setLang(l) { state.lang = l; localStorage.setItem('dc_lang', l); applyI18n(); renderChips(); renderGallery(); renderFaq(); renderPreviewGallery(); }
+function setLang(l) { state.lang = l; localStorage.setItem('dc_lang', l); applyI18n(); renderChips(); renderGallery(); renderFaq(); }
 function setTheme(t2) { state.theme = t2; localStorage.setItem('dc_theme', t2); applyTheme(); }
 function setView(v) {
   state.view = v; localStorage.setItem('dc_view', v);
@@ -281,12 +281,9 @@ async function init() {
     state.wallpapers = (await res.json()).wallpapers || [];
   } catch (err) { console.error('Không tải được danh sách:', err); state.wallpapers = []; }
   applyI18n();
-  renderPreviewGallery();
   renderChips();
   renderGallery();
   renderFaq();
-  initDust();
-  initMonitorFit();
   initReveal();
 }
 init();

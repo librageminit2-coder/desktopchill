@@ -37,53 +37,24 @@
   <main>
     <!-- ==================== HERO (interactive live preview) ==================== -->
     <section id="home" class="hero">
-      <div class="hero-bg-glow"></div>
+      <video class="hero-video" id="heroBg" autoplay muted loop playsinline preload="auto" poster="assets/img/hero-poster.jpg">
+        <source src="assets/media/hero-loop.mp4" type="video/mp4" />
+      </video>
+      <div class="hero-tint"></div>
 
-      <div class="hero-inner">
-      <div class="hero-copy reveal">
+      <div class="hero-content">
         <span class="hero-eyebrow" data-i18n="hero.eyebrow">✦ Live wallpaper cho desktop</span>
         <h1 class="hero-title">
-          <span data-i18n="hero.title1">Biến máy tính của bạn</span><br />
+          <span data-i18n="hero.title1">Biến máy tính của bạn</span>
           <span class="grad" data-i18n="hero.title2">thành một góc chill</span>
         </h1>
-        <p class="hero-sub" data-i18n="hero.sub">Chọn một hình nền động bên dưới và xem nó “sống dậy” ngay trên màn hình. Thích mẫu nào, shop cài trọn gói cho bạn.</p>
+        <p class="hero-sub" data-i18n="hero.sub">Kho hình nền động customize riêng — mượt, mát, không hao pin. Xem bộ sưu tập bên dưới và liên hệ để shop cài trọn gói cho bạn.</p>
         <div class="hero-cta-row">
-          <a href="#contact" class="btn btn-primary" data-i18n="hero.cta1">Bắt đầu</a>
-          <a href="#gallery" class="btn btn-ghost liquid-glass" data-i18n="hero.cta2">Xem bộ sưu tập</a>
+          <a href="#gallery" class="btn btn-primary" data-i18n="hero.cta2">Xem bộ sưu tập</a>
+          <a href="#contact" class="btn btn-ghost liquid-glass" data-i18n="hero.cta1">Bắt đầu</a>
         </div>
       </div>
-
-      <!-- The desk stage: photo + live monitor + ambient glow -->
-      <div class="stage reveal">
-        <div class="stage-frame">
-          <div class="ambient" id="ambient"></div>
-          <img class="desk-img" src="assets/img/hero-desk.jpg" alt="Góc setup gaming phong cách Nhật Bản" />
-          <div class="fx fx-lamp"></div>
-          <div class="fx fx-rgb"></div>
-          <div class="fx fx-screenglow" id="screenGlow"></div>
-          <div class="fx fx-dust" id="dust"></div>
-          <div class="screen" id="screen">
-            <div class="screen-quad" id="screenQuad">
-              <video id="heroVideo" muted loop playsinline preload="auto"></video>
-              <div class="screen-scan"></div>
-              <div class="screen-cast"></div>
-            </div>
-          </div>
-          <div class="live-label" id="liveLabel">
-            <span class="live-dot"></span><span data-i18n="hero.livePrefix">LIVE PREVIEW</span>: <b id="liveName">—</b>
-          </div>
-        </div>
-      </div>
-      </div><!-- /hero-inner -->
-
-      <!-- Preview gallery (horizontal) -->
-      <div class="preview-gallery reveal">
-        <div class="pg-head">
-          <h2 data-i18n="hero.pgTitle">LIVE PREVIEW GALLERY</h2>
-          <p data-i18n="hero.pgSub">Click vào hình nền bất kỳ để trải nghiệm trên màn hình</p>
-        </div>
-        <div class="pg-track" id="pgTrack"><!-- thumbs injected --></div>
-      </div>
+      <a href="#gallery" class="hero-scroll" aria-label="Cuộn xuống bộ sưu tập">↓</a>
     </section>
 
     <!-- ==================== GALLERY (full collection) ==================== -->
