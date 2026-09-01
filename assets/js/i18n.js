@@ -39,6 +39,7 @@ export const I18N = {
 
     'pricing.title': 'Bảng giá & Dịch vụ',
     'pricing.badge': 'Trọn gói',
+    'pricing.original': '300k',
     'pricing.price': '175k',
     'pricing.priceNote': 'Trọn gói — không phát sinh thêm',
     'pricing.lead': 'Shop hỗ trợ mua và cài App trọn gói, bạn không cần thao tác.',
@@ -62,7 +63,7 @@ export const I18N = {
     'settings.themeLight': 'Sáng',
 
     'footer.tagline': 'Live wallpaper customize cho máy tính của bạn.',
-    'footer.rights': 'Mọi hình ảnh thuộc về desktopchill.',
+    'footer.rights': 'Hình ảnh chỉ mang tính minh hoạ; bản quyền thuộc về các tác giả tương ứng.',
   },
   en: {
     'nav.gallery': 'Wallpapers',
@@ -103,6 +104,7 @@ export const I18N = {
 
     'pricing.title': 'Pricing & Service',
     'pricing.badge': 'All-inclusive',
+    'pricing.original': '300k',
     'pricing.price': '175k',
     'pricing.priceNote': 'All-inclusive — no extra fees',
     'pricing.lead': 'We buy and install the app for you — completely hands-free.',
@@ -126,7 +128,7 @@ export const I18N = {
     'settings.themeLight': 'Light',
 
     'footer.tagline': 'Custom live wallpapers for your desktop.',
-    'footer.rights': 'All images belong to desktopchill.',
+    'footer.rights': 'Images are for illustration only; copyright belongs to their respective owners.',
   },
 };
 

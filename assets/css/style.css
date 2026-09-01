@@ -200,8 +200,10 @@ img, video { display: block; max-width: 100%; }
 .pricing-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-grad); }
 .pricing-badge { display: inline-block; font-size: .8rem; font-weight: 700; color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); padding: 5px 14px; border-radius: 999px; }
 .pricing-price { display: flex; align-items: baseline; gap: 12px; margin: 16px 0 6px; flex-wrap: wrap; }
+.price-original { font-size: 1.4rem; font-weight: 700; color: var(--text-faint); text-decoration: line-through; text-decoration-thickness: 2px; }
 .price-value { font-size: 3.2rem; font-weight: 800; letter-spacing: -.03em; background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.price-note { color: var(--text-dim); font-size: .95rem; }
+.price-discount { font-size: .82rem; font-weight: 800; color: #fff; background: linear-gradient(120deg, #ff7a45, #ff3d6e); padding: 4px 11px; border-radius: 999px; box-shadow: 0 4px 12px rgba(255,80,60,.4); align-self: center; }
+.price-note { color: var(--text-dim); font-size: .95rem; margin-bottom: 18px; }
 .pricing-lead { color: var(--text); font-weight: 600; margin-bottom: 18px; }
 .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 13px; margin-bottom: 26px; }
 .pricing-features li { display: flex; gap: 12px; align-items: flex-start; color: var(--text-dim); }
