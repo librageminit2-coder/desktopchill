@@ -137,7 +137,11 @@ function wireCards() {
     const stop = () => { card.classList.remove('playing'); const v = $('video', media); if (v) v.remove(); };
     card.addEventListener('mouseenter', play);
     card.addEventListener('mouseleave', stop);
-    card.addEventListener('click', () => openModal(card.dataset.id));
+    // click a wallpaper below → show it on the hero monitor, then scroll up to see it
+    card.addEventListener('click', () => {
+      selectHero(card.dataset.id);
+      document.querySelector('#home').scrollIntoView({ behavior: 'smooth' });
+    });
   });
 }
 
@@ -263,6 +267,7 @@ function wireEvents() {
   $('#langBtn').addEventListener('click', () => setLang(state.lang === 'vi' ? 'en' : 'vi'));
   $('#themeBtn').addEventListener('click', () => setTheme(state.theme === 'dark' ? 'light' : 'dark'));
   $('#settingsBtn').addEventListener('click', openSettings);
+  const sq = $('#screenQuad'); if (sq) sq.addEventListener('click', () => { if (state.current) openModal(state.current); });
   $('#searchInput').addEventListener('input', (e) => { state.search = e.target.value; renderGallery(); });
   $$('#viewToggle button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   $$('[data-close]').forEach((el) => el.addEventListener('click', closeModal));
@@ -270,6 +275,26 @@ function wireEvents() {
   $$('#segLang button').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
   $$('#segTheme button').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeVal)));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSettings(); } });
+}
+
+/* ---------------- visit counter (free hosted counter, no backend) ---------------- */
+async function initVisits() {
+  const box = $('#footerVisits'), el = $('#visitCount');
+  if (!box || !el) return;
+  const base = 'https://abacus.jasoncameron.dev';
+  const key = 'desktopchill/visits';
+  let counted = false;
+  try { counted = !!sessionStorage.getItem('dc_counted'); } catch {}
+  try {
+    const res = await fetch(`${base}/${counted ? 'get' : 'hit'}/${key}`, { cache: 'no-store' });
+    const data = await res.json();
+    const n = data.value ?? data.count ?? data.Count;
+    if (typeof n === 'number' && isFinite(n)) {
+      el.textContent = n.toLocaleString('vi-VN');
+      box.hidden = false;
+      if (!counted) { try { sessionStorage.setItem('dc_counted', '1'); } catch {} }
+    }
+  } catch { /* dịch vụ đếm lỗi → ẩn, không ảnh hưởng trang */ }
 }
 
 /* ---------------- init ---------------- */
@@ -287,5 +312,6 @@ async function init() {
   renderFaq();
   initMonitorFit();
   initReveal();
+  initVisits();
 }
 init();

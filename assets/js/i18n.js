@@ -71,6 +71,7 @@ export const I18N = {
 
     'footer.tagline': 'Live wallpaper customize cho máy tính của bạn.',
     'footer.rights': 'Hình ảnh chỉ mang tính minh hoạ; bản quyền thuộc về các tác giả tương ứng.',
+    'footer.visits': 'Lượt truy cập',
   },
   en: {
     'nav.home': 'Home',
@@ -143,6 +144,7 @@ export const I18N = {
 
     'footer.tagline': 'Custom live wallpapers for your desktop.',
     'footer.rights': 'Images are for illustration only; copyright belongs to their respective owners.',
+    'footer.visits': 'Visits',
   },
 };
 
