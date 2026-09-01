@@ -1,7 +1,8 @@
 // Bản dịch giao diện — Tiếng Việt (mặc định) & English
 export const I18N = {
   vi: {
-    'nav.gallery': 'Hình nền',
+    'nav.home': 'Trang chủ',
+    'nav.gallery': 'Bộ sưu tập',
     'nav.pricing': 'Bảng giá',
     'nav.faq': 'Hỏi đáp',
     'nav.contact': 'Liên hệ',
@@ -10,11 +11,17 @@ export const I18N = {
     'faq.title': 'Câu hỏi thường gặp',
     'faq.subtitle': 'Những thắc mắc khách hay hỏi trước khi cài',
 
-    'hero.title': 'Cài đặt hình nền động cho máy tính của bạn',
-    'hero.subtitle': 'Shop hỗ trợ cài đặt & customize live wallpaper trọn gói — mượt, mát, không hao pin. Xem các mẫu shop đã làm bên dưới và liên hệ để được cài.',
-    'hero.cta': 'Liên hệ cài ngay',
+    'hero.eyebrow': '✦ Live wallpaper cho desktop',
+    'hero.title1': 'Biến máy tính của bạn',
+    'hero.title2': 'thành một góc chill',
+    'hero.sub': 'Chọn một hình nền động bên dưới và xem nó “sống dậy” ngay trên màn hình. Thích mẫu nào, shop cài trọn gói cho bạn.',
+    'hero.cta1': 'Bắt đầu',
+    'hero.cta2': 'Xem bộ sưu tập',
+    'hero.livePrefix': 'LIVE PREVIEW',
+    'hero.pgTitle': 'LIVE PREVIEW GALLERY',
+    'hero.pgSub': 'Click vào hình nền bất kỳ để trải nghiệm trên màn hình',
 
-    'gallery.title': 'Mẫu shop đã thực hiện',
+    'gallery.title': 'Bộ sưu tập',
     'gallery.subtitle': 'Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn',
     'gallery.note': 'Đây chỉ là vài mẫu tiêu biểu. Khi cài, shop cung cấp trọn kho hình nền động và cập nhật thêm liên tục.',
     'filter.search': 'Tìm hình nền...',
@@ -66,7 +73,8 @@ export const I18N = {
     'footer.rights': 'Hình ảnh chỉ mang tính minh hoạ; bản quyền thuộc về các tác giả tương ứng.',
   },
   en: {
-    'nav.gallery': 'Wallpapers',
+    'nav.home': 'Home',
+    'nav.gallery': 'Collection',
     'nav.pricing': 'Pricing',
     'nav.faq': 'FAQ',
     'nav.contact': 'Contact',
@@ -75,11 +83,17 @@ export const I18N = {
     'faq.title': 'Frequently asked questions',
     'faq.subtitle': 'What customers usually ask before installing',
 
-    'hero.title': 'Live wallpaper setup for your desktop',
-    'hero.subtitle': 'We install & customize live wallpapers for you — smooth, cool, battery-friendly. Browse the designs we’ve made below and contact us to get set up.',
-    'hero.cta': 'Get it installed',
+    'hero.eyebrow': '✦ Live wallpapers for desktop',
+    'hero.title1': 'Turn your desktop',
+    'hero.title2': 'into a chill corner',
+    'hero.sub': 'Pick a live wallpaper below and watch it come alive on the screen. Like one? We install the whole package for you.',
+    'hero.cta1': 'Get started',
+    'hero.cta2': 'Browse collection',
+    'hero.livePrefix': 'LIVE PREVIEW',
+    'hero.pgTitle': 'LIVE PREVIEW GALLERY',
+    'hero.pgSub': 'Click any wallpaper to experience it on the screen',
 
-    'gallery.title': 'Designs we’ve made',
+    'gallery.title': 'Collection',
     'gallery.subtitle': 'Pick one you like, then message us on Zalo/TikTok to get it installed',
     'gallery.note': 'These are just a few featured samples. On install you get our full live-wallpaper library, updated continuously.',
     'filter.search': 'Search wallpapers...',

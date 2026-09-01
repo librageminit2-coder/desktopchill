@@ -6,9 +6,11 @@
 /*.MOV
 /*.mov
 
-# Ghi chú nội bộ (không cần công khai)
+# Ghi chú / ảnh tham khảo nội bộ (không cần công khai)
 /Reference information.txt
 /reference website.txt
+/landing page reference.png
+/web on phone.jpg
 
 # Rác hệ điều hành / editor
 Thumbs.db

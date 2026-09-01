@@ -3,69 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>desktopchill — Hình nền động cho máy tính</title>
-  <meta name="description" content="Kho hình nền động (live wallpaper) customize riêng cho máy tính. Mượt, mát, không hao pin. Liên hệ Zalo hoặc TikTok để cài đặt." />
+  <title>desktopchill — Cài đặt hình nền động cho máy tính</title>
+  <meta name="description" content="Dịch vụ cài đặt & customize hình nền động (live wallpaper) cho máy tính. Xem trước trực tiếp, chọn mẫu ưng ý và liên hệ Zalo/TikTok để được cài." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
   <!-- ==================== HEADER ==================== -->
   <header class="site-header">
-    <div class="header-inner">
-      <a href="#top" class="logo">
+    <div class="header-inner liquid-glass">
+      <a href="#home" class="logo">
         <span class="logo-mark">🖥️</span>
         <span class="logo-text">desktop<b>chill</b></span>
       </a>
-
       <nav class="main-nav">
-        <a href="#gallery" data-i18n="nav.gallery">Hình nền</a>
+        <a href="#home" data-i18n="nav.home">Trang chủ</a>
+        <a href="#gallery" data-i18n="nav.gallery">Bộ sưu tập</a>
         <a href="#pricing" data-i18n="nav.pricing">Bảng giá</a>
         <a href="#faq" data-i18n="nav.faq">Hỏi đáp</a>
         <a href="#contact" data-i18n="nav.contact">Liên hệ</a>
       </nav>
-
       <div class="header-actions">
-        <button class="icon-btn" id="langBtn" title="Language / Ngôn ngữ" aria-label="Language">
-          <span class="lang-flag" id="langFlag">🌐</span><span id="langCode">VI</span>
-        </button>
-        <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Theme">
-          <span id="themeIcon">🌙</span>
-        </button>
+        <button class="icon-btn" id="langBtn" title="Language / Ngôn ngữ" aria-label="Language"><span id="langCode">VI</span></button>
+        <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Theme"><span id="themeIcon">🌙</span></button>
         <button class="icon-btn" id="settingsBtn" title="Cài đặt" aria-label="Settings">⚙️</button>
       </div>
     </div>
   </header>
 
-  <span id="top"></span>
-
   <main>
-    <!-- ==================== HERO ==================== -->
-    <section class="hero">
-      <div class="hero-glow"></div>
-      <h1 class="hero-title" data-i18n="hero.title">Kho hình nền động cho máy tính</h1>
-      <p class="hero-subtitle" data-i18n="hero.subtitle">Live wallpaper được customize riêng — mượt, mát, không hao pin. Cập nhật mẫu mới liên tục.</p>
-      <a href="#contact" class="btn btn-primary hero-cta" data-i18n="hero.cta">Liên hệ lấy mẫu</a>
+    <!-- ==================== HERO (interactive live preview) ==================== -->
+    <section id="home" class="hero">
+      <div class="hero-bg-glow"></div>
+
+      <div class="hero-inner">
+      <div class="hero-copy reveal">
+        <span class="hero-eyebrow" data-i18n="hero.eyebrow">✦ Live wallpaper cho desktop</span>
+        <h1 class="hero-title">
+          <span data-i18n="hero.title1">Biến máy tính của bạn</span><br />
+          <span class="grad" data-i18n="hero.title2">thành một góc chill</span>
+        </h1>
+        <p class="hero-sub" data-i18n="hero.sub">Chọn một hình nền động bên dưới và xem nó “sống dậy” ngay trên màn hình. Thích mẫu nào, shop cài trọn gói cho bạn.</p>
+        <div class="hero-cta-row">
+          <a href="#contact" class="btn btn-primary" data-i18n="hero.cta1">Bắt đầu</a>
+          <a href="#gallery" class="btn btn-ghost liquid-glass" data-i18n="hero.cta2">Xem bộ sưu tập</a>
+        </div>
+      </div>
+
+      <!-- The desk stage: photo + live monitor + ambient glow -->
+      <div class="stage reveal">
+        <div class="stage-frame">
+          <div class="ambient" id="ambient"></div>
+          <img class="desk-img" src="assets/img/hero-desk.jpg" alt="Góc setup gaming phong cách Nhật Bản" />
+          <div class="fx fx-lamp"></div>
+          <div class="fx fx-rgb"></div>
+          <div class="fx fx-screenglow" id="screenGlow"></div>
+          <div class="fx fx-dust" id="dust"></div>
+          <div class="screen" id="screen">
+            <video id="heroVideo" muted loop playsinline preload="auto"></video>
+            <div class="screen-scan"></div>
+            <div class="screen-cast"></div>
+          </div>
+          <div class="live-label" id="liveLabel">
+            <span class="live-dot"></span><span data-i18n="hero.livePrefix">LIVE PREVIEW</span>: <b id="liveName">—</b>
+          </div>
+        </div>
+      </div>
+      </div><!-- /hero-inner -->
+
+      <!-- Preview gallery (horizontal) -->
+      <div class="preview-gallery reveal">
+        <div class="pg-head">
+          <h2 data-i18n="hero.pgTitle">LIVE PREVIEW GALLERY</h2>
+          <p data-i18n="hero.pgSub">Click vào hình nền bất kỳ để trải nghiệm trên màn hình</p>
+        </div>
+        <div class="pg-track" id="pgTrack"><!-- thumbs injected --></div>
+      </div>
     </section>
 
-    <!-- ==================== GALLERY ==================== -->
+    <!-- ==================== GALLERY (full collection) ==================== -->
     <section id="gallery" class="gallery-section">
-      <h2 class="section-title" data-i18n="gallery.title">Mẫu shop đã thực hiện</h2>
-      <p class="section-subtitle" data-i18n="gallery.subtitle">Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn</p>
-      <p class="gallery-note" id="galleryNote" data-i18n="gallery.note">✨ Đây chỉ là vài mẫu tiêu biểu. Khi cài, shop tặng bạn trọn kho hình nền động khổng lồ và cập nhật thêm liên tục.</p>
-      <div class="filter-bar" id="filterBar">
-        <!-- category pills injected by JS -->
+      <div class="section-head reveal">
+        <h2 class="section-title" data-i18n="gallery.title">Bộ sưu tập</h2>
+        <p class="section-subtitle" data-i18n="gallery.subtitle">Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn</p>
       </div>
-      <div class="gallery" id="galleryGrid"><!-- cards injected by JS --></div>
+      <p class="gallery-note reveal" data-i18n="gallery.note">Đây chỉ là vài mẫu tiêu biểu. Khi cài, shop cung cấp trọn kho hình nền động và cập nhật thêm liên tục.</p>
+
+      <div class="toolbar reveal">
+        <label class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="searchInput" type="search" placeholder="Tìm hình nền..." />
+        </label>
+        <div class="chips" id="chips"><!-- category chips injected --></div>
+        <div class="view-toggle" id="viewToggle" title="Kiểu xem">
+          <button data-view="one" aria-label="1 cột">▭</button>
+          <button data-view="grid" class="active" aria-label="Lưới">▦</button>
+        </div>
+      </div>
+
+      <div class="grid" id="galleryGrid"><!-- cards injected --></div>
       <p class="gallery-empty" id="galleryEmpty" hidden data-i18n="gallery.empty">Không tìm thấy mẫu phù hợp.</p>
     </section>
 
     <!-- ==================== PRICING ==================== -->
     <section id="pricing" class="pricing-section">
-      <h2 class="section-title" data-i18n="pricing.title">Bảng giá & Dịch vụ</h2>
-      <div class="pricing-card">
+      <div class="section-head reveal">
+        <h2 class="section-title" data-i18n="pricing.title">Bảng giá & Dịch vụ</h2>
+      </div>
+      <div class="pricing-card reveal">
         <div class="pricing-badge" data-i18n="pricing.badge">Trọn gói</div>
         <div class="pricing-price">
           <span class="price-original" data-i18n="pricing.original">300k</span>
@@ -88,16 +136,20 @@
 
     <!-- ==================== FAQ ==================== -->
     <section id="faq" class="faq-section">
-      <h2 class="section-title" data-i18n="faq.title">Câu hỏi thường gặp</h2>
-      <p class="section-subtitle" data-i18n="faq.subtitle">Những thắc mắc khách hay hỏi trước khi cài</p>
-      <div class="faq-list" id="faqList"><!-- injected by JS --></div>
+      <div class="section-head reveal">
+        <h2 class="section-title" data-i18n="faq.title">Câu hỏi thường gặp</h2>
+        <p class="section-subtitle" data-i18n="faq.subtitle">Những thắc mắc khách hay hỏi trước khi cài</p>
+      </div>
+      <div class="faq-list reveal" id="faqList"></div>
     </section>
 
     <!-- ==================== CONTACT ==================== -->
     <section id="contact" class="contact-section">
-      <h2 class="section-title" data-i18n="contact.title">Liên hệ với shop</h2>
-      <p class="section-subtitle" data-i18n="contact.subtitle">Nhắn tin để được tư vấn và cài đặt nhanh nhất</p>
-      <div class="contact-cards">
+      <div class="section-head reveal">
+        <h2 class="section-title" data-i18n="contact.title">Liên hệ với shop</h2>
+        <p class="section-subtitle" data-i18n="contact.subtitle">Nhắn tin để được tư vấn và cài đặt nhanh nhất</p>
+      </div>
+      <div class="contact-cards reveal">
         <a class="contact-card contact-zalo" id="contactZalo" target="_blank" rel="noopener">
           <span class="contact-icon">💬</span>
           <span class="contact-meta">
@@ -120,7 +172,11 @@
   <footer class="site-footer">
     <div class="footer-logo"><span>🖥️</span> desktop<b>chill</b></div>
     <p class="footer-tagline" data-i18n="footer.tagline">Live wallpaper customize cho máy tính của bạn.</p>
-    <p class="footer-rights"><span data-i18n="footer.rights">Mọi hình ảnh thuộc về desktopchill.</span> © <span id="year"></span></p>
+    <div class="footer-socials">
+      <a id="footerTiktok" target="_blank" rel="noopener" aria-label="TikTok">TikTok</a>
+      <a id="footerZalo" target="_blank" rel="noopener" aria-label="Zalo">Zalo</a>
+    </div>
+    <p class="footer-rights"><span data-i18n="footer.rights">Hình ảnh chỉ mang tính minh hoạ; bản quyền thuộc về các tác giả tương ứng.</span> © <span id="year"></span></p>
   </footer>
 
   <!-- ==================== LIGHTBOX MODAL ==================== -->
@@ -128,9 +184,7 @@
     <div class="modal-backdrop" data-close></div>
     <div class="modal-body" role="dialog" aria-modal="true">
       <button class="modal-close" data-close aria-label="Close">✕</button>
-      <div class="modal-video-wrap">
-        <video id="modalVideo" loop muted playsinline></video>
-      </div>
+      <div class="modal-video-wrap"><video id="modalVideo" loop muted playsinline></video></div>
       <div class="modal-info">
         <h3 class="modal-title" id="modalTitle"></h3>
         <span class="modal-cat" id="modalCat"></span>

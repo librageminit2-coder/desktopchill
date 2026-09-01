@@ -12,7 +12,8 @@
       "preview": "media/preview/01.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#2e2f2c"
     },
     {
       "id": "02",
@@ -26,7 +27,8 @@
       "preview": "media/preview/02.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#f3f3f0"
     },
     {
       "id": "03",
@@ -40,7 +42,8 @@
       "preview": "media/preview/03.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#b26c70"
     },
     {
       "id": "04",
@@ -54,7 +57,8 @@
       "preview": "media/preview/04.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#d5cdd3"
     },
     {
       "id": "05",
@@ -68,7 +72,8 @@
       "preview": "media/preview/05.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#f4f8f3"
     },
     {
       "id": "06",
@@ -82,7 +87,8 @@
       "preview": "media/preview/06.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": true
+      "hot": true,
+      "color": "#12326e"
     },
     {
       "id": "07",
@@ -96,7 +102,8 @@
       "preview": "media/preview/07.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#6b94aa"
     },
     {
       "id": "08",
@@ -110,7 +117,8 @@
       "preview": "media/preview/08.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#283034"
     },
     {
       "id": "09",
@@ -124,7 +132,8 @@
       "preview": "media/preview/09.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#17162f"
     },
     {
       "id": "10",
@@ -138,7 +147,8 @@
       "preview": "media/preview/10.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#1a2429"
     },
     {
       "id": "11",
@@ -152,7 +162,8 @@
       "preview": "media/preview/11.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#667691"
     },
     {
       "id": "12",
@@ -166,7 +177,8 @@
       "preview": "media/preview/12.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#2c2d29"
     },
     {
       "id": "13",
@@ -180,7 +192,8 @@
       "preview": "media/preview/13.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#51504f"
     },
     {
       "id": "14",
@@ -194,7 +207,8 @@
       "preview": "media/preview/14.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": true
+      "hot": true,
+      "color": "#f2eff4"
     },
     {
       "id": "15",
@@ -208,7 +222,8 @@
       "preview": "media/preview/15.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#fdfefc"
     },
     {
       "id": "16",
@@ -222,7 +237,8 @@
       "preview": "media/preview/16.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#294d52"
     },
     {
       "id": "17",
@@ -236,7 +252,8 @@
       "preview": "media/preview/17.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#afb0ae"
     },
     {
       "id": "18",
@@ -250,7 +267,8 @@
       "preview": "media/preview/18.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#8d71aa"
     },
     {
       "id": "19",
@@ -264,7 +282,8 @@
       "preview": "media/preview/19.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#ebd4cd"
     },
     {
       "id": "20",
@@ -278,7 +297,8 @@
       "preview": "media/preview/20.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#cdd1b0"
     },
     {
       "id": "21",
@@ -292,7 +312,8 @@
       "preview": "media/preview/21.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#f3f8f6"
     },
     {
       "id": "22",
@@ -306,7 +327,8 @@
       "preview": "media/preview/22.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#8f6f4e"
     },
     {
       "id": "23",
@@ -320,7 +342,8 @@
       "preview": "media/preview/23.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": true
+      "hot": true,
+      "color": "#cad3cf"
     },
     {
       "id": "24",
@@ -334,7 +357,8 @@
       "preview": "media/preview/24.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#324b50"
     },
     {
       "id": "25",
@@ -348,7 +372,8 @@
       "preview": "media/preview/25.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": true
+      "hot": true,
+      "color": "#8d3333"
     },
     {
       "id": "26",
@@ -362,7 +387,8 @@
       "preview": "media/preview/26.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#010202"
     },
     {
       "id": "27",
@@ -376,7 +402,8 @@
       "preview": "media/preview/27.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#19ac93"
     },
     {
       "id": "28",
@@ -390,7 +417,8 @@
       "preview": "media/preview/28.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#070c14"
     },
     {
       "id": "29",
@@ -404,7 +432,8 @@
       "preview": "media/preview/29.mp4",
       "w": 848,
       "h": 464,
-      "hot": false
+      "hot": false,
+      "color": "#290a12"
     },
     {
       "id": "30",
@@ -418,7 +447,8 @@
       "preview": "media/preview/30.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#324672"
     },
     {
       "id": "31",
@@ -432,7 +462,8 @@
       "preview": "media/preview/31.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#b4b4b1"
     },
     {
       "id": "32",
@@ -446,7 +477,8 @@
       "preview": "media/preview/32.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": true
+      "hot": true,
+      "color": "#321514"
     },
     {
       "id": "33",
@@ -460,7 +492,8 @@
       "preview": "media/preview/33.mp4",
       "w": 1920,
       "h": 1080,
-      "hot": false
+      "hot": false,
+      "color": "#ac8d75"
     }
   ]
 }
