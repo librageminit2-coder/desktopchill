@@ -12,8 +12,11 @@ export const I18N = {
 
     'gallery.title': 'Mẫu shop đã thực hiện',
     'gallery.subtitle': 'Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn',
+    'gallery.note': '✨ Đây chỉ là vài mẫu tiêu biểu. Khi cài, shop tặng bạn trọn kho hình nền động khổng lồ và cập nhật thêm liên tục.',
     'filter.search': 'Tìm hình nền...',
     'filter.all': 'Tất cả',
+    'filter.hot': '🔥 Hot',
+    'card.hot': '🔥 Hot',
     'cat.anime': 'Anime',
     'cat.girl': 'Girl',
     'cat.phongcanh': 'Phong cảnh',
@@ -69,8 +72,11 @@ export const I18N = {
 
     'gallery.title': 'Designs we’ve made',
     'gallery.subtitle': 'Pick one you like, then message us on Zalo/TikTok to get it installed',
+    'gallery.note': '✨ These are just a few featured samples. On install you get our entire huge live-wallpaper library, updated continuously.',
     'filter.search': 'Search wallpapers...',
     'filter.all': 'All',
+    'filter.hot': '🔥 Hot',
+    'card.hot': '🔥 Hot',
     'cat.anime': 'Anime',
     'cat.girl': 'Girl',
     'cat.phongcanh': 'Scenery',

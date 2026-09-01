@@ -129,8 +129,9 @@ for (const { name, num } of videos) {
   result.push({
     id,
     source: name,
-    title: prev?.title || { vi: `Mẫu ${id}`, en: `Design ${id}` },
+    title: prev?.title || { vi: `Mẫu ${num}`, en: `Design ${num}` },
     category: prev?.category || 'khac',
+    hot: prev?.hot || false,
     poster: `media/poster/${id}.jpg`,
     preview: `media/preview/${id}.mp4`,
     w, h,

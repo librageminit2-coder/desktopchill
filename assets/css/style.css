@@ -116,7 +116,13 @@ img, video { display: block; max-width: 100%; }
 /* ---------- FILTER BAR ---------- */
 .gallery-section { max-width: 1240px; margin: 0 auto; padding: 40px 16px 80px; }
 .gallery-section .section-title { margin-bottom: 4px; }
-.gallery-section .section-subtitle { margin-bottom: 22px; }
+.gallery-section .section-subtitle { margin-bottom: 10px; }
+.gallery-note {
+  max-width: 640px; margin: 0 auto 22px; text-align: center; font-size: .92rem; font-weight: 600;
+  color: var(--text); background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  padding: 10px 18px; border-radius: 14px;
+}
 .filter-bar {
   position: sticky; top: 78px; z-index: 40;
   display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
@@ -137,6 +143,17 @@ img, video { display: block; max-width: 100%; }
 }
 .chip:hover { color: var(--text); border-color: var(--border-strong); }
 .chip.active { background: var(--accent-grad); color: #fff; border-color: transparent; box-shadow: 0 6px 16px rgba(110,130,255,.35); }
+.chip-hot { color: #ff8a5c; border-color: color-mix(in srgb, #ff5e3a 45%, transparent); }
+.chip-hot:hover { color: #ff7043; }
+.chip-hot.active { background: linear-gradient(120deg, #ff7a45, #ff3d6e); color: #fff; box-shadow: 0 6px 16px rgba(255,90,60,.4); }
+
+/* Hot badge on card */
+.card-hot {
+  position: absolute; top: 12px; left: 12px; z-index: 2;
+  font-size: .72rem; font-weight: 800; padding: 4px 10px; border-radius: 999px;
+  background: linear-gradient(120deg, #ff7a45, #ff3d6e); color: #fff;
+  box-shadow: 0 4px 12px rgba(255,80,60,.5);
+}
 
 /* ---------- GALLERY (masonry) ---------- */
 .gallery { column-gap: 16px; columns: 4; }

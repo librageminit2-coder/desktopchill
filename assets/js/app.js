@@ -51,7 +51,8 @@ function wireContacts() {
 function renderFilterBar() {
   const bar = $('#filterBar');
   const present = new Set(state.wallpapers.map((w) => w.category));
-  const cats = ['all', ...CATEGORIES.filter((c) => present.has(c))];
+  const hasHot = state.wallpapers.some((w) => w.hot);
+  const cats = ['all', ...(hasHot ? ['hot'] : []), ...CATEGORIES.filter((c) => present.has(c))];
 
   bar.innerHTML = `
     <label class="filter-search">
@@ -59,8 +60,8 @@ function renderFilterBar() {
       <input id="searchInput" type="search" placeholder="${t('filter.search')}" value="${state.search}" />
     </label>` +
     cats.map((c) => {
-      const label = c === 'all' ? t('filter.all') : t('cat.' + c);
-      return `<button class="chip ${state.category === c ? 'active' : ''}" data-cat="${c}">${label}</button>`;
+      const label = c === 'all' ? t('filter.all') : c === 'hot' ? t('filter.hot') : t('cat.' + c);
+      return `<button class="chip ${c === 'hot' ? 'chip-hot ' : ''}${state.category === c ? 'active' : ''}" data-cat="${c}">${label}</button>`;
     }).join('');
 
   $('#searchInput').addEventListener('input', (e) => {
@@ -80,7 +81,8 @@ function renderFilterBar() {
 function filtered() {
   const q = state.search.trim().toLowerCase();
   return state.wallpapers.filter((w) => {
-    if (state.category !== 'all' && w.category !== state.category) return false;
+    if (state.category === 'hot') { if (!w.hot) return false; }
+    else if (state.category !== 'all' && w.category !== state.category) return false;
     if (q) {
       const hay = `${w.title.vi} ${w.title.en} ${w.id}`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -102,6 +104,7 @@ function renderGallery() {
       <article class="card" data-id="${w.id}" data-preview="${w.preview}" style="animation-delay:${Math.min(i, 12) * 0.03}s">
         <div class="card-media" style="aspect-ratio:${w.w}/${w.h}">
           <img src="${w.poster}" alt="${title}" loading="lazy" />
+          ${w.hot ? `<span class="card-hot">${t('card.hot')}</span>` : ''}
           <div class="card-play">▶</div>
         </div>
         <div class="card-overlay">
