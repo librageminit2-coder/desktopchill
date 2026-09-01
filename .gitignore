@@ -1,0 +1,16 @@
+# ============================================================
+#  Video GỐC nặng — GIỮ Ở MÁY, KHÔNG đưa lên web/GitHub.
+#  (Chỉ bản preview nhẹ trong media/preview mới được đăng.)
+# ============================================================
+/*.mp4
+/*.MOV
+/*.mov
+
+# Ghi chú nội bộ (không cần công khai)
+/Reference information.txt
+/reference website.txt
+
+# Rác hệ điều hành / editor
+Thumbs.db
+.DS_Store
+node_modules/

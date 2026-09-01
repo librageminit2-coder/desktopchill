@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>desktopchill — Hình nền động cho máy tính</title>
+  <meta name="description" content="Kho hình nền động (live wallpaper) customize riêng cho máy tính. Mượt, mát, không hao pin. Liên hệ Zalo hoặc TikTok để cài đặt." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <!-- ==================== HEADER ==================== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#top" class="logo">
+        <span class="logo-mark">🖥️</span>
+        <span class="logo-text">desktop<b>chill</b></span>
+      </a>
+
+      <nav class="main-nav">
+        <a href="#gallery" data-i18n="nav.gallery">Hình nền</a>
+        <a href="#pricing" data-i18n="nav.pricing">Bảng giá</a>
+        <a href="#contact" data-i18n="nav.contact">Liên hệ</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" id="langBtn" title="Language / Ngôn ngữ" aria-label="Language">
+          <span class="lang-flag" id="langFlag">🌐</span><span id="langCode">VI</span>
+        </button>
+        <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Theme">
+          <span id="themeIcon">🌙</span>
+        </button>
+        <button class="icon-btn" id="settingsBtn" title="Cài đặt" aria-label="Settings">⚙️</button>
+      </div>
+    </div>
+  </header>
+
+  <span id="top"></span>
+
+  <main>
+    <!-- ==================== HERO ==================== -->
+    <section class="hero">
+      <div class="hero-glow"></div>
+      <h1 class="hero-title" data-i18n="hero.title">Kho hình nền động cho máy tính</h1>
+      <p class="hero-subtitle" data-i18n="hero.subtitle">Live wallpaper được customize riêng — mượt, mát, không hao pin. Cập nhật mẫu mới liên tục.</p>
+      <a href="#contact" class="btn btn-primary hero-cta" data-i18n="hero.cta">Liên hệ lấy mẫu</a>
+    </section>
+
+    <!-- ==================== GALLERY ==================== -->
+    <section id="gallery" class="gallery-section">
+      <h2 class="section-title" data-i18n="gallery.title">Mẫu shop đã thực hiện</h2>
+      <p class="section-subtitle" data-i18n="gallery.subtitle">Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn</p>
+      <div class="filter-bar" id="filterBar">
+        <!-- category pills injected by JS -->
+      </div>
+      <div class="gallery" id="galleryGrid"><!-- cards injected by JS --></div>
+      <p class="gallery-empty" id="galleryEmpty" hidden data-i18n="gallery.empty">Không tìm thấy mẫu phù hợp.</p>
+    </section>
+
+    <!-- ==================== PRICING ==================== -->
+    <section id="pricing" class="pricing-section">
+      <h2 class="section-title" data-i18n="pricing.title">Bảng giá & Dịch vụ</h2>
+      <div class="pricing-card">
+        <div class="pricing-badge" data-i18n="pricing.badge">Trọn gói</div>
+        <div class="pricing-price">
+          <span class="price-value" data-i18n="pricing.price">175k</span>
+          <span class="price-note" data-i18n="pricing.priceNote">Trọn gói — không phát sinh thêm</span>
+        </div>
+        <p class="pricing-lead" data-i18n="pricing.lead">Shop hỗ trợ mua và cài App trọn gói, bạn không cần thao tác.</p>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span><span data-i18n="pricing.f1"></span></li>
+          <li><span class="check">✓</span><span data-i18n="pricing.f2"></span></li>
+          <li><span class="check">✓</span><span data-i18n="pricing.f3"></span></li>
+          <li><span class="check">✓</span><span data-i18n="pricing.f4"></span></li>
+          <li><span class="check">✓</span><span data-i18n="pricing.f5"></span></li>
+          <li><span class="check">✓</span><span data-i18n="pricing.f6"></span></li>
+        </ul>
+        <a href="#" class="btn btn-primary pricing-cta" id="pricingZalo" data-i18n="pricing.cta">Đặt ngay qua Zalo</a>
+      </div>
+    </section>
+
+    <!-- ==================== CONTACT ==================== -->
+    <section id="contact" class="contact-section">
+      <h2 class="section-title" data-i18n="contact.title">Liên hệ với shop</h2>
+      <p class="section-subtitle" data-i18n="contact.subtitle">Nhắn tin để được tư vấn và cài đặt nhanh nhất</p>
+      <div class="contact-cards">
+        <a class="contact-card contact-zalo" id="contactZalo" target="_blank" rel="noopener">
+          <span class="contact-icon">💬</span>
+          <span class="contact-meta">
+            <span class="contact-label" data-i18n="contact.zaloLabel">Zalo</span>
+            <span class="contact-value" id="zaloPhone">0339903166</span>
+          </span>
+        </a>
+        <a class="contact-card contact-tiktok" id="contactTiktok" target="_blank" rel="noopener">
+          <span class="contact-icon">🎵</span>
+          <span class="contact-meta">
+            <span class="contact-label" data-i18n="contact.tiktokLabel">TikTok</span>
+            <span class="contact-value" id="tiktokHandle">@desktopchill</span>
+          </span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="site-footer">
+    <div class="footer-logo"><span>🖥️</span> desktop<b>chill</b></div>
+    <p class="footer-tagline" data-i18n="footer.tagline">Live wallpaper customize cho máy tính của bạn.</p>
+    <p class="footer-rights"><span data-i18n="footer.rights">Mọi hình ảnh thuộc về desktopchill.</span> © <span id="year"></span></p>
+  </footer>
+
+  <!-- ==================== LIGHTBOX MODAL ==================== -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-body" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close aria-label="Close">✕</button>
+      <div class="modal-video-wrap">
+        <video id="modalVideo" loop muted playsinline></video>
+      </div>
+      <div class="modal-info">
+        <h3 class="modal-title" id="modalTitle"></h3>
+        <span class="modal-cat" id="modalCat"></span>
+        <p class="modal-get" data-i18n="modal.getThis">Thích mẫu này? Liên hệ để được cài đặt:</p>
+        <div class="modal-actions">
+          <a class="btn btn-primary" id="modalZalo" target="_blank" rel="noopener" data-i18n="modal.zalo">Nhắn Zalo</a>
+          <a class="btn btn-ghost" id="modalTiktok" target="_blank" rel="noopener" data-i18n="modal.tiktok">Xem trên TikTok</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SETTINGS PANEL ==================== -->
+  <div class="settings-panel" id="settingsPanel" hidden>
+    <div class="modal-backdrop" data-close-settings></div>
+    <div class="settings-body" role="dialog" aria-modal="true">
+      <div class="settings-head">
+        <h3 data-i18n="settings.title">Cài đặt</h3>
+        <button class="modal-close" data-close-settings aria-label="Close">✕</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label" data-i18n="settings.language">Ngôn ngữ</span>
+        <div class="seg" id="segLang">
+          <button data-lang="vi">Tiếng Việt</button>
+          <button data-lang="en">English</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label" data-i18n="settings.theme">Giao diện</span>
+        <div class="seg" id="segTheme">
+          <button data-theme-val="dark" data-i18n="settings.themeDark">Tối</button>
+          <button data-theme-val="light" data-i18n="settings.themeLight">Sáng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
