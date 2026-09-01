@@ -63,9 +63,11 @@
           <div class="fx fx-screenglow" id="screenGlow"></div>
           <div class="fx fx-dust" id="dust"></div>
           <div class="screen" id="screen">
-            <video id="heroVideo" muted loop playsinline preload="auto"></video>
-            <div class="screen-scan"></div>
-            <div class="screen-cast"></div>
+            <div class="screen-quad" id="screenQuad">
+              <video id="heroVideo" muted loop playsinline preload="auto"></video>
+              <div class="screen-scan"></div>
+              <div class="screen-cast"></div>
+            </div>
           </div>
           <div class="live-label" id="liveLabel">
             <span class="live-dot"></span><span data-i18n="hero.livePrefix">LIVE PREVIEW</span>: <b id="liveName">—</b>

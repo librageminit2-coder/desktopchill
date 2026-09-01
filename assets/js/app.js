@@ -185,6 +185,47 @@ function setView(v) {
   renderGallery();
 }
 
+/* ---------------- perspective fit: warp the live wallpaper onto the angled monitor ---------------- */
+// 4 góc màn hình (tỉ lệ theo ảnh hero-desk.jpg 768x890). Chỉnh ở đây để căn khít.
+const MON = { tl: [0.1406, 0.4371], tr: [0.5026, 0.4258], br: [0.5026, 0.5652], bl: [0.1406, 0.6180] };
+function adjugate(m) { return [
+  m[4]*m[8]-m[5]*m[7], m[2]*m[7]-m[1]*m[8], m[1]*m[5]-m[2]*m[4],
+  m[5]*m[6]-m[3]*m[8], m[0]*m[8]-m[2]*m[6], m[2]*m[3]-m[0]*m[5],
+  m[3]*m[7]-m[4]*m[6], m[1]*m[6]-m[0]*m[7], m[0]*m[4]-m[1]*m[3] ]; }
+function multmm(a, b) { const r = []; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { let s = 0; for (let k = 0; k < 3; k++) s += a[3*i+k]*b[3*k+j]; r[3*i+j] = s; } return r; }
+function multmv(m, v) { return [ m[0]*v[0]+m[1]*v[1]+m[2]*v[2], m[3]*v[0]+m[4]*v[1]+m[5]*v[2], m[6]*v[0]+m[7]*v[1]+m[8]*v[2] ]; }
+function basisToPoints(p) {
+  const m = [p[0][0], p[1][0], p[2][0], p[0][1], p[1][1], p[2][1], 1, 1, 1];
+  const v = multmv(adjugate(m), [p[3][0], p[3][1], 1]);
+  return multmm(m, [v[0],0,0, 0,v[1],0, 0,0,v[2]]);
+}
+function projection(src, dst) { return multmm(basisToPoints(dst), adjugate(basisToPoints(src))); }
+function fitMonitor() {
+  const frame = $('.stage-frame'); const quad = $('#screenQuad');
+  if (!frame || !quad) return;
+  const W = frame.clientWidth, H = frame.clientHeight;
+  if (!W || !H) return;
+  const c = [MON.tl, MON.tr, MON.br, MON.bl].map(([fx, fy]) => [fx*W, fy*H]);
+  const minX = Math.min(...c.map(p=>p[0])), minY = Math.min(...c.map(p=>p[1]));
+  const maxX = Math.max(...c.map(p=>p[0])), maxY = Math.max(...c.map(p=>p[1]));
+  const bw = maxX-minX, bh = maxY-minY;
+  quad.style.left = minX+'px'; quad.style.top = minY+'px'; quad.style.width = bw+'px'; quad.style.height = bh+'px';
+  const src = [[0,0],[bw,0],[bw,bh],[0,bh]];
+  const dst = c.map(p => [p[0]-minX, p[1]-minY]);
+  const t = projection(src, dst);
+  for (let i = 0; i < 9; i++) t[i] /= t[8];
+  quad.style.transform = 'matrix3d(' + [t[0],t[3],0,t[6], t[1],t[4],0,t[7], 0,0,1,0, t[2],t[5],0,t[8]].join(',') + ')';
+}
+function initMonitorFit() {
+  fitMonitor();
+  window.addEventListener('resize', fitMonitor);
+  const frame = $('.stage-frame');
+  if (frame && window.ResizeObserver) new ResizeObserver(fitMonitor).observe(frame);
+  const desk = $('.desk-img'); if (desk && !desk.complete) desk.addEventListener('load', fitMonitor);
+  setTimeout(fitMonitor, 300); setTimeout(fitMonitor, 900);
+  window.MON = MON; window.fitMonitor = fitMonitor; // để tinh chỉnh trực tiếp
+}
+
 /* ---------------- living-scene dust particles ---------------- */
 function initDust() {
   const box = $('#dust'); if (!box) return;
@@ -245,6 +286,7 @@ async function init() {
   renderGallery();
   renderFaq();
   initDust();
+  initMonitorFit();
   initReveal();
 }
 init();
