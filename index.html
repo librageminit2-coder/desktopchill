@@ -37,21 +37,40 @@
   <main>
     <!-- ==================== HERO (interactive live preview) ==================== -->
     <section id="home" class="hero">
-      <video class="hero-video" id="heroBg" autoplay muted loop playsinline preload="auto" poster="assets/img/hero-poster.jpg">
-        <source src="assets/media/hero-loop.mp4" type="video/mp4" />
-      </video>
+      <!-- full-bleed animated background video + live monitor overlay -->
+      <div class="hero-stage" id="heroStage">
+        <video class="hero-video" id="heroBg" autoplay muted loop playsinline preload="auto" poster="assets/img/hero-poster.jpg">
+          <source src="assets/media/hero-loop.mp4" type="video/mp4" />
+        </video>
+        <div class="screen" id="screen">
+          <div class="screen-quad" id="screenQuad">
+            <video id="heroVideo" muted loop playsinline preload="auto"></video>
+            <div class="screen-grade"></div>
+          </div>
+        </div>
+      </div>
       <div class="hero-tint"></div>
 
-      <div class="hero-content">
-        <span class="hero-eyebrow" data-i18n="hero.eyebrow">✦ Live wallpaper cho desktop</span>
-        <h1 class="hero-title">
-          <span data-i18n="hero.title1">Biến máy tính của bạn</span>
-          <span class="grad" data-i18n="hero.title2">thành một góc chill</span>
-        </h1>
-        <p class="hero-sub" data-i18n="hero.sub">Kho hình nền động customize riêng — mượt, mát, không hao pin. Xem bộ sưu tập bên dưới và liên hệ để shop cài trọn gói cho bạn.</p>
-        <div class="hero-cta-row">
-          <a href="#gallery" class="btn btn-primary" data-i18n="hero.cta2">Xem bộ sưu tập</a>
-          <a href="#contact" class="btn btn-ghost liquid-glass" data-i18n="hero.cta1">Bắt đầu</a>
+      <div class="hero-ui">
+        <div class="hero-content">
+          <span class="hero-eyebrow" data-i18n="hero.eyebrow">✦ Live wallpaper cho desktop</span>
+          <h1 class="hero-title">
+            <span data-i18n="hero.title1">Biến máy tính của bạn</span>
+            <span class="grad" data-i18n="hero.title2">thành một góc chill</span>
+          </h1>
+          <p class="hero-sub" data-i18n="hero.sub">Kho hình nền động customize riêng — mượt, mát, không hao pin. Xem bộ sưu tập bên dưới và liên hệ để shop cài trọn gói cho bạn.</p>
+          <div class="hero-cta-row">
+            <a href="#gallery" class="btn btn-primary" data-i18n="hero.cta2">Xem bộ sưu tập</a>
+            <a href="#contact" class="btn btn-ghost liquid-glass" data-i18n="hero.cta1">Bắt đầu</a>
+          </div>
+        </div>
+
+        <div class="preview-gallery">
+          <div class="pg-head">
+            <span class="live-dot"></span>
+            <span data-i18n="hero.pgSub">Click để hiển thị lên màn hình</span>: <b id="liveName">—</b>
+          </div>
+          <div class="pg-track" id="pgTrack"><!-- thumbs injected --></div>
         </div>
       </div>
       <a href="#gallery" class="hero-scroll" aria-label="Cuộn xuống bộ sưu tập">↓</a>

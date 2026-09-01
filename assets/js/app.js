@@ -177,7 +177,7 @@ function openSettings() { $('#settingsPanel').hidden = false; }
 function closeSettings() { $('#settingsPanel').hidden = true; }
 
 /* ---------------- setters ---------------- */
-function setLang(l) { state.lang = l; localStorage.setItem('dc_lang', l); applyI18n(); renderChips(); renderGallery(); renderFaq(); }
+function setLang(l) { state.lang = l; localStorage.setItem('dc_lang', l); applyI18n(); renderPreviewGallery(); renderChips(); renderGallery(); renderFaq(); }
 function setTheme(t2) { state.theme = t2; localStorage.setItem('dc_theme', t2); applyTheme(); }
 function setView(v) {
   state.view = v; localStorage.setItem('dc_view', v);
@@ -187,7 +187,7 @@ function setView(v) {
 
 /* ---------------- perspective fit: warp the live wallpaper onto the angled monitor ---------------- */
 // 4 góc màn hình (tỉ lệ theo ảnh hero-desk.jpg 768x890). Chỉnh ở đây để căn khít.
-const MON = { tl: [0.1406, 0.4371], tr: [0.5026, 0.4258], br: [0.5026, 0.5652], bl: [0.1406, 0.6180] };
+const MON = { tl: [0.1302, 0.0926], tr: [0.5000, 0.0741], br: [0.5000, 0.4259], bl: [0.1354, 0.5185] };
 function adjugate(m) { return [
   m[4]*m[8]-m[5]*m[7], m[2]*m[7]-m[1]*m[8], m[1]*m[5]-m[2]*m[4],
   m[5]*m[6]-m[3]*m[8], m[0]*m[8]-m[2]*m[6], m[2]*m[3]-m[0]*m[5],
@@ -201,7 +201,7 @@ function basisToPoints(p) {
 }
 function projection(src, dst) { return multmm(basisToPoints(dst), adjugate(basisToPoints(src))); }
 function fitMonitor() {
-  const frame = $('.stage-frame'); const quad = $('#screenQuad');
+  const frame = $('#heroStage'); const quad = $('#screenQuad');
   if (!frame || !quad) return;
   const W = frame.clientWidth, H = frame.clientHeight;
   if (!W || !H) return;
@@ -219,9 +219,9 @@ function fitMonitor() {
 function initMonitorFit() {
   fitMonitor();
   window.addEventListener('resize', fitMonitor);
-  const frame = $('.stage-frame');
+  const frame = $('#heroStage');
   if (frame && window.ResizeObserver) new ResizeObserver(fitMonitor).observe(frame);
-  const desk = $('.desk-img'); if (desk && !desk.complete) desk.addEventListener('load', fitMonitor);
+  const bg = $('#heroBg'); if (bg) bg.addEventListener('loadeddata', fitMonitor);
   setTimeout(fitMonitor, 300); setTimeout(fitMonitor, 900);
   window.MON = MON; window.fitMonitor = fitMonitor; // để tinh chỉnh trực tiếp
 }
@@ -281,9 +281,11 @@ async function init() {
     state.wallpapers = (await res.json()).wallpapers || [];
   } catch (err) { console.error('Không tải được danh sách:', err); state.wallpapers = []; }
   applyI18n();
+  renderPreviewGallery();
   renderChips();
   renderGallery();
   renderFaq();
+  initMonitorFit();
   initReveal();
 }
 init();

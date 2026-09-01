@@ -19,7 +19,7 @@ export const I18N = {
     'hero.cta2': 'Xem bộ sưu tập',
     'hero.livePrefix': 'LIVE PREVIEW',
     'hero.pgTitle': 'LIVE PREVIEW GALLERY',
-    'hero.pgSub': 'Click vào hình nền bất kỳ để trải nghiệm trên màn hình',
+    'hero.pgSub': 'Click để hiển thị lên màn hình',
 
     'gallery.title': 'Bộ sưu tập',
     'gallery.subtitle': 'Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn',
@@ -91,7 +91,7 @@ export const I18N = {
     'hero.cta2': 'Browse collection',
     'hero.livePrefix': 'LIVE PREVIEW',
     'hero.pgTitle': 'LIVE PREVIEW GALLERY',
-    'hero.pgSub': 'Click any wallpaper to experience it on the screen',
+    'hero.pgSub': 'Click to show it on the screen',
 
     'gallery.title': 'Collection',
     'gallery.subtitle': 'Pick one you like, then message us on Zalo/TikTok to get it installed',
