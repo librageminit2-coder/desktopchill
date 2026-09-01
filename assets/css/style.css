@@ -226,6 +226,22 @@ img, video { display: block; max-width: 100%; }
 .contact-label { font-size: .82rem; color: var(--text-faint); font-weight: 600; }
 .contact-value { font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
 
+/* ---------- FAQ ---------- */
+.faq-section { max-width: 720px; margin: 0 auto; padding: 40px 16px; }
+.faq-list { margin-top: 26px; display: flex; flex-direction: column; gap: 12px; }
+.faq-item { background: var(--surface-solid); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: border-color .2s; }
+.faq-item.open { border-color: var(--border-strong); }
+.faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 18px 20px; background: transparent; border: 0; color: var(--text);
+  font: inherit; font-weight: 700; font-size: 1rem; text-align: left; cursor: pointer;
+}
+.faq-q:hover { color: var(--accent); }
+.faq-icon { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-weight: 800; font-size: 1.1rem; }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+.faq-item.open .faq-a { max-height: 260px; }
+.faq-a p { padding: 0 20px 18px; color: var(--text-dim); line-height: 1.65; }
+
 /* ---------- FOOTER ---------- */
 .site-footer { text-align: center; padding: 44px 16px; border-top: 1px solid var(--border); color: var(--text-dim); }
 .footer-logo { font-weight: 800; font-size: 1.1rem; margin-bottom: 8px; }

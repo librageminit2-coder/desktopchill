@@ -3,8 +3,12 @@ export const I18N = {
   vi: {
     'nav.gallery': 'Hình nền',
     'nav.pricing': 'Bảng giá',
+    'nav.faq': 'Hỏi đáp',
     'nav.contact': 'Liên hệ',
     'nav.settings': 'Cài đặt',
+
+    'faq.title': 'Câu hỏi thường gặp',
+    'faq.subtitle': 'Những thắc mắc khách hay hỏi trước khi cài',
 
     'hero.title': 'Cài đặt hình nền động cho máy tính của bạn',
     'hero.subtitle': 'Shop hỗ trợ cài đặt & customize live wallpaper trọn gói — mượt, mát, không hao pin. Xem các mẫu shop đã làm bên dưới và liên hệ để được cài.',
@@ -12,7 +16,7 @@ export const I18N = {
 
     'gallery.title': 'Mẫu shop đã thực hiện',
     'gallery.subtitle': 'Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn',
-    'gallery.note': '✨ Đây chỉ là vài mẫu tiêu biểu. Khi cài, shop tặng bạn trọn kho hình nền động khổng lồ và cập nhật thêm liên tục.',
+    'gallery.note': 'Đây chỉ là vài mẫu tiêu biểu. Khi cài, shop cung cấp trọn kho hình nền động và cập nhật thêm liên tục.',
     'filter.search': 'Tìm hình nền...',
     'filter.all': 'Tất cả',
     'filter.hot': '🔥 Hot',
@@ -63,8 +67,12 @@ export const I18N = {
   en: {
     'nav.gallery': 'Wallpapers',
     'nav.pricing': 'Pricing',
+    'nav.faq': 'FAQ',
     'nav.contact': 'Contact',
     'nav.settings': 'Settings',
+
+    'faq.title': 'Frequently asked questions',
+    'faq.subtitle': 'What customers usually ask before installing',
 
     'hero.title': 'Live wallpaper setup for your desktop',
     'hero.subtitle': 'We install & customize live wallpapers for you — smooth, cool, battery-friendly. Browse the designs we’ve made below and contact us to get set up.',
@@ -72,7 +80,7 @@ export const I18N = {
 
     'gallery.title': 'Designs we’ve made',
     'gallery.subtitle': 'Pick one you like, then message us on Zalo/TikTok to get it installed',
-    'gallery.note': '✨ These are just a few featured samples. On install you get our entire huge live-wallpaper library, updated continuously.',
+    'gallery.note': 'These are just a few featured samples. On install you get our full live-wallpaper library, updated continuously.',
     'filter.search': 'Search wallpapers...',
     'filter.all': 'All',
     'filter.hot': '🔥 Hot',
@@ -120,6 +128,50 @@ export const I18N = {
     'footer.tagline': 'Custom live wallpapers for your desktop.',
     'footer.rights': 'All images belong to desktopchill.',
   },
+};
+
+// Câu hỏi thường gặp (FAQ) — sửa/thêm thoải mái tại đây
+export const FAQ = {
+  vi: [
+    { q: 'Shop cài 1 hình hay nhiều hình?',
+      a: 'Shop cài cho bạn nhiều mẫu, không giới hạn 1 hình. Bạn chọn thoải mái trong kho, sau này có mẫu mới cũng được thêm miễn phí.' },
+    { q: 'Ngoài các mẫu trên web còn mẫu nào khác không?',
+      a: 'Có. Các mẫu hiển thị trên web chỉ là bản demo tiêu biểu. Shop còn nhiều mẫu khác trong kho hình nền động và cập nhật thêm liên tục.' },
+    { q: 'App có dùng được vĩnh viễn không?',
+      a: 'Có. App bản quyền dùng vĩnh viễn, không phải trả phí hàng tháng.' },
+    { q: 'App được cài theo hình thức nào?',
+      a: 'App được cài theo tài khoản của bạn, gắn với bạn và dùng vĩnh viễn trên máy.' },
+    { q: 'Shop có làm hình nền theo yêu cầu riêng không?',
+      a: 'Có. Shop nhận tùy chỉnh hình nền theo ý bạn: ảnh riêng, bố cục, đồng hồ, lịch, nhạc nền... theo phong cách bạn thích.' },
+    { q: 'Cài đặt như thế nào, có cần rành máy tính không?',
+      a: 'Không cần. Shop cài online trọn gói qua Ultraview, làm sẵn tất cả cho bạn. Vừa cài shop vừa hướng dẫn để bạn dùng thành thạo.' },
+    { q: 'Có phát sinh thêm chi phí gì không?',
+      a: 'Không. Trọn gói 175k đã bao gồm app, trọn kho hình và cập nhật trọn đời — không phát sinh thêm.' },
+    { q: 'Máy yếu cài được không? Có nóng máy, hao pin không?',
+      a: 'Được. App được tối ưu riêng theo máy bạn — chạy mượt, mát, không hao pin.' },
+    { q: 'Thanh toán và nhận cài như thế nào?',
+      a: 'Bạn nhắn Zalo của shop để được tư vấn mẫu, hẹn giờ và hướng dẫn thanh toán. Sau đó shop cài online cho bạn ngay.' },
+  ],
+  en: [
+    { q: 'Do you install one wallpaper or many?',
+      a: 'We install many designs for you — not just one. Pick freely from the library, and new designs later are added for free.' },
+    { q: 'Are there other designs beyond the ones shown here?',
+      a: 'Yes. The wallpapers shown are just featured samples. We have more designs in our live-wallpaper library, updated continuously.' },
+    { q: 'Is the app permanent?',
+      a: 'Yes. It is a licensed app for permanent use — no monthly fees.' },
+    { q: 'How is the app licensed?',
+      a: 'The app is installed to your own account, tied to you and usable permanently on your machine.' },
+    { q: 'Can you customize a wallpaper to my request?',
+      a: 'Yes. We customize wallpapers to your taste: your own images, layout, clock, calendar, background music, and more.' },
+    { q: 'How is it installed — do I need to be tech-savvy?',
+      a: 'No need. We install everything remotely via Ultraview and guide you through using it while we set it up.' },
+    { q: 'Are there any extra costs?',
+      a: 'No. The 175k package includes the app, the full library and lifetime updates — nothing extra.' },
+    { q: 'Will it run on a low-end PC? Any heat or battery drain?',
+      a: 'Yes. The app is optimized for your machine — smooth, cool and battery-friendly.' },
+    { q: 'How do payment and setup work?',
+      a: 'Message us on Zalo for advice, a time slot and payment details. Then we install it online for you right away.' },
+  ],
 };
 
 // Thứ tự danh mục hiển thị trên thanh lọc

@@ -1,4 +1,4 @@
-import { I18N, CATEGORIES, CONTACT } from './i18n.js';
+import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js';
 
 /* ---------------- STATE ---------------- */
 const state = {
@@ -145,6 +145,30 @@ function wireCards() {
   });
 }
 
+/* ---------------- FAQ ---------------- */
+function renderFaq() {
+  const list = $('#faqList');
+  if (!list) return;
+  const items = FAQ[state.lang] || FAQ.vi;
+  list.innerHTML = items.map((item, i) => `
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false" data-faq="${i}">
+        <span>${item.q}</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a"><p>${item.a}</p></div>
+    </div>`).join('');
+
+  $$('#faqList .faq-q').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const open = item.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.querySelector('.faq-icon').textContent = open ? '–' : '+';
+    });
+  });
+}
+
 /* ---------------- MODAL ---------------- */
 function openModal(id) {
   const w = state.wallpapers.find((x) => x.id === id);
@@ -181,6 +205,7 @@ function setLang(lang) {
   applyI18n();
   renderFilterBar();
   renderGallery();
+  renderFaq();
 }
 function setTheme(theme) {
   state.theme = theme;
@@ -222,6 +247,7 @@ async function init() {
   applyI18n();
   renderFilterBar();
   renderGallery();
+  renderFaq();
 }
 
 init();
