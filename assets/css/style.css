@@ -179,7 +179,7 @@ img, video { display: block; max-width: 100%; }
 
 /* sidebar layout (sticky filter like a wallpaper library) */
 .gallery-layout { display: grid; grid-template-columns: 244px minmax(0, 1fr); gap: 28px; align-items: start; margin-top: 12px; }
-.gallery-sidebar { position: sticky; top: 88px; align-self: start; height: calc(100vh - 108px); display: flex; flex-direction: column; gap: 14px; }
+.gallery-sidebar { position: sticky; top: 88px; align-self: start; display: flex; flex-direction: column; gap: 16px; }
 .gallery-main { min-width: 0; }
 .gallery-main .gallery-note { margin: 0 0 18px; }
 .sidebar-block { background: transparent; border: 0; padding: 0 2px; }
@@ -189,7 +189,21 @@ img, video { display: block; max-width: 100%; }
 .search svg { opacity: .6; flex-shrink: 0; }
 .chips { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
 .gallery-sidebar .chip { text-align: left; }
-.sidebar-promo { display: flex; flex-direction: column; gap: 5px; margin-top: auto; padding: 16px; border-radius: 18px; background: var(--accent-grad); color: #fff; box-shadow: 0 12px 28px rgba(110,130,255,.4); transition: filter .2s, transform .2s; }
+/* floating 3D menu buttons on the paper background */
+.gallery-sidebar .search,
+.gallery-sidebar .chip:not(.active),
+.gallery-sidebar .view-toggle {
+  background: color-mix(in srgb, var(--surface-solid) 46%, transparent);
+  backdrop-filter: blur(9px) saturate(150%);
+  -webkit-backdrop-filter: blur(9px) saturate(150%);
+  box-shadow: 0 4px 10px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.55);
+}
+.gallery-sidebar .chip { transition: transform .18s cubic-bezier(.2,.7,.3,1.4), box-shadow .22s, background .2s, color .2s; }
+.gallery-sidebar .chip:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.65); }
+.gallery-sidebar .chip:active { transform: translateY(-1px) scale(.98); }
+.gallery-sidebar .chip.active { box-shadow: 0 9px 22px color-mix(in srgb, var(--accent) 48%, transparent), inset 0 1px 0 rgba(255,255,255,.35); }
+.gallery-sidebar .view-toggle button { transition: transform .16s, background .2s; }
+.sidebar-promo { display: flex; flex-direction: column; gap: 5px; margin-top: 0; padding: 16px; border-radius: 18px; background: var(--accent-grad); color: #fff; box-shadow: 0 12px 28px rgba(110,130,255,.4); transition: filter .2s, transform .2s; }
 .sidebar-promo:hover { filter: brightness(1.06); transform: translateY(-2px); }
 .promo-badge { align-self: flex-start; font-size: .66rem; font-weight: 800; background: rgba(255,255,255,.22); padding: 3px 10px; border-radius: 999px; }
 .promo-price { font-size: 1.7rem; font-weight: 800; margin-top: 4px; }
@@ -234,6 +248,12 @@ img, video { display: block; max-width: 100%; }
 .gallery-empty { text-align: center; color: var(--text-dim); padding: 40px; }
 
 /* ==================== PRICING ==================== */
+/* pricing (left) + faq (right) on one row */
+.price-faq { max-width: 1180px; margin: 0 auto; padding: 30px 24px 24px; display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 48px; align-items: start; }
+.price-faq .pricing-section, .price-faq .faq-section { max-width: none; margin: 0; padding: 0; }
+.price-faq .section-head { text-align: left; margin-bottom: 18px; }
+.price-faq .section-title { font-size: clamp(1.5rem, 3vw, 2rem); }
+@media (max-width: 860px) { .price-faq { grid-template-columns: 1fr; gap: 34px; padding: 20px 20px; } .price-faq .section-head { text-align: center; } }
 .pricing-section { max-width: 640px; margin: 0 auto; padding: 30px 16px; }
 .pricing-card { position: relative; margin-top: 10px; padding: 34px 30px; background: var(--surface-solid); border: 1px solid var(--border); border-radius: 26px; box-shadow: var(--shadow); overflow: hidden; }
 .pricing-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-grad); }
