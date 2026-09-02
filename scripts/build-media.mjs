@@ -126,7 +126,16 @@ for (const { name, num } of videos) {
   const previewOut = join(PREVIEW_DIR, `${id}.mp4`);
   const posterOut = join(POSTER_DIR, `${id}.jpg`);
 
+  const prev = byId.get(id);
   process.stdout.write(`[${idx}/${videos.length}] ${name} → id ${id} ... `);
+
+  // Đã xử lý rồi (có sẵn preview + poster) → giữ nguyên, bỏ qua nén lại.
+  // Muốn nén lại tất cả: node scripts/build-media.mjs --force
+  if (!FORCE && existsSync(previewOut) && existsSync(posterOut) && prev) {
+    result.push(prev);
+    console.log('bỏ qua (đã có sẵn)');
+    continue;
+  }
 
   const { w, h } = probeSize(input);
 
@@ -140,7 +149,6 @@ for (const { name, num } of videos) {
     '-c:v', 'libx264', '-crf', '30', '-preset', 'veryfast',
     '-pix_fmt', 'yuv420p', '-movflags', '+faststart', previewOut]);
 
-  const prev = byId.get(id);
   result.push({
     id,
     source: name,
