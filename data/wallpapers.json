@@ -584,6 +584,21 @@
       "preview": "media/preview/39.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "40",
+      "source": "40.mp4",
+      "title": {
+        "vi": "Mẫu 40",
+        "en": "Design 40"
+      },
+      "category": "khac",
+      "hot": false,
+      "color": "#5584cb",
+      "poster": "media/poster/40.jpg",
+      "preview": "media/preview/40.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
