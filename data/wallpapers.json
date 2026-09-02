@@ -599,6 +599,111 @@
       "preview": "media/preview/40.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "41",
+      "source": "41.mp4",
+      "title": {
+        "vi": "Mẫu 41",
+        "en": "Design 41"
+      },
+      "category": "phongcanh",
+      "hot": false,
+      "color": "#4e615b",
+      "poster": "media/poster/41.jpg",
+      "preview": "media/preview/41.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "42",
+      "source": "42.mp4",
+      "title": {
+        "vi": "Mẫu 42",
+        "en": "Design 42"
+      },
+      "category": "phongcanh",
+      "hot": false,
+      "color": "#575e5a",
+      "poster": "media/poster/42.jpg",
+      "preview": "media/preview/42.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "43",
+      "source": "43.mp4",
+      "title": {
+        "vi": "Mẫu 43",
+        "en": "Design 43"
+      },
+      "category": "phongcanh",
+      "hot": false,
+      "color": "#3d6545",
+      "poster": "media/poster/43.jpg",
+      "preview": "media/preview/43.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "44",
+      "source": "44.mp4",
+      "title": {
+        "vi": "Mẫu 44",
+        "en": "Design 44"
+      },
+      "category": "phongcanh",
+      "hot": false,
+      "color": "#59696a",
+      "poster": "media/poster/44.jpg",
+      "preview": "media/preview/44.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "45",
+      "source": "45.mp4",
+      "title": {
+        "vi": "Mẫu 45",
+        "en": "Design 45"
+      },
+      "category": "phongcanh",
+      "hot": false,
+      "color": "#849eb4",
+      "poster": "media/poster/45.jpg",
+      "preview": "media/preview/45.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "46",
+      "source": "46.mp4",
+      "title": {
+        "vi": "Mẫu 46",
+        "en": "Design 46"
+      },
+      "category": "phongcanh",
+      "hot": false,
+      "color": "#4e585a",
+      "poster": "media/poster/46.jpg",
+      "preview": "media/preview/46.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "47",
+      "source": "47.mp4",
+      "title": {
+        "vi": "Mẫu 47",
+        "en": "Design 47"
+      },
+      "category": "phongcanh",
+      "hot": false,
+      "color": "#35414e",
+      "poster": "media/poster/47.jpg",
+      "preview": "media/preview/47.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
