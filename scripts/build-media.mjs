@@ -115,6 +115,7 @@ if (existsSync(DATA_FILE)) {
   try { existing = JSON.parse(readFileSync(DATA_FILE, 'utf8')).wallpapers || []; } catch {}
 }
 const byId = new Map(existing.map((w) => [w.id, w]));
+const FORCE = process.argv.includes('--force'); // thêm --force để nén lại TẤT CẢ video
 
 const result = [];
 let idx = 0;
