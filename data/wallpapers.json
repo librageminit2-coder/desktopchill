@@ -539,6 +539,51 @@
       "preview": "media/preview/36.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "37",
+      "source": "37.mp4",
+      "title": {
+        "vi": "Mẫu 37",
+        "en": "Design 37"
+      },
+      "category": "khac",
+      "hot": false,
+      "color": "#715337",
+      "poster": "media/poster/37.jpg",
+      "preview": "media/preview/37.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "38",
+      "source": "38.mp4",
+      "title": {
+        "vi": "Mẫu 38",
+        "en": "Design 38"
+      },
+      "category": "khac",
+      "hot": false,
+      "color": "#32634d",
+      "poster": "media/poster/38.jpg",
+      "preview": "media/preview/38.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "39",
+      "source": "39.mp4",
+      "title": {
+        "vi": "Mẫu 39",
+        "en": "Design 39"
+      },
+      "category": "khac",
+      "hot": false,
+      "color": "#3a3028",
+      "poster": "media/poster/39.jpg",
+      "preview": "media/preview/39.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
