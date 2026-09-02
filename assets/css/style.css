@@ -177,11 +177,25 @@ img, video { display: block; max-width: 100%; }
 .gallery-section { max-width: 1680px; margin: 0 auto; padding: 40px clamp(16px, 3vw, 40px) 70px; }
 .gallery-note { max-width: 640px; margin: 0 auto 22px; text-align: center; font-size: .92rem; font-weight: 600; color: var(--text); background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); padding: 10px 18px; border-radius: 14px; }
 
-.toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 26px; }
-.search { display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 40px; background: var(--surface-solid); border: 1px solid var(--border); border-radius: 999px; min-width: 200px; }
+/* sidebar layout (sticky filter like a wallpaper library) */
+.gallery-layout { display: grid; grid-template-columns: 244px minmax(0, 1fr); gap: 28px; align-items: start; margin-top: 12px; }
+.gallery-sidebar { position: sticky; top: 88px; align-self: start; height: calc(100vh - 108px); display: flex; flex-direction: column; gap: 14px; }
+.gallery-main { min-width: 0; }
+.gallery-main .gallery-note { margin: 0 0 18px; }
+.sidebar-block { background: var(--surface-solid); border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
+.sidebar-label { display: block; font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
+.search { display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 42px; background: var(--surface-solid); border: 1px solid var(--border); border-radius: 12px; width: 100%; }
 .search input { border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; width: 100%; font-size: .92rem; }
 .search svg { opacity: .6; flex-shrink: 0; }
-.chips { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; }
+.chips { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.gallery-sidebar .chip { text-align: left; }
+.sidebar-promo { display: flex; flex-direction: column; gap: 5px; margin-top: auto; padding: 16px; border-radius: 18px; background: var(--accent-grad); color: #fff; box-shadow: 0 12px 28px rgba(110,130,255,.4); transition: filter .2s, transform .2s; }
+.sidebar-promo:hover { filter: brightness(1.06); transform: translateY(-2px); }
+.promo-badge { align-self: flex-start; font-size: .66rem; font-weight: 800; background: rgba(255,255,255,.22); padding: 3px 10px; border-radius: 999px; }
+.promo-price { font-size: 1.7rem; font-weight: 800; margin-top: 4px; }
+.promo-price s { font-size: .85rem; opacity: .72; font-weight: 600; margin-right: 6px; }
+.promo-desc { font-size: .78rem; opacity: .93; line-height: 1.45; }
+.promo-cta { margin-top: 4px; font-weight: 800; font-size: .85rem; }
 .chip { padding: 8px 15px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font: inherit; font-weight: 600; font-size: .88rem; cursor: pointer; transition: all .18s; white-space: nowrap; }
 .chip:hover { color: var(--text); border-color: var(--border-strong); }
 .chip.active { background: var(--accent-grad); color: #fff; border-color: transparent; box-shadow: 0 6px 16px rgba(110,130,255,.35); }
@@ -191,10 +205,9 @@ img, video { display: block; max-width: 100%; }
 .view-toggle button { border: 0; background: transparent; color: var(--text-dim); font-size: 1rem; width: 34px; height: 34px; border-radius: 999px; cursor: pointer; transition: all .18s; }
 .view-toggle button.active { background: var(--accent-grad); color: #fff; }
 
-.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-.grid.view-one { grid-template-columns: 1fr; max-width: 720px; margin: 0 auto; }
-@media (max-width: 1080px) { .grid:not(.view-one) { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 760px)  { .grid:not(.view-one) { grid-template-columns: repeat(2, 1fr); } }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.grid.view-one { grid-template-columns: 1fr; max-width: 760px; }
+@media (max-width: 760px)  { .grid:not(.view-one) { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
 
 .card { background: var(--surface-solid); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); transition: transform .25s, box-shadow .25s, border-color .25s; opacity: 0; animation: rise .5s ease forwards; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -313,20 +326,21 @@ img, video { display: block; max-width: 100%; }
 @media (max-width: 860px) {
   .main-nav { display: none; }
 }
+/* gallery sidebar → stacked toolbar on tablet/phone */
+@media (max-width: 860px) {
+  .gallery-layout { grid-template-columns: 1fr; gap: 14px; }
+  .gallery-sidebar { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .gallery-sidebar .search { flex: 1 1 100%; height: 38px; }
+  .gallery-sidebar .sidebar-block { flex: 1 1 auto; background: transparent; border: 0; padding: 0; }
+  .gallery-sidebar .sidebar-label { display: none; }
+  .gallery-sidebar .chips { flex-direction: row; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .gallery-sidebar .chips::-webkit-scrollbar { display: none; }
+  .gallery-sidebar .chip { text-align: center; padding: 6px 13px; font-size: .82rem; }
+  .sidebar-promo { display: none; }
+}
 @media (max-width: 620px) {
   .hero { padding-top: 104px; }
-  /* smaller toolbar on phones */
-  .toolbar { gap: 8px; }
-  .search { height: 36px; min-width: 0; flex: 1 1 100%; order: -1; }
-  .chips { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; width: 100%; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .chips::-webkit-scrollbar { display: none; }
-  .chip { padding: 6px 12px; font-size: .8rem; }
-  .view-toggle { position: absolute; right: 16px; }
-  .toolbar { position: relative; }
   .pg-thumb { width: 150px; }
   .grid:not(.view-one) { gap: 12px; }
-  .card-info { padding: 10px 11px; }
-  .card-title { font-size: .85rem; }
-  .card-tag { font-size: .66rem; padding: 2px 7px; }
   .live-label { top: 34%; left: 7%; }
 }

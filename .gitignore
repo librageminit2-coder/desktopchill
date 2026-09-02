@@ -13,6 +13,9 @@
 /web on phone.jpg
 /paper-texture.jpg
 
+# Thư mục chứa file gốc / tham khảo — KHÔNG đưa lên web
+/reference/
+
 # Rác hệ điều hành / editor
 Thumbs.db
 .DS_Store

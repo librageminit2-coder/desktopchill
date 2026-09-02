@@ -82,22 +82,37 @@
         <h2 class="section-title" data-i18n="gallery.title">Bộ sưu tập</h2>
         <p class="section-subtitle" data-i18n="gallery.subtitle">Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn</p>
       </div>
-      <p class="gallery-note reveal" data-i18n="gallery.note">Đây chỉ là vài mẫu tiêu biểu. Khi cài, shop cung cấp trọn kho hình nền động và cập nhật thêm liên tục.</p>
+      <div class="gallery-layout">
+        <aside class="gallery-sidebar">
+          <label class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="searchInput" type="search" placeholder="Tìm hình nền..." />
+          </label>
+          <div class="sidebar-block">
+            <span class="sidebar-label" data-i18n="filter.catLabel">Thể loại</span>
+            <div class="chips" id="chips"><!-- category chips injected --></div>
+          </div>
+          <div class="sidebar-block">
+            <span class="sidebar-label" data-i18n="filter.viewLabel">Kiểu xem</span>
+            <div class="view-toggle" id="viewToggle" title="Kiểu xem">
+              <button data-view="one" aria-label="1 cột">▭</button>
+              <button data-view="grid" class="active" aria-label="Lưới">▦</button>
+            </div>
+          </div>
+          <a class="sidebar-promo" href="#contact">
+            <span class="promo-badge" data-i18n="pricing.badge">Trọn gói</span>
+            <span class="promo-price"><s data-i18n="pricing.original">300k</s> <b data-i18n="pricing.price">175k</b></span>
+            <span class="promo-desc" data-i18n="promo.desc">Cài trọn gói qua Ultraview + trọn kho hình + cập nhật trọn đời.</span>
+            <span class="promo-cta" data-i18n="promo.cta">Nhận ưu đãi →</span>
+          </a>
+        </aside>
 
-      <div class="toolbar reveal">
-        <label class="search">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input id="searchInput" type="search" placeholder="Tìm hình nền..." />
-        </label>
-        <div class="chips" id="chips"><!-- category chips injected --></div>
-        <div class="view-toggle" id="viewToggle" title="Kiểu xem">
-          <button data-view="one" aria-label="1 cột">▭</button>
-          <button data-view="grid" class="active" aria-label="Lưới">▦</button>
+        <div class="gallery-main">
+          <p class="gallery-note" data-i18n="gallery.note">Đây chỉ là vài mẫu tiêu biểu. Khi cài, shop cung cấp trọn kho hình nền động và cập nhật thêm liên tục.</p>
+          <div class="grid" id="galleryGrid"><!-- cards injected --></div>
+          <p class="gallery-empty" id="galleryEmpty" hidden data-i18n="gallery.empty">Không tìm thấy mẫu phù hợp.</p>
         </div>
       </div>
-
-      <div class="grid" id="galleryGrid"><!-- cards injected --></div>
-      <p class="gallery-empty" id="galleryEmpty" hidden data-i18n="gallery.empty">Không tìm thấy mẫu phù hợp.</p>
     </section>
 
     <!-- ==================== PRICING ==================== -->
