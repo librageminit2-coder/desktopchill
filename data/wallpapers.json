@@ -8,12 +8,12 @@
         "en": "Design 1"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#2e2f2c",
       "poster": "media/poster/01.jpg",
       "preview": "media/preview/01.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#2e2f2c"
+      "h": 1080
     },
     {
       "id": "02",
@@ -23,12 +23,12 @@
         "en": "Design 2"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#f3f3f0",
       "poster": "media/poster/02.jpg",
       "preview": "media/preview/02.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#f3f3f0"
+      "h": 1080
     },
     {
       "id": "03",
@@ -38,12 +38,12 @@
         "en": "Design 3"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#b26c70",
       "poster": "media/poster/03.jpg",
       "preview": "media/preview/03.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#b26c70"
+      "h": 1080
     },
     {
       "id": "04",
@@ -53,12 +53,12 @@
         "en": "Design 4"
       },
       "category": "game",
+      "hot": false,
+      "color": "#d5cdd3",
       "poster": "media/poster/04.jpg",
       "preview": "media/preview/04.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#d5cdd3"
+      "h": 1080
     },
     {
       "id": "05",
@@ -68,12 +68,12 @@
         "en": "Design 5"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#f4f8f3",
       "poster": "media/poster/05.jpg",
       "preview": "media/preview/05.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#f4f8f3"
+      "h": 1080
     },
     {
       "id": "06",
@@ -83,12 +83,12 @@
         "en": "Design 6"
       },
       "category": "anime",
+      "hot": true,
+      "color": "#12326e",
       "poster": "media/poster/06.jpg",
       "preview": "media/preview/06.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": true,
-      "color": "#12326e"
+      "h": 1080
     },
     {
       "id": "07",
@@ -98,12 +98,12 @@
         "en": "Design 7"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#6b94aa",
       "poster": "media/poster/07.jpg",
       "preview": "media/preview/07.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#6b94aa"
+      "h": 1080
     },
     {
       "id": "08",
@@ -113,12 +113,12 @@
         "en": "Design 8"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#283034",
       "poster": "media/poster/08.jpg",
       "preview": "media/preview/08.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#283034"
+      "h": 1080
     },
     {
       "id": "09",
@@ -128,12 +128,12 @@
         "en": "Design 9"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#17162f",
       "poster": "media/poster/09.jpg",
       "preview": "media/preview/09.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#17162f"
+      "h": 1080
     },
     {
       "id": "10",
@@ -143,12 +143,12 @@
         "en": "Design 10"
       },
       "category": "game",
+      "hot": false,
+      "color": "#1a2429",
       "poster": "media/poster/10.jpg",
       "preview": "media/preview/10.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#1a2429"
+      "h": 1080
     },
     {
       "id": "11",
@@ -158,12 +158,12 @@
         "en": "Design 11"
       },
       "category": "girl",
+      "hot": false,
+      "color": "#667691",
       "poster": "media/poster/11.jpg",
       "preview": "media/preview/11.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#667691"
+      "h": 1080
     },
     {
       "id": "12",
@@ -173,12 +173,12 @@
         "en": "Design 12"
       },
       "category": "game",
+      "hot": false,
+      "color": "#2c2d29",
       "poster": "media/poster/12.jpg",
       "preview": "media/preview/12.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#2c2d29"
+      "h": 1080
     },
     {
       "id": "13",
@@ -188,12 +188,12 @@
         "en": "Design 13"
       },
       "category": "girl",
+      "hot": false,
+      "color": "#51504f",
       "poster": "media/poster/13.jpg",
       "preview": "media/preview/13.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#51504f"
+      "h": 1080
     },
     {
       "id": "14",
@@ -203,12 +203,12 @@
         "en": "Design 14"
       },
       "category": "anime",
+      "hot": true,
+      "color": "#f2eff4",
       "poster": "media/poster/14.jpg",
       "preview": "media/preview/14.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": true,
-      "color": "#f2eff4"
+      "h": 1080
     },
     {
       "id": "15",
@@ -218,12 +218,12 @@
         "en": "Design 15"
       },
       "category": "truutuong",
+      "hot": false,
+      "color": "#fdfefc",
       "poster": "media/poster/15.jpg",
       "preview": "media/preview/15.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#fdfefc"
+      "h": 1080
     },
     {
       "id": "16",
@@ -233,12 +233,12 @@
         "en": "Design 16"
       },
       "category": "phongcanh",
+      "hot": false,
+      "color": "#294d52",
       "poster": "media/poster/16.jpg",
       "preview": "media/preview/16.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#294d52"
+      "h": 1080
     },
     {
       "id": "17",
@@ -248,12 +248,12 @@
         "en": "Design 17"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#afb0ae",
       "poster": "media/poster/17.jpg",
       "preview": "media/preview/17.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#afb0ae"
+      "h": 1080
     },
     {
       "id": "18",
@@ -263,12 +263,12 @@
         "en": "Design 18"
       },
       "category": "girl",
+      "hot": false,
+      "color": "#8d71aa",
       "poster": "media/poster/18.jpg",
       "preview": "media/preview/18.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#8d71aa"
+      "h": 1080
     },
     {
       "id": "19",
@@ -278,12 +278,12 @@
         "en": "Design 19"
       },
       "category": "phongcanh",
+      "hot": false,
+      "color": "#ebd4cd",
       "poster": "media/poster/19.jpg",
       "preview": "media/preview/19.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#ebd4cd"
+      "h": 1080
     },
     {
       "id": "20",
@@ -293,12 +293,12 @@
         "en": "Design 20"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#cdd1b0",
       "poster": "media/poster/20.jpg",
       "preview": "media/preview/20.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#cdd1b0"
+      "h": 1080
     },
     {
       "id": "21",
@@ -308,12 +308,12 @@
         "en": "Design 21"
       },
       "category": "truutuong",
+      "hot": false,
+      "color": "#f3f8f6",
       "poster": "media/poster/21.jpg",
       "preview": "media/preview/21.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#f3f8f6"
+      "h": 1080
     },
     {
       "id": "22",
@@ -323,12 +323,12 @@
         "en": "Design 22"
       },
       "category": "girl",
+      "hot": false,
+      "color": "#8f6f4e",
       "poster": "media/poster/22.jpg",
       "preview": "media/preview/22.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#8f6f4e"
+      "h": 1080
     },
     {
       "id": "23",
@@ -338,12 +338,12 @@
         "en": "Design 23"
       },
       "category": "girl",
+      "hot": true,
+      "color": "#cad3cf",
       "poster": "media/poster/23.jpg",
       "preview": "media/preview/23.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": true,
-      "color": "#cad3cf"
+      "h": 1080
     },
     {
       "id": "24",
@@ -353,12 +353,12 @@
         "en": "Design 24"
       },
       "category": "girl",
+      "hot": false,
+      "color": "#324b50",
       "poster": "media/poster/24.jpg",
       "preview": "media/preview/24.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#324b50"
+      "h": 1080
     },
     {
       "id": "25",
@@ -368,12 +368,12 @@
         "en": "Design 25"
       },
       "category": "game",
+      "hot": true,
+      "color": "#8d3333",
       "poster": "media/poster/25.jpg",
       "preview": "media/preview/25.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": true,
-      "color": "#8d3333"
+      "h": 1080
     },
     {
       "id": "26",
@@ -383,12 +383,12 @@
         "en": "Design 26"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#010202",
       "poster": "media/poster/26.jpg",
       "preview": "media/preview/26.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#010202"
+      "h": 1080
     },
     {
       "id": "27",
@@ -398,12 +398,12 @@
         "en": "Design 27"
       },
       "category": "phongcanh",
+      "hot": false,
+      "color": "#19ac93",
       "poster": "media/poster/27.jpg",
       "preview": "media/preview/27.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#19ac93"
+      "h": 1080
     },
     {
       "id": "28",
@@ -413,12 +413,12 @@
         "en": "Design 28"
       },
       "category": "game",
+      "hot": false,
+      "color": "#070c14",
       "poster": "media/poster/28.jpg",
       "preview": "media/preview/28.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#070c14"
+      "h": 1080
     },
     {
       "id": "29",
@@ -428,12 +428,12 @@
         "en": "Design 29"
       },
       "category": "truutuong",
+      "hot": false,
+      "color": "#290a12",
       "poster": "media/poster/29.jpg",
       "preview": "media/preview/29.mp4",
       "w": 848,
-      "h": 464,
-      "hot": false,
-      "color": "#290a12"
+      "h": 464
     },
     {
       "id": "30",
@@ -443,12 +443,12 @@
         "en": "Design 30"
       },
       "category": "phongcanh",
+      "hot": false,
+      "color": "#324672",
       "poster": "media/poster/30.jpg",
       "preview": "media/preview/30.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#324672"
+      "h": 1080
     },
     {
       "id": "31",
@@ -458,12 +458,12 @@
         "en": "Design 31"
       },
       "category": "anime",
+      "hot": false,
+      "color": "#b4b4b1",
       "poster": "media/poster/31.jpg",
       "preview": "media/preview/31.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": false,
-      "color": "#b4b4b1"
+      "h": 1080
     },
     {
       "id": "32",
@@ -473,12 +473,12 @@
         "en": "Design 32"
       },
       "category": "anime",
+      "hot": true,
+      "color": "#321514",
       "poster": "media/poster/32.jpg",
       "preview": "media/preview/32.mp4",
       "w": 1920,
-      "h": 1080,
-      "hot": true,
-      "color": "#321514"
+      "h": 1080
     },
     {
       "id": "33",
@@ -488,12 +488,57 @@
         "en": "Design 33"
       },
       "category": "girl",
+      "hot": false,
+      "color": "#ac8d75",
       "poster": "media/poster/33.jpg",
       "preview": "media/preview/33.mp4",
       "w": 1920,
-      "h": 1080,
+      "h": 1080
+    },
+    {
+      "id": "34",
+      "source": "34.mp4",
+      "title": {
+        "vi": "Mẫu 34",
+        "en": "Design 34"
+      },
+      "category": "khac",
       "hot": false,
-      "color": "#ac8d75"
+      "color": "#6d6e6d",
+      "poster": "media/poster/34.jpg",
+      "preview": "media/preview/34.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "35",
+      "source": "35.mp4",
+      "title": {
+        "vi": "Mẫu 35",
+        "en": "Design 35"
+      },
+      "category": "khac",
+      "hot": false,
+      "color": "#a89390",
+      "poster": "media/poster/35.jpg",
+      "preview": "media/preview/35.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "36",
+      "source": "36.mp4",
+      "title": {
+        "vi": "Mẫu 36",
+        "en": "Design 36"
+      },
+      "category": "khac",
+      "hot": false,
+      "color": "#8197b1",
+      "poster": "media/poster/36.jpg",
+      "preview": "media/preview/36.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
