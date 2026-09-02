@@ -81,6 +81,20 @@ function probeSize(file) {
   return { w: 1920, h: 1080 };
 }
 
+// Màu trung bình của poster (dùng cho ánh sáng ambient) — thu ảnh về 1x1 rồi đọc RGB
+function avgColor(file) {
+  try {
+    const buf = execFileSync(FFMPEG,
+      ['-v', 'error', '-i', file, '-vf', 'scale=1:1', '-frames:v', '1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'],
+      { maxBuffer: 4096 });
+    if (buf && buf.length >= 3) {
+      const hex = (n) => n.toString(16).padStart(2, '0');
+      return `#${hex(buf[0])}${hex(buf[1])}${hex(buf[2])}`;
+    }
+  } catch {}
+  return '#6ea8ff';
+}
+
 // Tìm các video ở thư mục gốc: tên là số, đuôi mp4/mov
 const videos = readdirSync(ROOT)
   .map((name) => {
@@ -132,6 +146,7 @@ for (const { name, num } of videos) {
     title: prev?.title || { vi: `Mẫu ${num}`, en: `Design ${num}` },
     category: prev?.category || 'khac',
     hot: prev?.hot || false,
+    color: prev?.color || avgColor(posterOut),
     poster: `media/poster/${id}.jpg`,
     preview: `media/preview/${id}.mp4`,
     w, h,
