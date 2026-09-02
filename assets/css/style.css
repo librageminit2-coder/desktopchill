@@ -214,7 +214,7 @@ img, video { display: block; max-width: 100%; }
 .mini-btn:hover { background: rgba(255,255,255,.26); }
 .mini-primary { background: var(--accent-grad); border-color: transparent; }
 .mini-primary:hover { filter: brightness(1.1); background: var(--accent-grad); }
-.card-hot { position: absolute; top: 10px; left: 10px; z-index: 2; font-size: .68rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: linear-gradient(120deg,#ff7a45,#ff3d6e); color: #fff; box-shadow: 0 4px 12px rgba(255,80,60,.5); }
+.card-hot { position: absolute; top: 8px; right: 8px; left: auto; z-index: 3; font-size: .56rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: linear-gradient(120deg,#ff7a45,#ff3d6e); color: #fff; box-shadow: 0 3px 10px rgba(255,80,60,.5); }
 .card-info { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; }
 .card-title { font-weight: 700; font-size: .95rem; }
 .card-tag { font-size: .72rem; font-weight: 700; color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--border); padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
