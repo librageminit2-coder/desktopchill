@@ -41,7 +41,7 @@ function wireContacts() {
 /* ---------------- HERO live preview ---------------- */
 function featured() {
   const hot = state.wallpapers.filter((w) => w.hot);
-  return (hot.length >= 4 ? hot : state.wallpapers.slice(0, 8));
+  return (hot.length ? hot : state.wallpapers).slice(0, 9); // tất cả mẫu Hot, tối đa 9 (lưới 3x3)
 }
 function renderPreviewGallery() {
   const track = $('#pgTrack');
