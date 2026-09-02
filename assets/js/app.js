@@ -108,40 +108,52 @@ function renderGallery() {
   $('#galleryEmpty').hidden = items.length > 0;
   grid.innerHTML = items.map((w, i) => {
     const title = w.title[state.lang] || w.title.vi;
+    const cat = t('cat.' + w.category);
     return `
       <article class="card" data-id="${w.id}" data-preview="${w.preview}" style="animation-delay:${Math.min(i, 12) * 0.03}s">
         <div class="card-media">
           <img src="${w.poster}" alt="${title}" loading="lazy" />
+          <video class="card-vid" muted loop playsinline preload="none" data-src="${w.preview}"></video>
           ${w.hot ? `<span class="card-hot">${t('card.hot')}</span>` : ''}
-        </div>
-        <div class="card-info">
-          <span class="card-title">${title}</span>
-          <span class="card-tag">${t('cat.' + w.category)}</span>
+          <div class="card-hover">
+            <div class="card-hover-meta">
+              <span class="card-hover-name">${title}</span>
+              <span class="card-hover-tag">${cat}</span>
+            </div>
+            <div class="card-hover-actions">
+              <button class="mini-btn mini-primary" data-act="screen">${t('card.toScreen')}</button>
+              <button class="mini-btn" data-act="contact">${t('card.contact')}</button>
+            </div>
+          </div>
         </div>
       </article>`;
   }).join('');
   wireCards();
 }
 function wireCards() {
-  $$('#galleryGrid .card').forEach((card) => {
-    const media = $('.card-media', card);
-    const play = () => {
-      if ($('video', media)) return;
-      const v = document.createElement('video');
-      v.src = card.dataset.preview; v.loop = v.muted = v.playsInline = true;
-      v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
-      media.appendChild(v);
-      requestAnimationFrame(() => card.classList.add('playing'));
-      v.play().catch(() => {});
-    };
-    const stop = () => { card.classList.remove('playing'); const v = $('video', media); if (v) v.remove(); };
-    card.addEventListener('mouseenter', play);
-    card.addEventListener('mouseleave', stop);
-    // click a wallpaper below → show it on the hero monitor, then scroll up to see it
-    card.addEventListener('click', () => {
-      selectHero(card.dataset.id);
-      document.querySelector('#home').scrollIntoView({ behavior: 'smooth' });
+  const cards = $$('#galleryGrid .card');
+  const toScreen = (id) => { selectHero(id); $('#home').scrollIntoView({ behavior: 'smooth' }); };
+  // auto-play videos as they scroll into view (pause when off-screen for performance)
+  if (window._cardIO) window._cardIO.disconnect();
+  window._cardIO = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      const card = e.target, v = $('.card-vid', card);
+      if (!v) return;
+      if (e.isIntersecting) {
+        if (!v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
+        v.play().then(() => card.classList.add('playing')).catch(() => {});
+      } else { v.pause(); }
     });
+  }, { rootMargin: '150px 0px', threshold: 0.1 });
+  cards.forEach((card) => {
+    window._cardIO.observe(card);
+    $('.card-media', card).addEventListener('click', (ev) => {
+      if (ev.target.closest('[data-act]')) return;
+      toScreen(card.dataset.id);
+    });
+    const scr = $('[data-act="screen"]', card), con = $('[data-act="contact"]', card);
+    if (scr) scr.addEventListener('click', (ev) => { ev.stopPropagation(); toScreen(card.dataset.id); });
+    if (con) con.addEventListener('click', (ev) => { ev.stopPropagation(); openModal(card.dataset.id); });
   });
 }
 
@@ -219,6 +231,13 @@ function fitMonitor() {
   const t = projection(src, dst);
   for (let i = 0; i < 9; i++) t[i] /= t[8];
   quad.style.transform = 'matrix3d(' + [t[0],t[3],0,t[6], t[1],t[4],0,t[7], 0,0,1,0, t[2],t[5],0,t[8]].join(',') + ')';
+  // on phones, pan the whole scene so the monitor (left of centre) is centred → "zoom into the computer"
+  if (window.innerWidth <= 760) {
+    const monCX = ((MON.tl[0] + MON.tr[0] + MON.br[0] + MON.bl[0]) / 4) * W;
+    frame.style.transform = `translate(calc(-50% + ${Math.round(W / 2 - monCX)}px), -46%)`;
+  } else {
+    frame.style.transform = 'translate(-50%, -50%)';
+  }
 }
 function initMonitorFit() {
   fitMonitor();
