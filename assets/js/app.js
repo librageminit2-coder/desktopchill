@@ -147,6 +147,8 @@ function wireCards() {
       } else { v.pause(); }
     });
   }, { rootMargin: '150px 0px', threshold: 0.1 });
+  const tiltOK = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   cards.forEach((card) => {
     window._cardIO.observe(card);
     $('.card-media', card).addEventListener('click', (ev) => {
@@ -156,6 +158,21 @@ function wireCards() {
     const scr = $('[data-act="screen"]', card), con = $('[data-act="contact"]', card);
     if (scr) scr.addEventListener('click', (ev) => { ev.stopPropagation(); toScreen(card.dataset.id); });
     if (con) con.addEventListener('click', (ev) => { ev.stopPropagation(); openModal(card.dataset.id); });
+    // 3D tilt theo con trỏ (chỉ trên thiết bị có chuột)
+    if (tiltOK) {
+      const MAXT = 6; // độ nghiêng tối đa
+      card.addEventListener('mousemove', (ev) => {
+        const r = card.getBoundingClientRect();
+        const px = (ev.clientX - r.left) / r.width - 0.5;
+        const py = (ev.clientY - r.top) / r.height - 0.5;
+        card.style.setProperty('--ry', (px * MAXT).toFixed(2) + 'deg');
+        card.style.setProperty('--rx', (-py * MAXT).toFixed(2) + 'deg');
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.setProperty('--rx', '0deg');
+        card.style.setProperty('--ry', '0deg');
+      });
+    }
   });
 }
 

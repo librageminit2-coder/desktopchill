@@ -13,6 +13,15 @@ export const I18N = {
     'promobar.cta': 'Nhắn Zalo →',
     'fab.zalo': 'Nhắn Zalo',
 
+    'howto.title': 'Cài chỉ với 3 bước',
+    'howto.subtitle': 'Không cần rành máy tính — shop lo trọn gói cho bạn',
+    'howto.s1t': 'Nhắn Zalo, chọn mẫu',
+    'howto.s1d': 'Bạn nhắn Zalo, chọn mẫu ưng ý (hoặc yêu cầu riêng). Shop tư vấn và hẹn giờ cài.',
+    'howto.s2t': 'Shop cài online tận nơi',
+    'howto.s2d': 'Shop kết nối qua Ultraview và setup trọn gói, tối ưu theo máy bạn — bạn không phải thao tác gì.',
+    'howto.s3t': 'Enjoy góc chill của bạn',
+    'howto.s3d': 'Máy tính thành một góc chill mượt, mát. Có mẫu mới trên kênh sẽ update miễn phí trọn đời.',
+
     'faq.title': 'Câu hỏi thường gặp',
     'faq.subtitle': 'Những thắc mắc khách hay hỏi trước khi cài',
 
@@ -96,6 +105,15 @@ export const I18N = {
     'promobar.text': 'All-inclusive 175k — 42% off, installed online for you',
     'promobar.cta': 'Message Zalo →',
     'fab.zalo': 'Message Zalo',
+
+    'howto.title': 'Get set up in 3 steps',
+    'howto.subtitle': 'No tech skills needed — we handle everything for you',
+    'howto.s1t': 'Message Zalo, pick a design',
+    'howto.s1d': 'Message us on Zalo and pick the design you like (or a custom one). We advise and set a time.',
+    'howto.s2t': 'We install online for you',
+    'howto.s2d': 'We connect via Ultraview and set everything up, optimized for your machine — you do nothing.',
+    'howto.s3t': 'Enjoy your chill corner',
+    'howto.s3d': 'Your desktop becomes a smooth, cool chill corner. New designs on our channel are free for life.',
 
     'faq.title': 'Frequently asked questions',
     'faq.subtitle': 'What customers usually ask before installing',
