@@ -160,7 +160,7 @@ function wireCards() {
     if (con) con.addEventListener('click', (ev) => { ev.stopPropagation(); openModal(card.dataset.id); });
     // 3D tilt theo con trỏ (chỉ trên thiết bị có chuột)
     if (tiltOK) {
-      const MAXT = 6; // độ nghiêng tối đa
+      const MAXT = 10; // độ nghiêng tối đa
       card.addEventListener('mousemove', (ev) => {
         const r = card.getBoundingClientRect();
         const px = (ev.clientX - r.left) / r.width - 0.5;

@@ -177,7 +177,7 @@ img, video { display: block; max-width: 100%; }
 .pg-thumb .pg-name { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 10px 8px; font-size: .78rem; font-weight: 700; color: #fff; background: linear-gradient(to top, rgba(0,0,0,.8), transparent); }
 
 /* ==================== GALLERY (collection) ==================== */
-.gallery-section { max-width: 1680px; margin: 0 auto; padding: 40px clamp(16px, 3vw, 40px) 70px; }
+.gallery-section { max-width: 1860px; margin: 0 auto; padding: 40px clamp(16px, 2.2vw, 34px) 70px; }
 .gallery-note { max-width: 640px; margin: 0 auto 22px; text-align: center; font-size: .92rem; font-weight: 600; color: var(--text); background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); padding: 10px 18px; border-radius: 14px; }
 
 /* sidebar layout (sticky filter like a wallpaper library) */
@@ -222,7 +222,7 @@ img, video { display: block; max-width: 100%; }
 .view-toggle button { border: 0; background: transparent; color: var(--text-dim); font-size: 1rem; width: 34px; height: 34px; border-radius: 999px; cursor: pointer; transition: all .18s; }
 .view-toggle button.active { background: var(--accent-grad); color: #fff; }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(430px, 1fr)); gap: 18px; }
 .grid.view-one { grid-template-columns: 1fr; max-width: 760px; }
 /* mobile/tablet: fluid — 2 cột ở điện thoại, tự lên 3+ khi có nhiều bề ngang hơn (xoay ngang / zoom xa) */
 @media (max-width: 760px)  { .grid:not(.view-one) { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; } }
