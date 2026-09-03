@@ -12,6 +12,7 @@ export const I18N = {
 
     'reviews.title': 'Khách hàng nói gì',
     'reviews.subtitle': 'Phản hồi thật từ khách đã cài (TikTok/Zalo)',
+    'reviews.hint': 'Chạm lá trên cùng để xem · chạm lần nữa để sang lá kế · nút ⤢ để xem đầy đủ',
 
     'howto.title': 'Cài chỉ với 3 bước',
     'howto.subtitle': 'Không cần rành máy tính — shop lo trọn gói cho bạn',
@@ -105,6 +106,7 @@ export const I18N = {
 
     'reviews.title': 'What customers say',
     'reviews.subtitle': 'Real feedback from customers we installed for (TikTok/Zalo)',
+    'reviews.hint': 'Tap the top card to view · tap again for the next · ⤢ to see full',
 
     'howto.title': 'Get set up in 3 steps',
     'howto.subtitle': 'No tech skills needed — we handle everything for you',

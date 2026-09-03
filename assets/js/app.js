@@ -213,13 +213,54 @@ function closeSettings() { $('#settingsPanel').hidden = true; }
 /* ---------------- reviews (đánh giá khách hàng) ---------------- */
 const REVIEWS = ['fb1', 'fb2', 'fb3', 'fb4', 'fb5', 'fb6', 'fb7', 'fb8', 'fb9'];
 function renderReviews() {
-  const box = $('#reviewsMasonry'); if (!box) return;
+  const box = $('#reviewsStack'); if (!box) return;
   box.innerHTML = REVIEWS.map((f, i) => `
-    <figure class="review-item" data-src="assets/img/feedback/${f}.jpg">
-      <img src="assets/img/feedback/${f}.jpg" alt="Đánh giá khách hàng ${i + 1}" loading="lazy" />
+    <figure class="stack-card" data-src="assets/img/feedback/${f}.jpg">
+      <img src="assets/img/feedback/${f}.jpg" alt="Đánh giá khách hàng ${i + 1}" draggable="false" loading="lazy" />
+      <button class="stack-full" data-full type="button" aria-label="Xem đầy đủ">⤢</button>
     </figure>`).join('');
-  $$('#reviewsMasonry .review-item').forEach((el) =>
-    el.addEventListener('click', () => openLightbox(el.dataset.src)));
+
+  const cards = $$('#reviewsStack .stack-card');
+  const N = cards.length; if (!N) return;
+  const narrow = window.innerWidth <= 560;
+  const SPREAD = narrow ? 3 : 5;              // xòe quạt: góc nghiêng
+  const GAP_X = narrow ? 9 : 20;              // lệch ngang (nhỏ hơn trên mobile để không tràn)
+  const GAP_Y = 4;                            // lệch dọc
+  let order = cards.map((_, i) => i);         // order[0] = lá trên cùng
+  let popped = false, timer = null;
+
+  const layout = () => {
+    order.forEach((cardIdx, pos) => {
+      const el = cards[cardIdx];
+      const top = pos === 0;
+      if (top && popped) {
+        el.style.transform = 'translate(-50%, -30%) rotate(0deg) scale(1.14)';
+        el.style.zIndex = 100;
+        el.classList.add('is-popped'); el.classList.remove('is-top');
+      } else if (top) {
+        el.style.transform = 'translate(-50%, 0) rotate(0deg) scale(1)';
+        el.style.zIndex = N; el.classList.remove('is-popped'); el.classList.add('is-top');
+      } else {
+        // các lá sau xòe đối xứng hai bên phía sau lá trên cùng
+        const side = pos % 2 === 1 ? 1 : -1;
+        const mag = Math.ceil(pos / 2);
+        const x = side * mag * GAP_X, y = mag * GAP_Y;
+        el.style.transform = `translate(calc(-50% + ${x}px), ${y}px) rotate(${side * mag * SPREAD}deg) scale(${1 - pos * 0.015})`;
+        el.style.zIndex = N - pos;
+        el.classList.remove('is-popped', 'is-top');
+      }
+    });
+  };
+  const advance = () => { clearTimeout(timer); popped = false; order = [...order.slice(1), order[0]]; layout(); };
+  const pop = () => { popped = true; layout(); clearTimeout(timer); timer = setTimeout(advance, 2600); };
+
+  box.addEventListener('click', (e) => {
+    const card = e.target.closest('.stack-card'); if (!card) return;
+    if (order.indexOf(cards.indexOf(card)) !== 0) return;   // chỉ lá trên cùng bấm được
+    if (e.target.closest('[data-full]')) { clearTimeout(timer); openLightbox(card.dataset.src); return; }
+    if (popped) advance(); else pop();
+  });
+  layout();
 }
 function openLightbox(src) {
   const lb = $('#lightbox'), img = $('#lightboxImg'); if (!lb || !img) return;
