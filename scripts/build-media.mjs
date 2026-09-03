@@ -5,7 +5,7 @@
  *
  * Cách dùng:  node scripts/build-media.mjs
  *
- * - Quét các file video ở thư mục gốc có tên dạng số: 1.mp4, 2.mp4, ... 29.MOV
+ * - Quét các file video trong thư mục Library/ có tên dạng số: 1.mp4, 2.mp4, ... 29.MOV
  * - Với mỗi video tạo:  media/preview/<id>.mp4  (loop nhẹ, không tiếng)
  *                        media/poster/<id>.jpg   (ảnh xem trước)
  * - Giữ nguyên tiêu đề/danh mục bạn đã chỉnh trong wallpapers.json (không ghi đè).
@@ -42,6 +42,7 @@ function resolveBinary(name) {
 const FFMPEG = resolveBinary('ffmpeg');
 const FFPROBE = resolveBinary('ffprobe');
 const ROOT = resolve(__dirname, '..');
+const SRC_DIR = join(ROOT, 'Library');   // thư mục chứa video mẫu gốc (1.mp4, 2.mp4, ...)
 const PREVIEW_DIR = join(ROOT, 'media', 'preview');
 const POSTER_DIR = join(ROOT, 'media', 'poster');
 const DATA_FILE = join(ROOT, 'data', 'wallpapers.json');
@@ -95,8 +96,12 @@ function avgColor(file) {
   return '#6ea8ff';
 }
 
-// Tìm các video ở thư mục gốc: tên là số, đuôi mp4/mov
-const videos = readdirSync(ROOT)
+// Tìm các video trong thư mục Library/: tên là số, đuôi mp4/mov
+if (!existsSync(SRC_DIR)) {
+  console.error('❌ Không thấy thư mục Library/. Hãy tạo thư mục Library và bỏ video mẫu vào đó.');
+  process.exit(1);
+}
+const videos = readdirSync(SRC_DIR)
   .map((name) => {
     const m = name.match(/^(\d+)\.(mp4|mov)$/i);
     return m ? { name, num: parseInt(m[1], 10) } : null;
@@ -105,7 +110,7 @@ const videos = readdirSync(ROOT)
   .sort((a, b) => a.num - b.num);
 
 if (videos.length === 0) {
-  console.error('❌ Không tìm thấy video nào (vd: 1.mp4) ở thư mục gốc.');
+  console.error('❌ Không tìm thấy video nào (vd: 1.mp4) trong thư mục Library/.');
   process.exit(1);
 }
 
@@ -122,7 +127,7 @@ let idx = 0;
 for (const { name, num } of videos) {
   idx++;
   const id = String(num).padStart(2, '0');
-  const input = join(ROOT, name);
+  const input = join(SRC_DIR, name);
   const previewOut = join(PREVIEW_DIR, `${id}.mp4`);
   const posterOut = join(POSTER_DIR, `${id}.jpg`);
 

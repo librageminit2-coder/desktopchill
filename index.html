@@ -12,16 +12,6 @@
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
-  <!-- ==================== PROMO BAR ==================== -->
-  <div class="promo-bar" id="promoBar" hidden>
-    <span class="promo-bar-text">
-      <b data-i18n="promobar.tag">🔥 Ưu đãi hôm nay</b>
-      <span data-i18n="promobar.text">Trọn gói 175k — giảm 42%, cài online tận nơi</span>
-    </span>
-    <a class="promo-bar-cta" id="promoBarZalo" target="_blank" rel="noopener" data-i18n="promobar.cta">Nhắn Zalo →</a>
-    <button class="promo-bar-close" id="promoBarClose" aria-label="Đóng">✕</button>
-  </div>
-
   <!-- ==================== HEADER ==================== -->
   <header class="site-header">
     <div class="header-inner liquid-glass">
@@ -123,6 +113,15 @@
           <p class="gallery-empty" id="galleryEmpty" hidden data-i18n="gallery.empty">Không tìm thấy mẫu phù hợp.</p>
         </div>
       </div>
+    </section>
+
+    <!-- ==================== REVIEWS (đánh giá khách hàng) ==================== -->
+    <section id="reviews" class="reviews-section">
+      <div class="section-head reveal">
+        <h2 class="section-title" data-i18n="reviews.title">Khách hàng nói gì</h2>
+        <p class="section-subtitle" data-i18n="reviews.subtitle">Phản hồi thật từ khách đã cài (TikTok/Zalo)</p>
+      </div>
+      <div class="reviews-masonry" id="reviewsMasonry"></div>
     </section>
 
     <!-- ==================== HOW IT WORKS (3 bước) ==================== -->
@@ -268,6 +267,12 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ==================== LIGHTBOX (xem ảnh đánh giá) ==================== -->
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox-close" data-lb-close aria-label="Đóng">✕</button>
+    <img id="lightboxImg" alt="Đánh giá khách hàng" />
   </div>
 
   <!-- ==================== FLOATING ZALO ==================== -->

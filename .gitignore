@@ -1,10 +1,17 @@
 # ============================================================
 #  Video GỐC nặng — GIỮ Ở MÁY, KHÔNG đưa lên web/GitHub.
-#  (Chỉ bản preview nhẹ trong media/preview mới được đăng.)
+#  Từ nay video mẫu để trong thư mục Library/ (bản gốc nặng).
+#  Chỉ bản preview nhẹ trong media/preview mới được đăng lên web.
 # ============================================================
+/Library/*.mp4
+/Library/*.MOV
+/Library/*.mov
 /*.mp4
 /*.MOV
 /*.mov
+
+# Ảnh feedback GỐC (nặng) — bản tối ưu cho web nằm ở assets/img/feedback/
+/feedback/
 
 # Ghi chú / ảnh tham khảo nội bộ (không cần công khai)
 /Reference information.txt

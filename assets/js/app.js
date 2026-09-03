@@ -34,7 +34,6 @@ function wireContacts() {
   $('#footerZalo').href = CONTACT.zaloUrl;
   $('#footerTiktok').href = CONTACT.tiktokUrl;
   const fab = $('#floatingZalo'); if (fab) fab.href = CONTACT.zaloUrl;
-  const pbz = $('#promoBarZalo'); if (pbz) pbz.href = CONTACT.zaloUrl;
   $('#zaloPhone').textContent = CONTACT.zaloPhone;
   $('#tiktokHandle').textContent = CONTACT.tiktokHandle;
   $('#year').textContent = new Date().getFullYear();
@@ -211,6 +210,26 @@ function closeModal() {
 function openSettings() { $('#settingsPanel').hidden = false; }
 function closeSettings() { $('#settingsPanel').hidden = true; }
 
+/* ---------------- reviews (đánh giá khách hàng) ---------------- */
+const REVIEWS = ['fb1', 'fb2', 'fb3', 'fb4', 'fb5', 'fb6', 'fb7', 'fb8', 'fb9'];
+function renderReviews() {
+  const box = $('#reviewsMasonry'); if (!box) return;
+  box.innerHTML = REVIEWS.map((f, i) => `
+    <figure class="review-item" data-src="assets/img/feedback/${f}.jpg">
+      <img src="assets/img/feedback/${f}.jpg" alt="Đánh giá khách hàng ${i + 1}" loading="lazy" />
+    </figure>`).join('');
+  $$('#reviewsMasonry .review-item').forEach((el) =>
+    el.addEventListener('click', () => openLightbox(el.dataset.src)));
+}
+function openLightbox(src) {
+  const lb = $('#lightbox'), img = $('#lightboxImg'); if (!lb || !img) return;
+  img.src = src; lb.hidden = false; document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  const lb = $('#lightbox'); if (!lb || lb.hidden) return;
+  lb.hidden = true; $('#lightboxImg').src = ''; document.body.style.overflow = '';
+}
+
 /* ---------------- setters ---------------- */
 function setLang(l) { state.lang = l; localStorage.setItem('dc_lang', l); applyI18n(); renderPreviewGallery(); renderChips(); renderGallery(); renderFaq(); }
 function setTheme(t2) { state.theme = t2; localStorage.setItem('dc_theme', t2); applyTheme(); }
@@ -300,22 +319,6 @@ function initReveal() {
   });
 }
 
-/* ---------------- promo bar (đóng được, nhớ trong localStorage) ---------------- */
-function initPromoBar() {
-  const bar = $('#promoBar'); if (!bar) return;
-  let closed = false;
-  try { closed = localStorage.getItem('dc_promo_closed') === '1'; } catch {}
-  if (closed) { document.body.classList.remove('has-promo'); bar.hidden = true; return; }
-  document.body.classList.add('has-promo');
-  bar.hidden = false;
-  const btn = $('#promoBarClose');
-  if (btn) btn.addEventListener('click', () => {
-    document.body.classList.remove('has-promo');
-    bar.hidden = true;
-    try { localStorage.setItem('dc_promo_closed', '1'); } catch {}
-  });
-}
-
 /* ---------------- events ---------------- */
 function wireEvents() {
   $('#langBtn').addEventListener('click', () => setLang(state.lang === 'vi' ? 'en' : 'vi'));
@@ -326,9 +329,11 @@ function wireEvents() {
   $$('#viewToggle button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   $$('[data-close]').forEach((el) => el.addEventListener('click', closeModal));
   $$('[data-close-settings]').forEach((el) => el.addEventListener('click', closeSettings));
+  const lb = $('#lightbox');
+  if (lb) lb.addEventListener('click', (e) => { if (e.target === lb || e.target.closest('[data-lb-close]')) closeLightbox(); });
   $$('#segLang button').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
   $$('#segTheme button').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeVal)));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSettings(); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSettings(); closeLightbox(); } });
 }
 
 /* ---------------- visit counter (free hosted counter, no backend) ---------------- */
@@ -353,7 +358,7 @@ async function initVisits() {
 
 /* ---------------- init ---------------- */
 async function init() {
-  applyTheme(); wireContacts(); wireEvents(); initPromoBar();
+  applyTheme(); wireContacts(); wireEvents();
   $$('#viewToggle button').forEach((b) => b.classList.toggle('active', b.dataset.view === state.view));
   try {
     const res = await fetch('data/wallpapers.json', { cache: 'no-cache' });
@@ -363,6 +368,7 @@ async function init() {
   renderPreviewGallery();
   renderChips();
   renderGallery();
+  renderReviews();
   renderFaq();
   initMonitorFit();
   initReveal();

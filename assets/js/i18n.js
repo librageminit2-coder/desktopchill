@@ -8,10 +8,10 @@ export const I18N = {
     'nav.contact': 'Liên hệ',
     'nav.settings': 'Cài đặt',
 
-    'promobar.tag': '🔥 Ưu đãi hôm nay',
-    'promobar.text': 'Trọn gói 175k — giảm 42%, cài online tận nơi',
-    'promobar.cta': 'Nhắn Zalo →',
     'fab.zalo': 'Nhắn Zalo',
+
+    'reviews.title': 'Khách hàng nói gì',
+    'reviews.subtitle': 'Phản hồi thật từ khách đã cài (TikTok/Zalo)',
 
     'howto.title': 'Cài chỉ với 3 bước',
     'howto.subtitle': 'Không cần rành máy tính — shop lo trọn gói cho bạn',
@@ -101,10 +101,10 @@ export const I18N = {
     'nav.contact': 'Contact',
     'nav.settings': 'Settings',
 
-    'promobar.tag': '🔥 Today only',
-    'promobar.text': 'All-inclusive 175k — 42% off, installed online for you',
-    'promobar.cta': 'Message Zalo →',
     'fab.zalo': 'Message Zalo',
+
+    'reviews.title': 'What customers say',
+    'reviews.subtitle': 'Real feedback from customers we installed for (TikTok/Zalo)',
 
     'howto.title': 'Get set up in 3 steps',
     'howto.subtitle': 'No tech skills needed — we handle everything for you',
