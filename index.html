@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
   <!-- ==================== HEADER ==================== -->
   <header class="site-header">
     <div class="header-inner liquid-glass">
@@ -78,10 +80,10 @@
 
     <!-- ==================== STAT BAND (thông số nổi bật) ==================== -->
     <section class="stat-band reveal" aria-label="Thông số nổi bật">
-      <div class="stat"><span class="stat-num"><b id="statCount">47</b>+</span><span class="stat-label" data-i18n="stat.designs">mẫu hình nền động</span></div>
-      <div class="stat"><span class="stat-num">175k</span><span class="stat-label" data-i18n="stat.price">trọn gói, không phát sinh</span></div>
+      <div class="stat"><span class="stat-num" id="statCount" data-to="47" data-suffix="+">0</span><span class="stat-label" data-i18n="stat.designs">mẫu hình nền động</span></div>
+      <div class="stat"><span class="stat-num" data-to="175" data-suffix="k">0</span><span class="stat-label" data-i18n="stat.price">trọn gói, không phát sinh</span></div>
       <div class="stat"><span class="stat-num">∞</span><span class="stat-label" data-i18n="stat.lifetime">cập nhật trọn đời</span></div>
-      <div class="stat"><span class="stat-num">100%</span><span class="stat-label" data-i18n="stat.online">online · cài từ xa</span></div>
+      <div class="stat"><span class="stat-num" data-to="100" data-suffix="%">0</span><span class="stat-label" data-i18n="stat.online">online · cài từ xa</span></div>
     </section>
 
     <!-- ==================== GALLERY (full collection) ==================== -->
@@ -290,6 +292,8 @@
     <span class="fab-zalo-label" data-i18n="fab.zalo">Nhắn Zalo</span>
   </a>
 
+  <!-- Lenis: smooth scroll (darkroomengineering/lenis). Trang vẫn chạy bình thường nếu tải lỗi. -->
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
   <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

@@ -287,7 +287,11 @@ img, video { display: block; max-width: 100%; }
 @media (max-width: 860px) { .price-faq { grid-template-columns: 1fr; gap: 34px; padding: 20px 20px; } }
 .pricing-section { max-width: 640px; margin: 0 auto; padding: 30px 16px; }
 .pricing-card { position: relative; margin-top: 10px; padding: 34px 30px; background: color-mix(in srgb, var(--surface-solid) 46%, transparent); backdrop-filter: blur(9px) saturate(150%); -webkit-backdrop-filter: blur(9px) saturate(150%); border: 1px solid var(--border); border-radius: 26px; box-shadow: 0 4px 10px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.55); overflow: hidden; }
-.pricing-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-grad); }
+.pricing-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-grad); z-index: 1; }
+/* spotlight sáng theo con trỏ (Aceternity card-spotlight) */
+.pricing-card::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .35s ease; mix-blend-mode: screen; background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--accent) 26%, transparent), transparent 62%); }
+.pricing-card:hover::after { opacity: 1; }
+.pricing-card > * { position: relative; z-index: 1; }
 .pricing-badge { display: inline-block; font-size: .8rem; font-weight: 700; color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); padding: 5px 14px; border-radius: 999px; }
 .pricing-price { display: flex; align-items: baseline; gap: 12px; margin: 16px 0 6px; flex-wrap: wrap; }
 .price-original { font-size: 1.4rem; font-weight: 700; color: var(--text-faint); text-decoration: line-through; text-decoration-thickness: 2px; }
@@ -411,6 +415,9 @@ img, video { display: block; max-width: 100%; }
 .seg { display: flex; background: var(--bg-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px; gap: 4px; }
 .seg button { border: 0; background: transparent; color: var(--text-dim); font: inherit; font-weight: 600; font-size: .88rem; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all .18s; }
 .seg button.active { background: var(--accent-grad); color: #fff; }
+
+/* ==================== SCROLL PROGRESS BAR ==================== */
+.scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 150; background: var(--accent-grad); transform: scaleX(0); transform-origin: left center; will-change: transform; box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
 
 /* ==================== FLOATING ZALO (FAB) ==================== */
 .fab-zalo { position: fixed; right: 18px; bottom: 18px; z-index: 90; display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 18px 0 13px; border-radius: 999px; background: var(--zalo); color: #fff; font-weight: 800; font-size: .95rem; box-shadow: 0 10px 26px rgba(0,104,255,.5), 0 2px 6px rgba(0,0,0,.25); transition: transform .2s, box-shadow .2s; }

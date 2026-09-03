@@ -133,7 +133,11 @@ function renderGallery() {
 }
 function wireCards() {
   const cards = $$('#galleryGrid .card');
-  const toScreen = (id) => { selectHero(id); $('#home').scrollIntoView({ behavior: 'smooth' }); };
+  const toScreen = (id) => {
+    selectHero(id);
+    if (window._lenis) window._lenis.scrollTo('#home', { offset: -80 });
+    else $('#home').scrollIntoView({ behavior: 'smooth' });
+  };
   // auto-play videos as they scroll into view (pause when off-screen for performance)
   if (window._cardIO) window._cardIO.disconnect();
   window._cardIO = new IntersectionObserver((entries) => {
@@ -397,6 +401,58 @@ async function initVisits() {
   } catch { /* dịch vụ đếm lỗi → ẩn, không ảnh hưởng trang */ }
 }
 
+/* ---------------- UI enhancements (học từ React Bits / Aceternity / Lenis) ---------------- */
+// Thanh tiến trình cuộn ở đỉnh trang
+function initScrollProgress() {
+  const bar = $('#scrollProgress'); if (!bar) return;
+  let ticking = false;
+  const update = () => {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.transform = `scaleX(${h > 0 ? Math.min(window.scrollY / h, 1) : 0})`;
+    ticking = false;
+  };
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  update();
+}
+// Số đếm tăng dần khi dải thông số lọt vào màn hình
+function initCountUp() {
+  const nums = $$('.stat-num[data-to]'); if (!nums.length) return;
+  const run = (el) => {
+    const to = parseInt(el.dataset.to, 10) || 0, suffix = el.dataset.suffix || '', dur = 1100, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min((t - t0) / dur, 1), eased = 1 - Math.pow(1 - k, 3);
+      el.textContent = Math.round(to * eased) + suffix;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } }), { threshold: 0.6 });
+  nums.forEach((n) => io.observe(n));
+}
+// Spotlight sáng theo con trỏ trên thẻ giá
+function initCardSpotlight() {
+  const card = $('.pricing-card'); if (!card) return;
+  card.addEventListener('pointermove', (e) => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  });
+}
+// Smooth scroll mượt cả trang (Lenis) — bỏ qua nếu không tải được hoặc người dùng tắt hiệu ứng
+function initSmoothScroll() {
+  if (!window.Lenis || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  try {
+    const lenis = new window.Lenis({ duration: 1.05, smoothWheel: true });
+    const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+    document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id.length > 1) { const target = document.querySelector(id); if (target) { e.preventDefault(); lenis.scrollTo(target, { offset: -80 }); } }
+    }));
+    window._lenis = lenis;
+  } catch { /* lỗi → dùng cuộn mặc định */ }
+}
+
 /* ---------------- init ---------------- */
 async function init() {
   applyTheme(); wireContacts(); wireEvents();
@@ -406,7 +462,7 @@ async function init() {
     state.wallpapers = (await res.json()).wallpapers || [];
   } catch (err) { console.error('Không tải được danh sách:', err); state.wallpapers = []; }
   applyI18n();
-  const sc = $('#statCount'); if (sc && state.wallpapers.length) sc.textContent = state.wallpapers.length;
+  const sc = $('#statCount'); if (sc && state.wallpapers.length) sc.dataset.to = state.wallpapers.length;
   renderPreviewGallery();
   renderChips();
   renderGallery();
@@ -415,5 +471,9 @@ async function init() {
   initMonitorFit();
   initReveal();
   initVisits();
+  initScrollProgress();
+  initCountUp();
+  initCardSpotlight();
+  initSmoothScroll();
 }
 init();
