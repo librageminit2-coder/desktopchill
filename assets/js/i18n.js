@@ -10,14 +10,19 @@ export const I18N = {
 
     'fab.zalo': 'Nhắn Zalo',
 
+    'stat.designs': 'mẫu hình nền động',
+    'stat.price': 'trọn gói, không phát sinh',
+    'stat.lifetime': 'cập nhật trọn đời',
+    'stat.online': 'online · cài từ xa',
+
     'reviews.title': 'Khách hàng nói gì',
     'reviews.subtitle': 'Phản hồi thật từ khách đã cài (TikTok/Zalo)',
     'reviews.hint': 'Chạm lá trên cùng để xem · chạm lần nữa để sang lá kế · nút ⤢ để xem đầy đủ',
 
     'howto.title': 'Cài chỉ với 3 bước',
     'howto.subtitle': 'Không cần rành máy tính — shop lo trọn gói cho bạn',
-    'howto.s1t': 'Nhắn Zalo, chọn mẫu',
-    'howto.s1d': 'Bạn nhắn Zalo, chọn mẫu ưng ý (hoặc yêu cầu riêng). Shop tư vấn và hẹn giờ cài.',
+    'howto.s1t': 'Nhắn Zalo tư vấn',
+    'howto.s1d': 'Bạn nhắn Zalo, shop cài trọn kho hình nền cho bạn — thích mẫu nào cứ nói để ưu tiên, hoặc đặt làm riêng. Shop tư vấn và hẹn giờ cài.',
     'howto.s2t': 'Shop cài online tận nơi',
     'howto.s2d': 'Shop kết nối qua Ultraview và setup trọn gói, tối ưu theo máy bạn — bạn không phải thao tác gì.',
     'howto.s3t': 'Enjoy góc chill của bạn',
@@ -104,14 +109,19 @@ export const I18N = {
 
     'fab.zalo': 'Message Zalo',
 
+    'stat.designs': 'live wallpaper designs',
+    'stat.price': 'all-inclusive, no extras',
+    'stat.lifetime': 'lifetime updates',
+    'stat.online': 'online · remote install',
+
     'reviews.title': 'What customers say',
     'reviews.subtitle': 'Real feedback from customers we installed for (TikTok/Zalo)',
     'reviews.hint': 'Tap the top card to view · tap again for the next · ⤢ to see full',
 
     'howto.title': 'Get set up in 3 steps',
     'howto.subtitle': 'No tech skills needed — we handle everything for you',
-    'howto.s1t': 'Message Zalo, pick a design',
-    'howto.s1d': 'Message us on Zalo and pick the design you like (or a custom one). We advise and set a time.',
+    'howto.s1t': 'Message us on Zalo',
+    'howto.s1d': 'Message us on Zalo — we install the whole library for you. Tell us your favorites to prioritize, or request a custom one; we advise and set a time.',
     'howto.s2t': 'We install online for you',
     'howto.s2d': 'We connect via Ultraview and set everything up, optimized for your machine — you do nothing.',
     'howto.s3t': 'Enjoy your chill corner',

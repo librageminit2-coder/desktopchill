@@ -406,6 +406,7 @@ async function init() {
     state.wallpapers = (await res.json()).wallpapers || [];
   } catch (err) { console.error('Không tải được danh sách:', err); state.wallpapers = []; }
   applyI18n();
+  const sc = $('#statCount'); if (sc && state.wallpapers.length) sc.textContent = state.wallpapers.length;
   renderPreviewGallery();
   renderChips();
   renderGallery();
