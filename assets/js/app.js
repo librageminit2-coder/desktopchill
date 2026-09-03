@@ -33,6 +33,8 @@ function wireContacts() {
   $('#pricingZalo').href = CONTACT.zaloUrl;
   $('#footerZalo').href = CONTACT.zaloUrl;
   $('#footerTiktok').href = CONTACT.tiktokUrl;
+  const fab = $('#floatingZalo'); if (fab) fab.href = CONTACT.zaloUrl;
+  const pbz = $('#promoBarZalo'); if (pbz) pbz.href = CONTACT.zaloUrl;
   $('#zaloPhone').textContent = CONTACT.zaloPhone;
   $('#tiktokHandle').textContent = CONTACT.tiktokHandle;
   $('#year').textContent = new Date().getFullYear();
@@ -110,7 +112,7 @@ function renderGallery() {
     const title = w.title[state.lang] || w.title.vi;
     const cat = t('cat.' + w.category);
     return `
-      <article class="card" data-id="${w.id}" data-preview="${w.preview}" style="animation-delay:${Math.min(i, 12) * 0.03}s">
+      <article class="card" data-id="${w.id}" data-preview="${w.preview}" style="animation-delay:${Math.min(i, 12) * 0.03}s; --card-color:${w.color || '#6ea8ff'}">
         <div class="card-media">
           <img src="${w.poster}" alt="${title}" loading="lazy" />
           <video class="card-vid" muted loop playsinline preload="none" data-src="${w.preview}"></video>
@@ -281,6 +283,22 @@ function initReveal() {
   });
 }
 
+/* ---------------- promo bar (đóng được, nhớ trong localStorage) ---------------- */
+function initPromoBar() {
+  const bar = $('#promoBar'); if (!bar) return;
+  let closed = false;
+  try { closed = localStorage.getItem('dc_promo_closed') === '1'; } catch {}
+  if (closed) { document.body.classList.remove('has-promo'); bar.hidden = true; return; }
+  document.body.classList.add('has-promo');
+  bar.hidden = false;
+  const btn = $('#promoBarClose');
+  if (btn) btn.addEventListener('click', () => {
+    document.body.classList.remove('has-promo');
+    bar.hidden = true;
+    try { localStorage.setItem('dc_promo_closed', '1'); } catch {}
+  });
+}
+
 /* ---------------- events ---------------- */
 function wireEvents() {
   $('#langBtn').addEventListener('click', () => setLang(state.lang === 'vi' ? 'en' : 'vi'));
@@ -318,7 +336,7 @@ async function initVisits() {
 
 /* ---------------- init ---------------- */
 async function init() {
-  applyTheme(); wireContacts(); wireEvents();
+  applyTheme(); wireContacts(); wireEvents(); initPromoBar();
   $$('#viewToggle button').forEach((b) => b.classList.toggle('active', b.dataset.view === state.view));
   try {
     const res = await fetch('data/wallpapers.json', { cache: 'no-cache' });

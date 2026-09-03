@@ -12,6 +12,16 @@
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
+  <!-- ==================== PROMO BAR ==================== -->
+  <div class="promo-bar" id="promoBar" hidden>
+    <span class="promo-bar-text">
+      <b data-i18n="promobar.tag">🔥 Ưu đãi hôm nay</b>
+      <span data-i18n="promobar.text">Trọn gói 175k — giảm 42%, cài online tận nơi</span>
+    </span>
+    <a class="promo-bar-cta" id="promoBarZalo" target="_blank" rel="noopener" data-i18n="promobar.cta">Nhắn Zalo →</a>
+    <button class="promo-bar-close" id="promoBarClose" aria-label="Đóng">✕</button>
+  </div>
+
   <!-- ==================== HEADER ==================== -->
   <header class="site-header">
     <div class="header-inner liquid-glass">
@@ -231,6 +241,12 @@
       </div>
     </div>
   </div>
+
+  <!-- ==================== FLOATING ZALO ==================== -->
+  <a class="fab-zalo" id="floatingZalo" target="_blank" rel="noopener" aria-label="Nhắn Zalo">
+    <img src="assets/img/zalo.svg" alt="Zalo" />
+    <span class="fab-zalo-label" data-i18n="fab.zalo">Nhắn Zalo</span>
+  </a>
 
   <script type="module" src="assets/js/app.js"></script>
 </body>

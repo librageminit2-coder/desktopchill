@@ -8,6 +8,11 @@ export const I18N = {
     'nav.contact': 'Liên hệ',
     'nav.settings': 'Cài đặt',
 
+    'promobar.tag': '🔥 Ưu đãi hôm nay',
+    'promobar.text': 'Trọn gói 175k — giảm 42%, cài online tận nơi',
+    'promobar.cta': 'Nhắn Zalo →',
+    'fab.zalo': 'Nhắn Zalo',
+
     'faq.title': 'Câu hỏi thường gặp',
     'faq.subtitle': 'Những thắc mắc khách hay hỏi trước khi cài',
 
@@ -86,6 +91,11 @@ export const I18N = {
     'nav.faq': 'FAQ',
     'nav.contact': 'Contact',
     'nav.settings': 'Settings',
+
+    'promobar.tag': '🔥 Today only',
+    'promobar.text': 'All-inclusive 175k — 42% off, installed online for you',
+    'promobar.cta': 'Message Zalo →',
+    'fab.zalo': 'Message Zalo',
 
     'faq.title': 'Frequently asked questions',
     'faq.subtitle': 'What customers usually ask before installing',
