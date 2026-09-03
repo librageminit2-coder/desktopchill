@@ -40,6 +40,10 @@ export const I18N = {
     'hero.livePrefix': 'LIVE PREVIEW',
     'hero.pgTitle': 'LIVE PREVIEW GALLERY',
     'hero.pgSub': 'Click để hiển thị lên màn hình',
+    'feat.smooth': 'Mượt 60fps',
+    'feat.battery': 'Không hao pin',
+    'feat.online': 'Cài online',
+    'feat.update': 'Update trọn đời',
 
     'gallery.title': 'Bộ sưu tập',
     'gallery.subtitle': 'Chọn mẫu bạn thích rồi liên hệ Zalo/TikTok để shop cài cho bạn',
@@ -139,6 +143,10 @@ export const I18N = {
     'hero.livePrefix': 'LIVE PREVIEW',
     'hero.pgTitle': 'LIVE PREVIEW GALLERY',
     'hero.pgSub': 'Click to show it on the screen',
+    'feat.smooth': 'Smooth 60fps',
+    'feat.battery': 'Battery-friendly',
+    'feat.online': 'Online install',
+    'feat.update': 'Lifetime updates',
 
     'gallery.title': 'Collection',
     'gallery.subtitle': 'Pick one you like, then message us on Zalo/TikTok to get it installed',

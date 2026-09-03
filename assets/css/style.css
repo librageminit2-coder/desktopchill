@@ -416,6 +416,39 @@ img, video { display: block; max-width: 100%; }
 .seg button { border: 0; background: transparent; color: var(--text-dim); font: inherit; font-weight: 600; font-size: .88rem; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all .18s; }
 .seg button.active { background: var(--accent-grad); color: #fff; }
 
+/* ==================== HERO FEATURE CHIPS (chỉ desktop) ==================== */
+.hero-feats { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; padding: 0; }
+.hero-feats li { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 600; color: #fff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 7px 13px; border-radius: 999px; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+.hf-ic { font-size: .95rem; line-height: 1; }
+
+/* ==================== MARQUEE (dải vibe chạy ngang) ==================== */
+.marquee { overflow: hidden; margin: 6px 0 2px; padding: 13px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.marquee-track { display: inline-flex; align-items: center; gap: 26px; white-space: nowrap; animation: mq 36s linear infinite; will-change: transform; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+@keyframes mq { to { transform: translateX(-50%); } }
+.mq-item { font-family: "Playfair Display", Georgia, serif; font-size: 1.15rem; font-weight: 600; color: var(--text-dim); }
+.mq-dot { color: var(--accent); font-size: .78rem; }
+
+/* ==================== AURORA (nền gradient động sau mục Liên hệ) ==================== */
+.contact-section { position: relative; overflow: hidden; }
+.aurora { position: absolute; inset: -25% -10%; z-index: 0; pointer-events: none; filter: blur(72px); opacity: .38; }
+.aurora span { position: absolute; display: block; width: 46%; height: 62%; border-radius: 50%; }
+.aurora span:nth-child(1) { left: 4%; top: 6%; background: #6ea8ff; animation: auroraA 15s ease-in-out infinite; }
+.aurora span:nth-child(2) { right: 6%; top: -4%; background: #9b8cff; animation: auroraB 18s ease-in-out infinite; }
+.aurora span:nth-child(3) { left: 36%; bottom: -6%; background: #66d0ff; animation: auroraA 21s ease-in-out infinite reverse; }
+@keyframes auroraA { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(9%,-7%) scale(1.16); } }
+@keyframes auroraB { 0%,100% { transform: translate(0,0) scale(1.06); } 50% { transform: translate(-11%,9%) scale(.9); } }
+.contact-section > *:not(.aurora) { position: relative; z-index: 1; }
+
+/* ==================== TEXT REVEAL (tiêu đề section hiện theo từ) ==================== */
+.section-title .rw { display: inline-block; opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
+.section-title.rw-in .rw { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track, .aurora span { animation: none; }
+  .section-title .rw { opacity: 1 !important; transform: none !important; }
+}
+
 /* ==================== SCROLL PROGRESS BAR ==================== */
 .scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 150; background: var(--accent-grad); transform: scaleX(0); transform-origin: left center; will-change: transform; box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
 

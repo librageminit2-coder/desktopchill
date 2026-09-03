@@ -65,6 +65,12 @@
             <a href="#gallery" class="btn btn-primary" data-i18n="hero.cta2">Xem bộ sưu tập</a>
             <a href="#contact" class="btn btn-ghost liquid-glass" data-i18n="hero.cta1">Bắt đầu</a>
           </div>
+          <ul class="hero-feats">
+            <li><span class="hf-ic">⚡</span> <span data-i18n="feat.smooth">Mượt 60fps</span></li>
+            <li><span class="hf-ic">🔋</span> <span data-i18n="feat.battery">Không hao pin</span></li>
+            <li><span class="hf-ic">🖥️</span> <span data-i18n="feat.online">Cài online</span></li>
+            <li><span class="hf-ic">♾️</span> <span data-i18n="feat.update">Update trọn đời</span></li>
+          </ul>
         </div>
 
         <div class="preview-gallery">
@@ -124,6 +130,9 @@
         </div>
       </div>
     </section>
+
+    <!-- ==================== MARQUEE (dải vibe chạy ngang) ==================== -->
+    <div class="marquee" id="marquee" aria-hidden="true"></div>
 
     <!-- ==================== REVIEWS (đánh giá khách hàng) ==================== -->
     <section id="reviews" class="reviews-section">
@@ -202,6 +211,7 @@
 
     <!-- ==================== CONTACT ==================== -->
     <section id="contact" class="contact-section">
+      <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
       <div class="section-head reveal">
         <h2 class="section-title" data-i18n="contact.title">Liên hệ với shop</h2>
         <p class="section-subtitle" data-i18n="contact.subtitle">Nhắn tin để được tư vấn và cài đặt nhanh nhất</p>
@@ -292,8 +302,6 @@
     <span class="fab-zalo-label" data-i18n="fab.zalo">Nhắn Zalo</span>
   </a>
 
-  <!-- Lenis: smooth scroll (darkroomengineering/lenis). Trang vẫn chạy bình thường nếu tải lỗi. -->
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
   <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

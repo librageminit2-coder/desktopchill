@@ -133,11 +133,7 @@ function renderGallery() {
 }
 function wireCards() {
   const cards = $$('#galleryGrid .card');
-  const toScreen = (id) => {
-    selectHero(id);
-    if (window._lenis) window._lenis.scrollTo('#home', { offset: -80 });
-    else $('#home').scrollIntoView({ behavior: 'smooth' });
-  };
+  const toScreen = (id) => { selectHero(id); $('#home').scrollIntoView({ behavior: 'smooth' }); };
   // auto-play videos as they scroll into view (pause when off-screen for performance)
   if (window._cardIO) window._cardIO.disconnect();
   window._cardIO = new IntersectionObserver((entries) => {
@@ -429,6 +425,25 @@ function initCountUp() {
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } }), { threshold: 0.6 });
   nums.forEach((n) => io.observe(n));
 }
+// Marquee dải vibe chạy ngang (nhân đôi để lặp liền mạch)
+function initMarquee() {
+  const box = $('#marquee'); if (!box) return;
+  const items = ['Anime', 'Phong cảnh', 'Game', 'Girl', 'Lofi · Chill', 'Cyberpunk', 'Trừu tượng', 'Thú cưng', 'Minimal', 'Đồng hồ · Lịch', 'Nhạc nền', 'Custom theo yêu cầu'];
+  const one = items.map((t) => `<span class="mq-item">${t}</span>`).join('<span class="mq-dot">✦</span>');
+  box.innerHTML = `<div class="marquee-track">${one}<span class="mq-dot">✦</span>${one}<span class="mq-dot">✦</span></div>`;
+}
+// Text reveal: tách chữ theo từ, hiện dần khi cuộn tới (chạy 1 lần)
+function initTextReveal() {
+  const targets = $$('.section-title'); if (!targets.length) return;
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    const el = e.target; io.unobserve(el);
+    const words = el.textContent.trim().split(/\s+/);
+    el.innerHTML = words.map((w, i) => `<span class="rw" style="transition-delay:${i * 55}ms">${w}</span>`).join(' ');
+    requestAnimationFrame(() => el.classList.add('rw-in'));
+  }, { threshold: 0.4 }));
+  targets.forEach((t) => io.observe(t));
+}
 // Spotlight sáng theo con trỏ trên thẻ giá
 function initCardSpotlight() {
   const card = $('.pricing-card'); if (!card) return;
@@ -438,21 +453,6 @@ function initCardSpotlight() {
     card.style.setProperty('--my', (e.clientY - r.top) + 'px');
   });
 }
-// Smooth scroll mượt cả trang (Lenis) — bỏ qua nếu không tải được hoặc người dùng tắt hiệu ứng
-function initSmoothScroll() {
-  if (!window.Lenis || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  try {
-    const lenis = new window.Lenis({ duration: 1.05, smoothWheel: true });
-    const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
-    requestAnimationFrame(raf);
-    document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
-      const id = a.getAttribute('href');
-      if (id.length > 1) { const target = document.querySelector(id); if (target) { e.preventDefault(); lenis.scrollTo(target, { offset: -80 }); } }
-    }));
-    window._lenis = lenis;
-  } catch { /* lỗi → dùng cuộn mặc định */ }
-}
-
 /* ---------------- init ---------------- */
 async function init() {
   applyTheme(); wireContacts(); wireEvents();
@@ -474,6 +474,7 @@ async function init() {
   initScrollProgress();
   initCountUp();
   initCardSpotlight();
-  initSmoothScroll();
+  initMarquee();
+  initTextReveal();
 }
 init();
