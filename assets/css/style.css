@@ -396,6 +396,7 @@ img, video { display: block; max-width: 100%; }
 .footer-logo { font-weight: 800; font-size: 1.1rem; margin-bottom: 8px; }
 .footer-logo b { color: var(--accent); }
 .footer-tagline { font-size: .95rem; }
+.footer-about { max-width: 640px; margin: 10px auto 0; font-size: .8rem; line-height: 1.6; color: var(--text-faint); }
 .footer-socials { display: flex; gap: 10px; justify-content: center; margin: 14px 0; }
 .footer-socials a { font-size: .85rem; font-weight: 700; padding: 7px 16px; border: 1px solid var(--border); border-radius: 999px; transition: all .2s; }
 .footer-socials a:hover { border-color: var(--border-strong); color: var(--text); }

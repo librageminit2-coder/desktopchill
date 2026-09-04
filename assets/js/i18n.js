@@ -97,6 +97,7 @@ export const I18N = {
     'settings.themeLight': 'Sáng',
 
     'footer.tagline': 'Live wallpaper customize cho máy tính của bạn.',
+    'footer.about': 'desktopchill — dịch vụ cài hình nền động (live wallpaper) đẹp cho máy tính, laptop, PC. Kho hình nền động anime, game, phong cảnh, girl, 4K; cài online trọn gói, tối ưu theo máy, cập nhật trọn đời.',
     'footer.rights': 'Hình ảnh chỉ mang tính minh hoạ; bản quyền thuộc về các tác giả tương ứng.',
     'footer.visits': 'Lượt truy cập',
   },
@@ -197,6 +198,7 @@ export const I18N = {
     'settings.themeLight': 'Light',
 
     'footer.tagline': 'Custom live wallpapers for your desktop.',
+    'footer.about': 'desktopchill — a service that installs beautiful live wallpapers for your PC, laptop and desktop. A library of anime, game, scenery, girl and 4K live wallpapers; installed online, all-inclusive, optimized for your machine, with lifetime updates.',
     'footer.rights': 'Images are for illustration only; copyright belongs to their respective owners.',
     'footer.visits': 'Visits',
   },

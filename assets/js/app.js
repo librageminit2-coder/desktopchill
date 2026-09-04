@@ -51,7 +51,7 @@ function renderPreviewGallery() {
   const items = featured();
   track.innerHTML = items.map((w) => `
     <button class="pg-thumb" data-id="${w.id}" style="--thumb-color:${w.color}">
-      <img src="${w.poster}" alt="${w.title[state.lang] || w.title.vi}" loading="lazy" />
+      <img src="${w.poster}" alt="Hình nền động ${w.title[state.lang] || w.title.vi} cho máy tính" loading="lazy" />
       <span class="pg-name">${w.title[state.lang] || w.title.vi}</span>
     </button>`).join('');
   $$('#pgTrack .pg-thumb').forEach((th) => th.addEventListener('click', () => selectHero(th.dataset.id)));
@@ -122,7 +122,7 @@ function renderGallery() {
     return `
       <article class="card" data-id="${w.id}" data-preview="${w.preview}" style="animation-delay:${Math.min(i, 12) * 0.03}s; --card-color:${w.color || '#6ea8ff'}">
         <div class="card-media">
-          <img src="${w.poster}" alt="${title}" loading="lazy" />
+          <img src="${w.poster}" alt="${title} — hình nền động ${cat} cho máy tính" loading="lazy" />
           <video class="card-vid" muted loop playsinline preload="none" data-src="${w.preview}"></video>
           ${w.hot ? `<span class="card-hot">${t('card.hot')}</span>` : ''}
           <div class="card-hover">
