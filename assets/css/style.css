@@ -198,7 +198,7 @@ img, video { display: block; max-width: 100%; }
 .gallery-main { min-width: 0; }
 .gallery-main .gallery-note { margin: 0 0 18px; }
 .sidebar-block { background: transparent; border: 0; padding: 0 2px; }
-.sidebar-label { display: block; font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
+.sidebar-label { display: block; font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
 .search { display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 42px; background: transparent; border: 1px solid var(--border-strong); border-radius: 12px; width: 100%; }
 .search input { border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; width: 100%; font-size: .92rem; }
 .search svg { opacity: .6; flex-shrink: 0; }
@@ -211,12 +211,12 @@ img, video { display: block; max-width: 100%; }
   background: color-mix(in srgb, var(--surface-solid) 46%, transparent);
   backdrop-filter: blur(9px) saturate(150%);
   -webkit-backdrop-filter: blur(9px) saturate(150%);
-  box-shadow: 0 4px 10px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.55);
+  box-shadow: 0 4px 10px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.12);
 }
 .gallery-sidebar .chip { transition: transform .18s cubic-bezier(.2,.7,.3,1.4), box-shadow .22s, background .2s, color .2s; }
-.gallery-sidebar .chip:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.65); }
+.gallery-sidebar .chip:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.16); }
 .gallery-sidebar .chip:active { transform: translateY(-1px) scale(.98); }
-.gallery-sidebar .chip.active { box-shadow: 0 9px 22px color-mix(in srgb, var(--accent) 48%, transparent), inset 0 1px 0 rgba(255,255,255,.35); }
+.gallery-sidebar .chip.active { box-shadow: 0 9px 22px color-mix(in srgb, var(--accent) 48%, transparent), inset 0 1px 0 rgba(255,255,255,.22); }
 .gallery-sidebar .view-toggle button { transition: transform .16s, background .2s; }
 .sidebar-promo { display: flex; flex-direction: column; gap: 5px; margin-top: 0; padding: 16px; border-radius: 18px; background: var(--accent-grad); color: #fff; box-shadow: 0 12px 28px rgba(110,130,255,.4); transition: filter .2s, transform .2s; }
 .sidebar-promo:hover { filter: brightness(1.06); transform: translateY(-2px); }
@@ -225,7 +225,7 @@ img, video { display: block; max-width: 100%; }
 .promo-price s { font-size: .85rem; opacity: .72; font-weight: 600; margin-right: 6px; }
 .promo-desc { font-size: .78rem; opacity: .93; line-height: 1.45; }
 .promo-cta { margin-top: 4px; font-weight: 800; font-size: .85rem; }
-.chip { padding: 8px 15px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font: inherit; font-weight: 600; font-size: .88rem; cursor: pointer; transition: all .18s; white-space: nowrap; }
+.chip { padding: 8px 15px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text); font: inherit; font-weight: 600; font-size: .88rem; cursor: pointer; transition: all .18s; white-space: nowrap; }
 .chip:hover { color: var(--text); border-color: var(--border-strong); }
 .chip.active { background: var(--accent-grad); color: #fff; border-color: transparent; box-shadow: 0 6px 16px rgba(110,130,255,.35); }
 .chip-hot { color: #ff8a5c; border-color: color-mix(in srgb, #ff5e3a 45%, transparent); }
@@ -277,7 +277,6 @@ img, video { display: block; max-width: 100%; }
 .card-title { font-weight: 700; font-size: .95rem; }
 .card-tag { font-size: .72rem; font-weight: 700; color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--border); padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
 .gallery-empty { text-align: center; color: var(--text-dim); padding: 40px; }
-.chip-ic { display: inline-block; margin-right: 9px; font-size: 1em; line-height: 1; vertical-align: -1px; }
 
 /* ==================== PAGINATION (kiểu haowallpaper) ==================== */
 .pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 34px; }

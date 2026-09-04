@@ -80,7 +80,6 @@ function selectHero(id, instant = false) {
 }
 
 /* ---------------- GALLERY ---------------- */
-const CAT_ICONS = { all: '🗂️', hot: '🔥', anime: '🌸', girl: '💗', phongcanh: '🏞️', thucung: '🐾', truutuong: '🎨', game: '🎮', khac: '✨' };
 function renderChips() {
   const box = $('#chips');
   const present = new Set(state.wallpapers.map((w) => w.category));
@@ -88,7 +87,7 @@ function renderChips() {
   const cats = ['all', ...(hasHot ? ['hot'] : []), ...CATEGORIES.filter((c) => present.has(c))];
   box.innerHTML = cats.map((c) => {
     const label = c === 'all' ? t('filter.all') : c === 'hot' ? t('filter.hot') : t('cat.' + c);
-    return `<button class="chip ${c === 'hot' ? 'chip-hot ' : ''}${state.category === c ? 'active' : ''}" data-cat="${c}"><span class="chip-ic">${CAT_ICONS[c] || '✨'}</span>${label}</button>`;
+    return `<button class="chip ${c === 'hot' ? 'chip-hot ' : ''}${state.category === c ? 'active' : ''}" data-cat="${c}">${label}</button>`;
   }).join('');
   $$('#chips .chip').forEach((chip) => chip.addEventListener('click', () => {
     state.category = chip.dataset.cat;
