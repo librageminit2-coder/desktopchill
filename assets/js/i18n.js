@@ -50,7 +50,7 @@ export const I18N = {
     'promo.desc': 'Cài trọn gói qua Ultraview + trọn kho hình + cập nhật trọn đời.',
     'promo.cta': 'Nhận ưu đãi →',
     'filter.all': 'Tất cả',
-    'filter.hot': '🔥 Hot',
+    'filter.hot': 'Hot',
     'card.hot': '🔥 Hot',
     'card.toScreen': '▶ Lên màn hình',
     'card.contact': '💬 Nhắn Zalo',
@@ -64,6 +64,7 @@ export const I18N = {
 
     'card.view': 'Xem mẫu',
     'gallery.empty': 'Không tìm thấy mẫu phù hợp.',
+    'page.go': 'Tới',
     'gallery.count': 'mẫu',
 
     'modal.getThis': 'Thích mẫu này? Liên hệ để được cài đặt:',
@@ -149,7 +150,7 @@ export const I18N = {
     'promo.desc': 'Full remote install + entire library + lifetime updates.',
     'promo.cta': 'Get the deal →',
     'filter.all': 'All',
-    'filter.hot': '🔥 Hot',
+    'filter.hot': 'Hot',
     'card.hot': '🔥 Hot',
     'card.toScreen': '▶ To screen',
     'card.contact': '💬 Contact',
@@ -163,6 +164,7 @@ export const I18N = {
 
     'card.view': 'View',
     'gallery.empty': 'No wallpapers match your search.',
+    'page.go': 'Go',
     'gallery.count': 'designs',
 
     'modal.getThis': 'Like this one? Contact us to get it installed:',

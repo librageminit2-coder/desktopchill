@@ -2,13 +2,15 @@ import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js';
 
 const state = {
   lang: localStorage.getItem('dc_lang') || 'vi',
-  theme: localStorage.getItem('dc_theme') || 'dark',
+  theme: localStorage.getItem('dc_theme') || 'light',
   view: localStorage.getItem('dc_view') || 'grid',
   category: 'all',
   search: '',
+  page: 1,
   wallpapers: [],
   current: null,
 };
+const PER_PAGE = 48;   // số mẫu mỗi trang
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -78,6 +80,7 @@ function selectHero(id, instant = false) {
 }
 
 /* ---------------- GALLERY ---------------- */
+const CAT_ICONS = { all: '🗂️', hot: '🔥', anime: '🌸', girl: '💗', phongcanh: '🏞️', thucung: '🐾', truutuong: '🎨', game: '🎮', khac: '✨' };
 function renderChips() {
   const box = $('#chips');
   const present = new Set(state.wallpapers.map((w) => w.category));
@@ -85,10 +88,11 @@ function renderChips() {
   const cats = ['all', ...(hasHot ? ['hot'] : []), ...CATEGORIES.filter((c) => present.has(c))];
   box.innerHTML = cats.map((c) => {
     const label = c === 'all' ? t('filter.all') : c === 'hot' ? t('filter.hot') : t('cat.' + c);
-    return `<button class="chip ${c === 'hot' ? 'chip-hot ' : ''}${state.category === c ? 'active' : ''}" data-cat="${c}">${label}</button>`;
+    return `<button class="chip ${c === 'hot' ? 'chip-hot ' : ''}${state.category === c ? 'active' : ''}" data-cat="${c}"><span class="chip-ic">${CAT_ICONS[c] || '✨'}</span>${label}</button>`;
   }).join('');
   $$('#chips .chip').forEach((chip) => chip.addEventListener('click', () => {
     state.category = chip.dataset.cat;
+    state.page = 1;
     $$('#chips .chip').forEach((c) => c.classList.toggle('active', c === chip));
     renderGallery();
   }));
@@ -105,8 +109,14 @@ function filtered() {
 function renderGallery() {
   const grid = $('#galleryGrid');
   grid.classList.toggle('view-one', state.view === 'one');
-  const items = filtered();
-  $('#galleryEmpty').hidden = items.length > 0;
+  const all = filtered();
+  $('#galleryEmpty').hidden = all.length > 0;
+  // phân trang: 48 mẫu / trang
+  const totalPages = Math.max(1, Math.ceil(all.length / PER_PAGE));
+  if (state.page > totalPages) state.page = totalPages;
+  if (state.page < 1) state.page = 1;
+  const items = all.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE);
+  renderPagination(totalPages);
   grid.innerHTML = items.map((w, i) => {
     const title = w.title[state.lang] || w.title.vi;
     const cat = t('cat.' + w.category);
@@ -130,6 +140,42 @@ function renderGallery() {
       </article>`;
   }).join('');
   wireCards();
+}
+function gotoPage(p) {
+  state.page = p;
+  renderGallery();
+  const g = $('#gallery'); if (g) g.scrollIntoView({ behavior: 'smooth' });
+}
+function renderPagination(totalPages) {
+  const nav = $('#pagination'); if (!nav) return;
+  if (totalPages <= 1) { nav.hidden = true; nav.innerHTML = ''; return; }
+  nav.hidden = false;
+  const cur = state.page;
+  const nums = [];
+  const push = (n) => { if (n >= 1 && n <= totalPages && !nums.includes(n)) nums.push(n); };
+  push(1); push(totalPages);
+  for (let i = cur - 1; i <= cur + 1; i++) push(i);
+  nums.sort((a, b) => a - b);
+  let html = `<button class="pg-btn pg-arrow" data-page="${cur - 1}" ${cur === 1 ? 'disabled' : ''} aria-label="Trang trước">←</button>`;
+  let prev = 0;
+  nums.forEach((n) => {
+    if (n - prev > 1) html += '<span class="pg-ellipsis">…</span>';
+    html += `<button class="pg-btn pg-num ${n === cur ? 'active' : ''}" data-page="${n}">${n}</button>`;
+    prev = n;
+  });
+  html += `<button class="pg-btn pg-arrow" data-page="${cur + 1}" ${cur === totalPages ? 'disabled' : ''} aria-label="Trang sau">→</button>`;
+  html += `<span class="pg-go"><input class="pg-go-input" type="number" min="1" max="${totalPages}" aria-label="Tới trang" /><button class="pg-btn pg-go-btn" data-go>${t('page.go')}</button></span>`;
+  nav.innerHTML = html;
+  nav.querySelectorAll('.pg-btn[data-page]').forEach((b) => b.addEventListener('click', () => {
+    const p = parseInt(b.dataset.page, 10);
+    if (!isNaN(p) && p >= 1 && p <= totalPages && p !== cur) gotoPage(p);
+  }));
+  const goBtn = nav.querySelector('[data-go]'), goInput = nav.querySelector('.pg-go-input');
+  if (goBtn && goInput) {
+    const go = () => { const p = parseInt(goInput.value, 10); if (p >= 1 && p <= totalPages && p !== cur) gotoPage(p); };
+    goBtn.addEventListener('click', go);
+    goInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  }
 }
 function wireCards() {
   const cards = $$('#galleryGrid .card');
@@ -366,7 +412,7 @@ function wireEvents() {
   $('#themeBtn').addEventListener('click', () => setTheme(state.theme === 'dark' ? 'light' : 'dark'));
   $('#settingsBtn').addEventListener('click', openSettings);
   const sq = $('#screenQuad'); if (sq) sq.addEventListener('click', () => { if (state.current) openModal(state.current); });
-  $('#searchInput').addEventListener('input', (e) => { state.search = e.target.value; renderGallery(); });
+  $('#searchInput').addEventListener('input', (e) => { state.search = e.target.value; state.page = 1; renderGallery(); });
   $$('#viewToggle button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   $$('[data-close]').forEach((el) => el.addEventListener('click', closeModal));
   $$('[data-close-settings]').forEach((el) => el.addEventListener('click', closeSettings));

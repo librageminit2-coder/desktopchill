@@ -277,6 +277,20 @@ img, video { display: block; max-width: 100%; }
 .card-title { font-weight: 700; font-size: .95rem; }
 .card-tag { font-size: .72rem; font-weight: 700; color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--border); padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
 .gallery-empty { text-align: center; color: var(--text-dim); padding: 40px; }
+.chip-ic { display: inline-block; margin-right: 9px; font-size: 1em; line-height: 1; vertical-align: -1px; }
+
+/* ==================== PAGINATION (kiểu haowallpaper) ==================== */
+.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 34px; }
+.pg-btn { min-width: 40px; height: 40px; padding: 0 13px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-solid) 46%, transparent); backdrop-filter: blur(9px) saturate(150%); -webkit-backdrop-filter: blur(9px) saturate(150%); color: var(--text); font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer; transition: transform .15s, background .2s, box-shadow .2s, color .2s; box-shadow: 0 4px 10px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.4); }
+.pg-btn:hover:not(:disabled):not(.active) { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.2); }
+.pg-btn:disabled { opacity: .4; cursor: default; }
+.pg-num.active { background: var(--accent-grad); color: #fff; border-color: transparent; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 45%, transparent); }
+.pg-arrow { font-size: 1.05rem; }
+.pg-ellipsis { color: var(--text-faint); padding: 0 2px; font-weight: 700; }
+.pg-go { display: inline-flex; align-items: center; gap: 6px; margin-left: 6px; }
+.pg-go-input { width: 58px; height: 40px; text-align: center; border-radius: 12px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-solid) 46%, transparent); color: var(--text); font: inherit; font-weight: 700; }
+.pg-go-input::-webkit-outer-spin-button, .pg-go-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pg-go-btn { border-radius: 12px; }
 
 /* ==================== PRICING ==================== */
 /* pricing (left) + faq (right) on one row */

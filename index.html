@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="dark">
+<html lang="vi" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/style.css" />
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem('dc_theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 </head>
 <body>
   <div class="scroll-progress" id="scrollProgress"></div>
@@ -121,6 +122,7 @@
         <div class="gallery-main">
           <div class="grid" id="galleryGrid"><!-- cards injected --></div>
           <p class="gallery-empty" id="galleryEmpty" hidden data-i18n="gallery.empty">Không tìm thấy mẫu phù hợp.</p>
+          <nav class="pagination" id="pagination" aria-label="Phân trang" hidden></nav>
         </div>
       </div>
     </section>
