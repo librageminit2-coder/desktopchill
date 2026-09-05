@@ -1094,6 +1094,66 @@
       "preview": "media/preview/73.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "74",
+      "source": "74.mp4",
+      "title": {
+        "vi": "Mẫu 74",
+        "en": "Design 74"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#545e4e",
+      "poster": "media/poster/74.jpg",
+      "preview": "media/preview/74.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "75",
+      "source": "75.mp4",
+      "title": {
+        "vi": "Mẫu 75",
+        "en": "Design 75"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#9fbbaa",
+      "poster": "media/poster/75.jpg",
+      "preview": "media/preview/75.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "76",
+      "source": "76.mp4",
+      "title": {
+        "vi": "Mẫu 76",
+        "en": "Design 76"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#4f536e",
+      "poster": "media/poster/76.jpg",
+      "preview": "media/preview/76.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "77",
+      "source": "77.mp4",
+      "title": {
+        "vi": "Mẫu 77",
+        "en": "Design 77"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#828a94",
+      "poster": "media/poster/77.jpg",
+      "preview": "media/preview/77.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
