@@ -199,6 +199,8 @@ img, video { display: block; max-width: 100%; }
 .gallery-main .gallery-note { margin: 0 0 18px; }
 .sidebar-block { background: transparent; border: 0; padding: 0 2px; }
 .sidebar-label { display: block; font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+.sidebar-block-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.sidebar-block-head .sidebar-label { margin-bottom: 0; }
 .search { display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 42px; background: transparent; border: 1px solid var(--border-strong); border-radius: 12px; width: 100%; }
 .search input { border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; width: 100%; font-size: .92rem; }
 .search svg { opacity: .6; flex-shrink: 0; }
