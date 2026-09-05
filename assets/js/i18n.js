@@ -11,7 +11,7 @@ export const I18N = {
     'fab.zalo': 'Nhắn Zalo',
 
     'stat.designs': 'mẫu hình nền động',
-    'stat.price': 'trọn gói, không phát sinh',
+    'stat.price': 'trọn gói full tất cả mẫu, không phát sinh',
     'stat.lifetime': 'cập nhật trọn đời',
     'stat.online': 'online · cài từ xa',
 
@@ -112,7 +112,7 @@ export const I18N = {
     'fab.zalo': 'Message Zalo',
 
     'stat.designs': 'live wallpaper designs',
-    'stat.price': 'all-inclusive, no extras',
+    'stat.price': 'all-inclusive, all designs, no extras',
     'stat.lifetime': 'lifetime updates',
     'stat.online': 'online · remote install',
 
@@ -221,6 +221,8 @@ export const FAQ = {
       a: 'Không cần. Shop cài online trọn gói qua Ultraview, làm sẵn tất cả cho bạn. Vừa cài shop vừa hướng dẫn để bạn dùng thành thạo.' },
     { q: 'Có phát sinh thêm chi phí gì không?',
       a: 'Không. Trọn gói 175k đã bao gồm app, trọn kho hình và cập nhật trọn đời — không phát sinh thêm.' },
+    { q: 'Nếu đã có app rồi thì có giảm giá không?',
+      a: 'Có, shop sẽ trừ giá app và tối ưu lại app của bạn để nhẹ hơn.' },
     { q: 'Máy yếu cài được không? Có nóng máy, hao pin không?',
       a: 'Được. App được tối ưu riêng theo máy bạn — chạy mượt, mát, không hao pin.' },
     { q: 'Thanh toán và nhận cài như thế nào?',
@@ -241,6 +243,8 @@ export const FAQ = {
       a: 'No need. We install everything remotely via Ultraview and guide you through using it while we set it up.' },
     { q: 'Are there any extra costs?',
       a: 'No. The 175k package includes the app, the full library and lifetime updates — nothing extra.' },
+    { q: 'I already have the app — is there a discount?',
+      a: 'Yes. We deduct the app cost and re-optimize your app to run lighter.' },
     { q: 'Will it run on a low-end PC? Any heat or battery drain?',
       a: 'Yes. The app is optimized for your machine — smooth, cool and battery-friendly.' },
     { q: 'How do payment and setup work?',
