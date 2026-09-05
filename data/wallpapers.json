@@ -734,6 +734,96 @@
       "preview": "media/preview/49.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "50",
+      "source": "50.mp4",
+      "title": {
+        "vi": "Mẫu 50",
+        "en": "Design 50"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#5d5b5d",
+      "poster": "media/poster/50.jpg",
+      "preview": "media/preview/50.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "51",
+      "source": "51.mp4",
+      "title": {
+        "vi": "Mẫu 51",
+        "en": "Design 51"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#7c858b",
+      "poster": "media/poster/51.jpg",
+      "preview": "media/preview/51.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "52",
+      "source": "52.mp4",
+      "title": {
+        "vi": "Mẫu 52",
+        "en": "Design 52"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#a5a59f",
+      "poster": "media/poster/52.jpg",
+      "preview": "media/preview/52.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "53",
+      "source": "53.mp4",
+      "title": {
+        "vi": "Mẫu 53",
+        "en": "Design 53"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#887574",
+      "poster": "media/poster/53.jpg",
+      "preview": "media/preview/53.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "54",
+      "source": "54.mp4",
+      "title": {
+        "vi": "Mẫu 54",
+        "en": "Design 54"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#b1aca8",
+      "poster": "media/poster/54.jpg",
+      "preview": "media/preview/54.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "55",
+      "source": "55.mp4",
+      "title": {
+        "vi": "Mẫu 55",
+        "en": "Design 55"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#3f444d",
+      "poster": "media/poster/55.jpg",
+      "preview": "media/preview/55.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
