@@ -1214,6 +1214,81 @@
       "preview": "media/preview/81.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "82",
+      "source": "82.mp4",
+      "title": {
+        "vi": "Mẫu 82",
+        "en": "Design 82"
+      },
+      "category": "anime",
+      "hot": false,
+      "color": "#111111",
+      "poster": "media/poster/82.jpg",
+      "preview": "media/preview/82.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "83",
+      "source": "83.mp4",
+      "title": {
+        "vi": "Mẫu 83",
+        "en": "Design 83"
+      },
+      "category": "anime",
+      "hot": false,
+      "color": "#95998e",
+      "poster": "media/poster/83.jpg",
+      "preview": "media/preview/83.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "84",
+      "source": "84.mp4",
+      "title": {
+        "vi": "Mẫu 84",
+        "en": "Design 84"
+      },
+      "category": "anime",
+      "hot": false,
+      "color": "#231213",
+      "poster": "media/poster/84.jpg",
+      "preview": "media/preview/84.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "85",
+      "source": "85.mp4",
+      "title": {
+        "vi": "Mẫu 85",
+        "en": "Design 85"
+      },
+      "category": "anime",
+      "hot": false,
+      "color": "#5d515c",
+      "poster": "media/poster/85.jpg",
+      "preview": "media/preview/85.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "86",
+      "source": "86.mp4",
+      "title": {
+        "vi": "Mẫu 86",
+        "en": "Design 86"
+      },
+      "category": "anime",
+      "hot": false,
+      "color": "#737779",
+      "poster": "media/poster/86.jpg",
+      "preview": "media/preview/86.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
