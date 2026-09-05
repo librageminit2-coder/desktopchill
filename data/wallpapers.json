@@ -1154,6 +1154,66 @@
       "preview": "media/preview/77.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "78",
+      "source": "78.mp4",
+      "title": {
+        "vi": "Mẫu 78",
+        "en": "Design 78"
+      },
+      "category": "game",
+      "hot": false,
+      "color": "#242554",
+      "poster": "media/poster/78.jpg",
+      "preview": "media/preview/78.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "79",
+      "source": "79.mp4",
+      "title": {
+        "vi": "Mẫu 79",
+        "en": "Design 79"
+      },
+      "category": "game",
+      "hot": false,
+      "color": "#3f3733",
+      "poster": "media/poster/79.jpg",
+      "preview": "media/preview/79.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "80",
+      "source": "80.mp4",
+      "title": {
+        "vi": "Mẫu 80",
+        "en": "Design 80"
+      },
+      "category": "game",
+      "hot": false,
+      "color": "#393c45",
+      "poster": "media/poster/80.jpg",
+      "preview": "media/preview/80.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "81",
+      "source": "81.mp4",
+      "title": {
+        "vi": "Mẫu 81",
+        "en": "Design 81"
+      },
+      "category": "game",
+      "hot": false,
+      "color": "#324744",
+      "poster": "media/poster/81.jpg",
+      "preview": "media/preview/81.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
