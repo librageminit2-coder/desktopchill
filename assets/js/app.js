@@ -184,7 +184,7 @@ function renderPagination(totalPages) {
 }
 function wireCards() {
   const cards = $$('#galleryGrid .card');
-  const toScreen = (id) => { selectHero(id); $('#home').scrollIntoView({ behavior: 'smooth' }); };
+  const toScreen = (id) => { vibrate(); selectHero(id); $('#home').scrollIntoView({ behavior: 'smooth' }); };
   // auto-play videos as they scroll into view (pause when off-screen for performance)
   if (window._cardIO) window._cardIO.disconnect();
   window._cardIO = new IntersectionObserver((entries) => {
@@ -209,7 +209,7 @@ function wireCards() {
     if (scr) scr.addEventListener('click', (ev) => { ev.stopPropagation(); toScreen(card.dataset.id); });
     if (con) con.addEventListener('click', (ev) => { ev.stopPropagation(); openModal(card.dataset.id); });
     const fav = $('[data-fav]', card), shr = $('[data-share]', card);
-    if (fav) fav.addEventListener('click', (ev) => { ev.stopPropagation(); toggleFav(card.dataset.id); });
+    if (fav) fav.addEventListener('click', (ev) => { ev.stopPropagation(); const on = toggleFav(card.dataset.id); vibrate(); if (on) { const r = fav.getBoundingClientRect(); heartBurst(r.left + r.width / 2, r.top + r.height / 2); } });
     if (shr) shr.addEventListener('click', (ev) => { ev.stopPropagation(); shareWallpaper(card.dataset.id); });
     // 3D tilt theo con trỏ (chỉ trên thiết bị có chuột)
     if (tiltOK) {
@@ -330,6 +330,66 @@ function renderFavList() {
     $$(`.card[data-id="${id}"] [data-fav]`).forEach((x) => x.classList.remove('on'));
     updateFavCount(); renderFavList();
   }));
+}
+
+/* ---------------- haptic + confetti + cat helper ---------------- */
+function vibrate(ms = 15) {
+  try {
+    const active = navigator.userActivation ? navigator.userActivation.isActive : true;
+    if (navigator.vibrate && active) navigator.vibrate(ms);
+  } catch { /* không hỗ trợ */ }
+}
+function heartBurst(x, y) {
+  for (let i = 0; i < 10; i++) {
+    const s = document.createElement('span');
+    s.className = 'burst-heart'; s.textContent = '♥';
+    s.style.left = x + 'px'; s.style.top = y + 'px';
+    s.style.setProperty('--dx', ((Math.random() - 0.5) * 150).toFixed(0) + 'px');
+    s.style.setProperty('--dy', (-70 - Math.random() * 120).toFixed(0) + 'px');
+    s.style.fontSize = (11 + Math.random() * 12).toFixed(0) + 'px';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 950);
+  }
+}
+function confettiBurst(x, y) {
+  const colors = ['#6ea8ff', '#9b8cff', '#ff7a45', '#ff3d6e', '#3ddc97', '#ffd54a'];
+  for (let i = 0; i < 34; i++) {
+    const p = document.createElement('span');
+    p.className = 'confetti-piece';
+    p.style.left = x + 'px'; p.style.top = y + 'px';
+    p.style.background = colors[i % colors.length];
+    p.style.setProperty('--dx', ((Math.random() - 0.5) * 320).toFixed(0) + 'px');
+    p.style.setProperty('--dy', (80 + Math.random() * 260).toFixed(0) + 'px');
+    p.style.setProperty('--rot', (Math.random() * 720 - 360).toFixed(0) + 'deg');
+    p.style.animationDelay = (Math.random() * 0.08).toFixed(2) + 's';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1500);
+  }
+}
+// Trợ lý mèo: phát Lottie + "gõ" câu trả lời FAQ trong bong bóng
+function initCat() {
+  const wrap = $('#catHelper'), anim = $('#catAnim'), bubble = $('#catBubble');
+  if (!wrap || !anim || !window.lottie) return;
+  wrap.hidden = false;
+  try { window.lottie.loadAnimation({ container: anim, renderer: 'svg', loop: true, autoplay: true, path: 'assets/cat-typing.json' }); } catch { /* bỏ qua */ }
+  const list = () => (FAQ[state.lang] || FAQ.vi);
+  let idx = 0, typer = null, timer = null, paused = false;
+  let open = window.innerWidth > 760;
+  bubble.hidden = !open;
+  const type = (text) => {
+    const el = $('#catA'); el.textContent = ''; let i = 0;
+    clearInterval(typer);
+    typer = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) { clearInterval(typer); schedule(); } }, 22);
+  };
+  const show = () => { const it = list()[idx % list().length]; $('#catQ').textContent = '🐱 ' + it.q; type(it.a); };
+  function schedule() { clearTimeout(timer); timer = setTimeout(() => { if (paused) { schedule(); return; } idx++; show(); }, 5200); }
+  const next = () => { clearTimeout(timer); clearInterval(typer); idx++; show(); };
+  anim.addEventListener('click', () => { if (!open) { open = true; bubble.hidden = false; show(); } else next(); });
+  anim.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); anim.click(); } });
+  $('#catClose').addEventListener('click', () => { open = false; bubble.hidden = true; clearTimeout(timer); clearInterval(typer); });
+  wrap.addEventListener('mouseenter', () => { paused = true; });
+  wrap.addEventListener('mouseleave', () => { paused = false; });
+  if (open) show();
 }
 
 /* ---------------- reviews (đánh giá khách hàng) ---------------- */
@@ -499,10 +559,14 @@ function wireEvents() {
   const favFabEl = $('#favFab'); if (favFabEl) favFabEl.addEventListener('click', openFavPanel);
   $$('[data-fav-close]').forEach((el) => el.addEventListener('click', closeFavPanel));
   const favClearEl = $('#favClear'); if (favClearEl) favClearEl.addEventListener('click', () => { FAVS.clear(); saveFavs(); $$('.card [data-fav].on').forEach((b) => b.classList.remove('on')); updateFavCount(); renderFavList(); });
-  const sendFavs = () => { copyText(favMessage()).then(() => showToast(t('fav.copied'))).catch(() => {}); };
+  const sendFavs = (e) => {
+    copyText(favMessage()).then(() => showToast(t('fav.copied'))).catch(() => {});
+    vibrate(25);
+    confettiBurst(e ? e.clientX : window.innerWidth / 2, e ? e.clientY : window.innerHeight - 120);
+  };
   const favZaloEl = $('#favZalo'); if (favZaloEl) favZaloEl.addEventListener('click', sendFavs);
   const favTiktokEl = $('#favTiktok'); if (favTiktokEl) favTiktokEl.addEventListener('click', sendFavs);
-  const modalFavEl = $('#modalFav'); if (modalFavEl) modalFavEl.addEventListener('click', () => { if (modalCurrentId) toggleFav(modalCurrentId); });
+  const modalFavEl = $('#modalFav'); if (modalFavEl) modalFavEl.addEventListener('click', () => { if (!modalCurrentId) return; const on = toggleFav(modalCurrentId); vibrate(); if (on) { const r = modalFavEl.getBoundingClientRect(); heartBurst(r.left + r.width / 2, r.top + r.height / 2); } });
   const modalShareEl = $('#modalShare'); if (modalShareEl) modalShareEl.addEventListener('click', () => { if (modalCurrentId) shareWallpaper(modalCurrentId); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSettings(); closeLightbox(); closeFavPanel(); } });
 }
@@ -607,6 +671,7 @@ async function init() {
   initMarquee();
   initTextReveal();
   updateFavCount();
+  initCat();
   // deep-link: mở link ?w=<id> sẽ tự hiện mẫu đó lên màn hình
   try {
     const wid = new URLSearchParams(location.search).get('w');

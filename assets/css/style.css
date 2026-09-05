@@ -507,6 +507,30 @@ img, video { display: block; max-width: 100%; }
 /* toast */
 .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); z-index: 300; background: #14161c; color: #fff; padding: 12px 20px; border-radius: 999px; font-weight: 700; font-size: .9rem; box-shadow: 0 12px 30px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; max-width: 90vw; text-align: center; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ==================== CAT HELPER (trợ lý mèo) ==================== */
+.cat-helper { position: fixed; left: 18px; bottom: 84px; z-index: 91; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 280px; }
+.cat-helper[hidden] { display: none; }
+.cat-anim { width: 74px; height: 74px; cursor: pointer; filter: drop-shadow(0 6px 12px rgba(0,0,0,.3)); transition: transform .2s; }
+.cat-anim:hover { transform: scale(1.08) rotate(-3deg); }
+.cat-bubble { position: relative; max-width: 260px; background: var(--surface-solid); border: 1px solid var(--border-strong); border-radius: 16px 16px 16px 4px; padding: 12px 30px 12px 14px; box-shadow: 0 12px 30px rgba(0,0,0,.22); }
+.cat-bubble[hidden] { display: none; }
+.cat-bubble-close { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--bg-2); color: var(--text-dim); font-size: .7rem; cursor: pointer; line-height: 1; }
+.cat-bubble-close:hover { background: var(--surface-hover); color: var(--text); }
+.cat-q { font-weight: 800; font-size: .8rem; margin: 0 0 5px; color: var(--text); line-height: 1.35; }
+.cat-a { font-size: .8rem; line-height: 1.55; color: var(--text-dim); margin: 0; min-height: 2.4em; }
+@media (max-width: 620px) {
+  .cat-helper { bottom: 70px; }
+  .cat-anim { width: 58px; height: 58px; }
+  .cat-bubble { max-width: 200px; }
+}
+
+/* ==================== BURST (tim nổ + confetti) ==================== */
+.burst-heart { position: fixed; z-index: 400; color: #ff3b6b; pointer-events: none; will-change: transform, opacity; animation: burstHeart .95s ease-out forwards; }
+@keyframes burstHeart { 0% { transform: translate(-50%, -50%) scale(.5); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2); opacity: 0; } }
+.confetti-piece { position: fixed; z-index: 400; width: 8px; height: 13px; border-radius: 2px; pointer-events: none; will-change: transform, opacity; animation: confettiFall 1.4s cubic-bezier(.2,.6,.4,1) forwards; }
+@keyframes confettiFall { 0% { transform: translate(-50%, -50%) rotate(0); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .burst-heart, .confetti-piece { display: none; } }
 @media (max-width: 620px) {
   .fab-favs { height: 48px; left: 14px; bottom: 14px; padding: 0 15px; font-size: .86rem; }
 }

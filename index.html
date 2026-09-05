@@ -363,6 +363,16 @@
     <span class="fab-favs-label"><span data-i18n="fab.favs">Danh sách</span> (<b id="favCount">0</b>)</span>
   </button>
 
+  <!-- ==================== CAT HELPER (trợ lý mèo — trả lời FAQ) ==================== -->
+  <div class="cat-helper" id="catHelper" hidden>
+    <div class="cat-bubble" id="catBubble">
+      <button class="cat-bubble-close" id="catClose" type="button" aria-label="Ẩn">✕</button>
+      <p class="cat-q" id="catQ"></p>
+      <p class="cat-a" id="catA"></p>
+    </div>
+    <div class="cat-anim" id="catAnim" role="button" tabindex="0" title="Hỏi mèo câu khác"></div>
+  </div>
+
   <!-- ==================== FAVORITES PANEL ==================== -->
   <div class="fav-panel" id="favPanel" hidden>
     <div class="modal-backdrop" data-fav-close></div>
@@ -387,6 +397,8 @@
   <!-- ==================== TOAST ==================== -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <!-- lottie-web (nhẹ) để phát animation mèo; trang vẫn chạy bình thường nếu tải lỗi -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js" defer></script>
   <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>
