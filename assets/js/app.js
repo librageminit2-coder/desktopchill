@@ -293,6 +293,7 @@ function toggleFav(id) {
   if (modalCurrentId === id) syncModalFav();
   updateFavCount();
   showToast(on ? t('fav.added') : t('fav.removed'));
+  if (on && _catLove) _catLove();
   return on;
 }
 function updateFavCount() {
@@ -366,30 +367,82 @@ function confettiBurst(x, y) {
     setTimeout(() => p.remove(), 1500);
   }
 }
-// Trợ lý mèo: phát Lottie + "gõ" câu trả lời FAQ trong bong bóng
+// Trợ lý mèo: kéo di chuyển, chào theo giờ, "gõ" câu trả lời FAQ, bắn tim khi thích, ngủ khi rảnh
+let _catLove = null;
+function clampCatPos(left, top) {
+  const wrap = $('#catHelper'); if (!wrap) return;
+  const w = wrap.offsetWidth || 92, h = wrap.offsetHeight || 92;
+  left = Math.max(6, Math.min(left, window.innerWidth - w - 6));
+  top = Math.max(6, Math.min(top, window.innerHeight - h - 6));
+  wrap.style.left = left + 'px'; wrap.style.top = top + 'px'; wrap.style.bottom = 'auto';
+}
 function initCat() {
   const wrap = $('#catHelper'), anim = $('#catAnim'), bubble = $('#catBubble');
   if (!wrap || !anim || !window.lottie) return;
   wrap.hidden = false;
   try { window.lottie.loadAnimation({ container: anim, renderer: 'svg', loop: true, autoplay: true, path: 'assets/cat-typing.json' }); } catch { /* bỏ qua */ }
+  try { const p = JSON.parse(localStorage.getItem('dc_cat_pos') || 'null'); if (p && typeof p.left === 'number') clampCatPos(p.left, p.top); } catch {}
+
   const list = () => (FAQ[state.lang] || FAQ.vi);
-  let idx = 0, typer = null, timer = null, paused = false;
+  let idx = -1, greeted = false, typer = null, timer = null, paused = false, asleep = false;
   let open = window.innerWidth > 760;
   bubble.hidden = !open;
+  const greet = () => {
+    const h = new Date().getHours(), en = state.lang === 'en';
+    if (h < 11) return en ? '☀️ Good morning!' : '☀️ Chào buổi sáng!';
+    if (h < 13) return en ? '🌤️ Good afternoon!' : '🌤️ Chào buổi trưa!';
+    if (h < 18) return en ? '🌇 Good afternoon!' : '🌇 Chào buổi chiều!';
+    return en ? '🌙 Good evening!' : '🌙 Chào buổi tối!';
+  };
+  const clampBubble = () => {
+    if (bubble.hidden) return;
+    bubble.style.left = '0px';
+    const r = bubble.getBoundingClientRect();
+    if (r.right > window.innerWidth - 8) bubble.style.left = (window.innerWidth - 8 - r.width - r.left) + 'px';
+  };
   const type = (text) => {
     const el = $('#catA'); el.textContent = ''; let i = 0;
     clearInterval(typer);
     typer = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) { clearInterval(typer); schedule(); } }, 22);
   };
-  const show = () => { const it = list()[idx % list().length]; $('#catQ').textContent = '🐱 ' + it.q; type(it.a); };
-  function schedule() { clearTimeout(timer); timer = setTimeout(() => { if (paused) { schedule(); return; } idx++; show(); }, 5200); }
-  const next = () => { clearTimeout(timer); clearInterval(typer); idx++; show(); };
-  anim.addEventListener('click', () => { if (!open) { open = true; bubble.hidden = false; show(); } else next(); });
-  anim.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); anim.click(); } });
+  const render = () => {
+    if (!greeted) { greeted = true; $('#catQ').textContent = greet(); type(state.lang === 'en' ? 'Tap me for the FAQ, or drag me somewhere else 🐾' : 'Bấm vào mình để xem hỏi–đáp, hoặc kéo mình đi chỗ khác nha 🐾'); clampBubble(); return; }
+    const L = list(); const it = L[((idx % L.length) + L.length) % L.length];
+    $('#catQ').textContent = '🐱 ' + it.q; type(it.a); clampBubble();
+  };
+  function schedule() { clearTimeout(timer); timer = setTimeout(() => { if (paused || asleep) { schedule(); return; } idx++; render(); }, 5200); }
+  const next = () => { clearTimeout(timer); clearInterval(typer); idx++; render(); };
+
+  // kéo để di chuyển, chạm để xem
+  let sx = 0, sy = 0, moved = false, dragging = false, sLeft = 0, sTop = 0;
+  anim.addEventListener('pointerdown', (e) => { dragging = true; moved = false; sx = e.clientX; sy = e.clientY; const r = wrap.getBoundingClientRect(); sLeft = r.left; sTop = r.top; try { anim.setPointerCapture(e.pointerId); } catch {} });
+  anim.addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - sx, dy = e.clientY - sy; if (Math.abs(dx) + Math.abs(dy) > 5) moved = true; if (moved) clampCatPos(sLeft + dx, sTop + dy); });
+  anim.addEventListener('pointerup', (e) => {
+    dragging = false; try { anim.releasePointerCapture(e.pointerId); } catch {}
+    if (moved) { const r = wrap.getBoundingClientRect(); try { localStorage.setItem('dc_cat_pos', JSON.stringify({ left: Math.round(r.left), top: Math.round(r.top) })); } catch {} clampBubble(); }
+    else { wake(); if (!open) { open = true; bubble.hidden = false; render(); } else next(); }
+  });
+  anim.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wake(); if (!open) { open = true; bubble.hidden = false; render(); } else next(); } });
   $('#catClose').addEventListener('click', () => { open = false; bubble.hidden = true; clearTimeout(timer); clearInterval(typer); });
   wrap.addEventListener('mouseenter', () => { paused = true; });
   wrap.addEventListener('mouseleave', () => { paused = false; });
-  if (open) show();
+
+  // ngủ khi rảnh
+  let idleTimer = null;
+  function wake() { asleep = false; wrap.classList.remove('sleeping'); clearTimeout(idleTimer); idleTimer = setTimeout(() => { asleep = true; wrap.classList.add('sleeping'); }, 35000); }
+  ['pointerdown', 'keydown', 'scroll'].forEach((ev) => window.addEventListener(ev, wake, { passive: true }));
+  wake();
+
+  // bắn tim khi thích mẫu
+  _catLove = () => {
+    if (wrap.hidden) return; wake();
+    const r = anim.getBoundingClientRect();
+    heartBurst(r.left + r.width / 2, r.top + r.height * 0.32);
+    anim.classList.remove('react'); void anim.offsetWidth; anim.classList.add('react');
+  };
+
+  if (open) render();
+  window.addEventListener('resize', () => { if (wrap.style.left) clampCatPos(parseFloat(wrap.style.left), parseFloat(wrap.style.top || '0')); clampBubble(); });
 }
 
 /* ---------------- reviews (đánh giá khách hàng) ---------------- */

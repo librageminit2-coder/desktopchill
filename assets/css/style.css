@@ -508,21 +508,27 @@ img, video { display: block; max-width: 100%; }
 .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); z-index: 300; background: #14161c; color: #fff; padding: 12px 20px; border-radius: 999px; font-weight: 700; font-size: .9rem; box-shadow: 0 12px 30px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; max-width: 90vw; text-align: center; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ==================== CAT HELPER (trợ lý mèo) ==================== */
-.cat-helper { position: fixed; left: 18px; bottom: 84px; z-index: 91; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 280px; }
+/* ==================== CAT HELPER (trợ lý mèo — kéo được) ==================== */
+.cat-helper { position: fixed; left: 184px; bottom: 14px; z-index: 91; width: 92px; }
 .cat-helper[hidden] { display: none; }
-.cat-anim { width: 74px; height: 74px; cursor: pointer; filter: drop-shadow(0 6px 12px rgba(0,0,0,.3)); transition: transform .2s; }
-.cat-anim:hover { transform: scale(1.08) rotate(-3deg); }
-.cat-bubble { position: relative; max-width: 260px; background: var(--surface-solid); border: 1px solid var(--border-strong); border-radius: 16px 16px 16px 4px; padding: 12px 30px 12px 14px; box-shadow: 0 12px 30px rgba(0,0,0,.22); }
+.cat-anim { position: relative; width: 92px; height: 92px; cursor: grab; touch-action: none; filter: drop-shadow(0 6px 12px rgba(0,0,0,.3)); transition: transform .2s; }
+.cat-anim:active { cursor: grabbing; }
+.cat-anim.react { animation: catPop .5s ease; }
+@keyframes catPop { 0%,100% { transform: none; } 30% { transform: scale(1.16) rotate(-7deg); } 60% { transform: scale(1.06) rotate(5deg); } }
+.cat-anim::after { content: '💤'; position: absolute; top: -4px; right: -6px; font-size: 1rem; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.cat-helper.sleeping .cat-anim { filter: grayscale(.35) drop-shadow(0 6px 12px rgba(0,0,0,.3)); }
+.cat-helper.sleeping .cat-anim::after { opacity: 1; animation: zzz 2.4s ease-in-out infinite; }
+@keyframes zzz { 0%,100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-6px); opacity: 1; } }
+.cat-bubble { position: absolute; left: 0; bottom: calc(100% + 6px); width: 250px; max-width: min(250px, calc(100vw - 24px)); background: var(--surface-solid); border: 1px solid var(--border-strong); border-radius: 16px 16px 16px 4px; padding: 12px 30px 12px 14px; box-shadow: 0 12px 30px rgba(0,0,0,.22); }
 .cat-bubble[hidden] { display: none; }
 .cat-bubble-close { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--bg-2); color: var(--text-dim); font-size: .7rem; cursor: pointer; line-height: 1; }
 .cat-bubble-close:hover { background: var(--surface-hover); color: var(--text); }
 .cat-q { font-weight: 800; font-size: .8rem; margin: 0 0 5px; color: var(--text); line-height: 1.35; }
 .cat-a { font-size: .8rem; line-height: 1.55; color: var(--text-dim); margin: 0; min-height: 2.4em; }
 @media (max-width: 620px) {
-  .cat-helper { bottom: 70px; }
-  .cat-anim { width: 58px; height: 58px; }
-  .cat-bubble { max-width: 200px; }
+  .cat-helper { left: 150px; width: 70px; }
+  .cat-anim { width: 70px; height: 70px; }
+  .cat-bubble { max-width: min(220px, calc(100vw - 20px)); }
 }
 
 /* ==================== BURST (tim nổ + confetti) ==================== */
