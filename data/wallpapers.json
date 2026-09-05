@@ -704,6 +704,36 @@
       "preview": "media/preview/47.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "48",
+      "source": "48.mp4",
+      "title": {
+        "vi": "Mẫu 48",
+        "en": "Design 48"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#2e0e19",
+      "poster": "media/poster/48.jpg",
+      "preview": "media/preview/48.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "49",
+      "source": "49.mp4",
+      "title": {
+        "vi": "Mẫu 49",
+        "en": "Design 49"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#8a8da3",
+      "poster": "media/poster/49.jpg",
+      "preview": "media/preview/49.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
