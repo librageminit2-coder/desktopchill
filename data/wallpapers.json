@@ -1004,6 +1004,96 @@
       "preview": "media/preview/67.mp4",
       "w": 1920,
       "h": 1080
+    },
+    {
+      "id": "68",
+      "source": "68.mp4",
+      "title": {
+        "vi": "Mẫu 68",
+        "en": "Design 68"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#4d7795",
+      "poster": "media/poster/68.jpg",
+      "preview": "media/preview/68.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "69",
+      "source": "69.mp4",
+      "title": {
+        "vi": "Mẫu 69",
+        "en": "Design 69"
+      },
+      "category": "truutuong",
+      "hot": false,
+      "color": "#968c84",
+      "poster": "media/poster/69.jpg",
+      "preview": "media/preview/69.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "70",
+      "source": "70.mp4",
+      "title": {
+        "vi": "Mẫu 70",
+        "en": "Design 70"
+      },
+      "category": "girl",
+      "hot": false,
+      "color": "#606c63",
+      "poster": "media/poster/70.jpg",
+      "preview": "media/preview/70.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "71",
+      "source": "71.mp4",
+      "title": {
+        "vi": "Mẫu 71",
+        "en": "Design 71"
+      },
+      "category": "anime",
+      "hot": false,
+      "color": "#646c72",
+      "poster": "media/poster/71.jpg",
+      "preview": "media/preview/71.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "72",
+      "source": "72.mp4",
+      "title": {
+        "vi": "Mẫu 72",
+        "en": "Design 72"
+      },
+      "category": "anime",
+      "hot": false,
+      "color": "#442829",
+      "poster": "media/poster/72.jpg",
+      "preview": "media/preview/72.mp4",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "73",
+      "source": "73.mp4",
+      "title": {
+        "vi": "Mẫu 73",
+        "en": "Design 73"
+      },
+      "category": "anime",
+      "hot": false,
+      "color": "#442a55",
+      "poster": "media/poster/73.jpg",
+      "preview": "media/preview/73.mp4",
+      "w": 1920,
+      "h": 1080
     }
   ]
 }
