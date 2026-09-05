@@ -36,6 +36,8 @@ function wireContacts() {
   $('#footerZalo').href = CONTACT.zaloUrl;
   $('#footerTiktok').href = CONTACT.tiktokUrl;
   const fab = $('#floatingZalo'); if (fab) fab.href = CONTACT.zaloUrl;
+  const fz = $('#favZalo'); if (fz) fz.href = CONTACT.zaloUrl;
+  const ft = $('#favTiktok'); if (ft) ft.href = CONTACT.tiktokUrl;
   $('#zaloPhone').textContent = CONTACT.zaloPhone;
   $('#tiktokHandle').textContent = CONTACT.tiktokHandle;
   $('#year').textContent = new Date().getFullYear();
@@ -125,6 +127,10 @@ function renderGallery() {
           <img src="${w.poster}" alt="${title} — hình nền động ${cat} cho máy tính" loading="lazy" />
           <video class="card-vid" muted loop playsinline preload="none" data-src="${w.preview}"></video>
           ${w.hot ? `<span class="card-hot">${t('card.hot')}</span>` : ''}
+          <div class="card-tools">
+            <button class="card-fav ${isFav(w.id) ? 'on' : ''}" data-fav type="button" aria-label="Yêu thích">♥</button>
+            <button class="card-share" data-share type="button" aria-label="Chia sẻ">↗</button>
+          </div>
           <div class="card-hover">
             <div class="card-hover-meta">
               <span class="card-hover-name">${title}</span>
@@ -196,12 +202,15 @@ function wireCards() {
   cards.forEach((card) => {
     window._cardIO.observe(card);
     $('.card-media', card).addEventListener('click', (ev) => {
-      if (ev.target.closest('[data-act]')) return;
+      if (ev.target.closest('[data-act],[data-fav],[data-share]')) return;
       toScreen(card.dataset.id);
     });
     const scr = $('[data-act="screen"]', card), con = $('[data-act="contact"]', card);
     if (scr) scr.addEventListener('click', (ev) => { ev.stopPropagation(); toScreen(card.dataset.id); });
     if (con) con.addEventListener('click', (ev) => { ev.stopPropagation(); openModal(card.dataset.id); });
+    const fav = $('[data-fav]', card), shr = $('[data-share]', card);
+    if (fav) fav.addEventListener('click', (ev) => { ev.stopPropagation(); toggleFav(card.dataset.id); });
+    if (shr) shr.addEventListener('click', (ev) => { ev.stopPropagation(); shareWallpaper(card.dataset.id); });
     // 3D tilt theo con trỏ (chỉ trên thiết bị có chuột)
     if (tiltOK) {
       const MAXT = 10; // độ nghiêng tối đa
@@ -246,6 +255,7 @@ function openModal(id) {
   $('#modalCat').textContent = t('cat.' + w.category);
   $('#modalZalo').href = CONTACT.zaloUrl;
   $('#modalTiktok').href = CONTACT.tiktokUrl;
+  modalCurrentId = id; syncModalFav();
   $('#modal').hidden = false; document.body.style.overflow = 'hidden';
 }
 function closeModal() {
@@ -254,6 +264,73 @@ function closeModal() {
 }
 function openSettings() { $('#settingsPanel').hidden = false; }
 function closeSettings() { $('#settingsPanel').hidden = true; }
+
+/* ---------------- favorites + share + toast (Nhóm B) ---------------- */
+let FAVS = new Set();
+try { FAVS = new Set(JSON.parse(localStorage.getItem('dc_favs') || '[]')); } catch {}
+const saveFavs = () => { try { localStorage.setItem('dc_favs', JSON.stringify([...FAVS])); } catch {} };
+const isFav = (id) => FAVS.has(id);
+let modalCurrentId = null;
+let _toastTimer = null;
+function showToast(msg) {
+  const el = $('#toast'); if (!el) return;
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_toastTimer); _toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+const copyText = (txt) => { try { return navigator.clipboard.writeText(txt); } catch { return Promise.reject(); } };
+async function shareWallpaper(id) {
+  const w = state.wallpapers.find((x) => x.id === id); if (!w) return;
+  const name = w.title[state.lang] || w.title.vi;
+  const url = `https://desktopchill.com/?w=${id}`;
+  if (navigator.share) { try { await navigator.share({ title: `desktopchill — ${name}`, text: `Xem hình nền động “${name}” tại desktopchill`, url }); return; } catch { /* huỷ chia sẻ */ } }
+  copyText(url).then(() => showToast(t('share.copied'))).catch(() => showToast(url));
+}
+function toggleFav(id) {
+  const on = !FAVS.has(id);
+  if (on) FAVS.add(id); else FAVS.delete(id);
+  saveFavs();
+  $$(`.card[data-id="${id}"] [data-fav]`).forEach((b) => b.classList.toggle('on', on));
+  if (modalCurrentId === id) syncModalFav();
+  updateFavCount();
+  showToast(on ? t('fav.added') : t('fav.removed'));
+  return on;
+}
+function updateFavCount() {
+  const fab = $('#favFab'); if (!fab) return;
+  $('#favCount').textContent = FAVS.size;
+  fab.hidden = FAVS.size === 0;
+}
+function syncModalFav() {
+  const b = $('#modalFav'); if (!b) return;
+  const on = isFav(modalCurrentId);
+  b.classList.toggle('on', on);
+  b.textContent = on ? t('modal.faved') : t('modal.fav');
+}
+function favMessage() {
+  const items = [...FAVS].map((id) => state.wallpapers.find((w) => w.id === id)).filter(Boolean);
+  const names = items.map((w) => w.title[state.lang] || w.title.vi).join(', ');
+  return t('fav.msgPrefix') + names + t('fav.msgSuffix');
+}
+function openFavPanel() { renderFavList(); $('#favPanel').hidden = false; document.body.style.overflow = 'hidden'; }
+function closeFavPanel() { $('#favPanel').hidden = true; document.body.style.overflow = ''; }
+function renderFavList() {
+  const box = $('#favList'); if (!box) return;
+  const items = [...FAVS].map((id) => state.wallpapers.find((w) => w.id === id)).filter(Boolean);
+  $('#favEmpty').hidden = items.length > 0;
+  $('#favActions').hidden = items.length === 0;
+  box.innerHTML = items.map((w) => `
+    <div class="fav-item" data-id="${w.id}">
+      <img src="${w.poster}" alt="${w.title[state.lang] || w.title.vi}" loading="lazy" />
+      <span class="fav-item-name">${w.title[state.lang] || w.title.vi}</span>
+      <button class="fav-remove" data-favremove type="button" aria-label="Xoá">✕</button>
+    </div>`).join('');
+  $$('#favList [data-favremove]').forEach((b) => b.addEventListener('click', () => {
+    const id = b.closest('.fav-item').dataset.id;
+    FAVS.delete(id); saveFavs();
+    $$(`.card[data-id="${id}"] [data-fav]`).forEach((x) => x.classList.remove('on'));
+    updateFavCount(); renderFavList();
+  }));
+}
 
 /* ---------------- reviews (đánh giá khách hàng) ---------------- */
 const REVIEWS = ['fb1', 'fb2', 'fb3', 'fb4', 'fb5', 'fb6', 'fb7', 'fb8', 'fb9'];
@@ -419,7 +496,15 @@ function wireEvents() {
   if (lb) lb.addEventListener('click', (e) => { if (e.target === lb || e.target.closest('[data-lb-close]')) closeLightbox(); });
   $$('#segLang button').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
   $$('#segTheme button').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeVal)));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSettings(); closeLightbox(); } });
+  const favFabEl = $('#favFab'); if (favFabEl) favFabEl.addEventListener('click', openFavPanel);
+  $$('[data-fav-close]').forEach((el) => el.addEventListener('click', closeFavPanel));
+  const favClearEl = $('#favClear'); if (favClearEl) favClearEl.addEventListener('click', () => { FAVS.clear(); saveFavs(); $$('.card [data-fav].on').forEach((b) => b.classList.remove('on')); updateFavCount(); renderFavList(); });
+  const sendFavs = () => { copyText(favMessage()).then(() => showToast(t('fav.copied'))).catch(() => {}); };
+  const favZaloEl = $('#favZalo'); if (favZaloEl) favZaloEl.addEventListener('click', sendFavs);
+  const favTiktokEl = $('#favTiktok'); if (favTiktokEl) favTiktokEl.addEventListener('click', sendFavs);
+  const modalFavEl = $('#modalFav'); if (modalFavEl) modalFavEl.addEventListener('click', () => { if (modalCurrentId) toggleFav(modalCurrentId); });
+  const modalShareEl = $('#modalShare'); if (modalShareEl) modalShareEl.addEventListener('click', () => { if (modalCurrentId) shareWallpaper(modalCurrentId); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSettings(); closeLightbox(); closeFavPanel(); } });
 }
 
 /* ---------------- visit counter (free hosted counter, no backend) ---------------- */
@@ -521,5 +606,11 @@ async function init() {
   initCardSpotlight();
   initMarquee();
   initTextReveal();
+  updateFavCount();
+  // deep-link: mở link ?w=<id> sẽ tự hiện mẫu đó lên màn hình
+  try {
+    const wid = new URLSearchParams(location.search).get('w');
+    if (wid && state.wallpapers.some((x) => x.id === wid)) selectHero(wid, true);
+  } catch { /* bỏ qua */ }
 }
 init();

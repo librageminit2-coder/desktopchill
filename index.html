@@ -313,6 +313,8 @@
         <div class="modal-actions">
           <a class="btn btn-primary" id="modalZalo" target="_blank" rel="noopener" data-i18n="modal.zalo">Nhắn Zalo</a>
           <a class="btn btn-ghost" id="modalTiktok" target="_blank" rel="noopener" data-i18n="modal.tiktok">Xem trên TikTok</a>
+          <button class="btn btn-ghost" id="modalFav" type="button" data-i18n="modal.fav">♥ Lưu mẫu</button>
+          <button class="btn btn-ghost" id="modalShare" type="button" data-i18n="modal.share">↗ Chia sẻ</button>
         </div>
       </div>
     </div>
@@ -354,6 +356,36 @@
     <img src="assets/img/zalo.svg" alt="Zalo" />
     <span class="fab-zalo-label" data-i18n="fab.zalo">Nhắn Zalo</span>
   </a>
+
+  <!-- ==================== FLOATING FAVORITES ==================== -->
+  <button class="fab-favs" id="favFab" type="button" hidden aria-label="Danh sách yêu thích">
+    <span class="fab-favs-heart">♥</span>
+    <span class="fab-favs-label"><span data-i18n="fab.favs">Danh sách</span> (<b id="favCount">0</b>)</span>
+  </button>
+
+  <!-- ==================== FAVORITES PANEL ==================== -->
+  <div class="fav-panel" id="favPanel" hidden>
+    <div class="modal-backdrop" data-fav-close></div>
+    <div class="fav-body" role="dialog" aria-modal="true">
+      <div class="fav-head">
+        <h3 data-i18n="fav.title">Mẫu yêu thích của bạn</h3>
+        <button class="modal-close" data-fav-close aria-label="Đóng">✕</button>
+      </div>
+      <p class="fav-empty" id="favEmpty" data-i18n="fav.empty" hidden>Chưa có mẫu nào. Bấm ♥ trên mẫu để thêm vào danh sách.</p>
+      <div class="fav-list" id="favList"></div>
+      <div class="fav-actions" id="favActions" hidden>
+        <p class="fav-hint" data-i18n="fav.hint">Bấm gửi — danh sách sẽ được tự động copy, bạn chỉ cần dán vào khung chat cho shop.</p>
+        <div class="fav-send">
+          <a class="btn btn-primary" id="favZalo" target="_blank" rel="noopener" data-i18n="fav.sendZalo">Gửi danh sách qua Zalo</a>
+          <a class="btn btn-ghost" id="favTiktok" target="_blank" rel="noopener" data-i18n="fav.sendTiktok">Gửi qua TikTok</a>
+        </div>
+        <button class="fav-clear" id="favClear" type="button" data-i18n="fav.clear">Xoá hết danh sách</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST ==================== -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script type="module" src="assets/js/app.js"></script>
 </body>
