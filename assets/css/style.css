@@ -227,7 +227,7 @@ img, video { display: block; max-width: 100%; }
 .promo-price { font-size: 1.5rem; font-weight: 800; flex: 0 0 auto; }
 .promo-price s { font-size: .78rem; opacity: .72; font-weight: 600; margin-right: 5px; }
 .promo-timer { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.17); border: 1px solid rgba(255,255,255,.24); border-radius: 11px; padding: 3px 8px 3px 4px; flex: 0 0 auto; }
-.promo-hourglass { width: 22px; height: 22px; flex: 0 0 auto; display: block; background: rgba(255,255,255,.95); border-radius: 7px; padding: 2px; box-sizing: border-box; }
+.promo-hourglass { width: 24px; height: 24px; flex: 0 0 auto; display: block; }
 .promo-hourglass svg { width: 100% !important; height: 100% !important; display: block; }
 @media (prefers-reduced-motion: no-preference) {
   .promo-hourglass { animation: hg-flip 5s ease-in-out infinite; transform-origin: 50% 50%; }
