@@ -129,7 +129,7 @@ function renderGallery() {
           ${w.hot ? `<span class="card-hot">${t('card.hot')}</span>` : ''}
           <div class="card-tools">
             <button class="card-fav ${isFav(w.id) ? 'on' : ''}" data-fav type="button" aria-label="Yêu thích">♥</button>
-            <button class="card-share" data-share type="button" aria-label="Chia sẻ">↗</button>
+            <button class="card-share" data-share type="button" aria-label="Copy link" title="Copy link"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
           </div>
           <div class="card-hover">
             <div class="card-hover-meta">
@@ -280,9 +280,7 @@ function showToast(msg) {
 const copyText = (txt) => { try { return navigator.clipboard.writeText(txt); } catch { return Promise.reject(); } };
 async function shareWallpaper(id) {
   const w = state.wallpapers.find((x) => x.id === id); if (!w) return;
-  const name = w.title[state.lang] || w.title.vi;
   const url = `https://desktopchill.com/?w=${id}`;
-  if (navigator.share) { try { await navigator.share({ title: `desktopchill — ${name}`, text: `Xem hình nền động “${name}” tại desktopchill`, url }); return; } catch { /* huỷ chia sẻ */ } }
   copyText(url).then(() => showToast(t('share.copied'))).catch(() => showToast(url));
 }
 function toggleFav(id) {
@@ -701,6 +699,31 @@ function initCardSpotlight() {
   });
 }
 /* ---------------- init ---------------- */
+/* ---------------- promo countdown (đếm ngược tới 00:00 mỗi ngày) + đồng hồ cát ---------------- */
+function initPromoTimer() {
+  const out = $('#promoCountdown');
+  if (out) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const tick = () => {
+      const now = new Date();
+      const mid = new Date(now); mid.setHours(24, 0, 0, 0); // 00:00 ngày mai
+      let diff = Math.max(0, mid - now);
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor(diff / 60000) % 60;
+      const s = Math.floor(diff / 1000) % 60;
+      out.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`; // 24:00:00 lúc reset → đếm ngược
+    };
+    tick();
+    clearInterval(window.__promoTimer);
+    window.__promoTimer = setInterval(tick, 1000);
+  }
+  const hg = $('#promoHourglass');
+  if (hg && window.lottie && !hg.dataset.loaded) {
+    hg.dataset.loaded = '1';
+    try { window.lottie.loadAnimation({ container: hg, renderer: 'svg', loop: true, autoplay: true, path: 'assets/hourglass.json' }); } catch { /* bỏ qua */ }
+  }
+}
+
 async function init() {
   applyTheme(); wireContacts(); wireEvents();
   $$('#viewToggle button').forEach((b) => b.classList.toggle('active', b.dataset.view === state.view));
@@ -724,6 +747,7 @@ async function init() {
   initMarquee();
   initTextReveal();
   updateFavCount();
+  initPromoTimer();
   initCat();
   // deep-link: mở link ?w=<id> sẽ tự hiện mẫu đó lên màn hình
   try {

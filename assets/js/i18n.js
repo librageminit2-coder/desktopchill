@@ -8,7 +8,7 @@ export const I18N = {
     'nav.contact': 'Liên hệ',
     'nav.settings': 'Cài đặt',
 
-    'fab.zalo': 'Nhắn Zalo',
+    'fab.zalo': 'Đặt ngay',
 
     'stat.designs': 'mẫu hình nền động',
     'stat.price': 'trọn gói full tất cả mẫu, không phát sinh',
@@ -49,6 +49,7 @@ export const I18N = {
     'filter.viewLabel': 'Kiểu xem',
     'promo.desc': 'Cài trọn gói qua Ultraview + trọn kho hình + cập nhật trọn đời.',
     'promo.cta': 'Nhận ưu đãi →',
+    'promo.endsIn': 'Kết thúc trong',
     'filter.all': 'Tất cả',
     'filter.hot': '🔥 Hot',
     'card.hot': '🔥 Hot',
@@ -72,7 +73,7 @@ export const I18N = {
     'modal.tiktok': 'Xem trên TikTok',
     'modal.fav': '♥ Lưu mẫu',
     'modal.faved': '✓ Đã lưu',
-    'modal.share': '↗ Chia sẻ',
+    'modal.share': '🔗 Copy link',
     'fab.favs': 'Danh sách',
     'fav.title': 'Mẫu yêu thích của bạn',
     'fav.empty': 'Chưa có mẫu nào. Bấm ♥ trên mẫu để thêm vào danh sách.',
@@ -125,7 +126,7 @@ export const I18N = {
     'nav.contact': 'Contact',
     'nav.settings': 'Settings',
 
-    'fab.zalo': 'Message Zalo',
+    'fab.zalo': 'Book now',
 
     'stat.designs': 'live wallpaper designs',
     'stat.price': 'all-inclusive, all designs, no extras',
@@ -166,6 +167,7 @@ export const I18N = {
     'filter.viewLabel': 'View',
     'promo.desc': 'Full remote install + entire library + lifetime updates.',
     'promo.cta': 'Get the deal →',
+    'promo.endsIn': 'Ends in',
     'filter.all': 'All',
     'filter.hot': '🔥 Hot',
     'card.hot': '🔥 Hot',
@@ -189,7 +191,7 @@ export const I18N = {
     'modal.tiktok': 'Watch on TikTok',
     'modal.fav': '♥ Save',
     'modal.faved': '✓ Saved',
-    'modal.share': '↗ Share',
+    'modal.share': '🔗 Copy link',
     'fab.favs': 'My list',
     'fav.title': 'Your favorite designs',
     'fav.empty': 'No designs yet. Tap ♥ on a design to add it.',
