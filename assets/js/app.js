@@ -1,4 +1,4 @@
-import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js';
+import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260906b';
 
 const state = {
   lang: localStorage.getItem('dc_lang') || 'vi',
