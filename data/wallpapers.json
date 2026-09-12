@@ -10,7 +10,7 @@
       "category": "anime",
       "hot": false,
       "color": "#2e2f2c",
-      "poster": "media/poster/01.jpg",
+      "poster": "media/poster/01.webp",
       "preview": "media/preview/01.mp4",
       "w": 1920,
       "h": 1080
@@ -25,7 +25,7 @@
       "category": "anime",
       "hot": false,
       "color": "#f3f3f0",
-      "poster": "media/poster/02.jpg",
+      "poster": "media/poster/02.webp",
       "preview": "media/preview/02.mp4",
       "w": 1920,
       "h": 1080
@@ -40,7 +40,7 @@
       "category": "anime",
       "hot": false,
       "color": "#b26c70",
-      "poster": "media/poster/03.jpg",
+      "poster": "media/poster/03.webp",
       "preview": "media/preview/03.mp4",
       "w": 1920,
       "h": 1080
@@ -55,7 +55,7 @@
       "category": "game",
       "hot": false,
       "color": "#d5cdd3",
-      "poster": "media/poster/04.jpg",
+      "poster": "media/poster/04.webp",
       "preview": "media/preview/04.mp4",
       "w": 1920,
       "h": 1080
@@ -70,7 +70,7 @@
       "category": "anime",
       "hot": false,
       "color": "#f4f8f3",
-      "poster": "media/poster/05.jpg",
+      "poster": "media/poster/05.webp",
       "preview": "media/preview/05.mp4",
       "w": 1920,
       "h": 1080
@@ -85,7 +85,7 @@
       "category": "anime",
       "hot": true,
       "color": "#12326e",
-      "poster": "media/poster/06.jpg",
+      "poster": "media/poster/06.webp",
       "preview": "media/preview/06.mp4",
       "w": 1920,
       "h": 1080
@@ -100,7 +100,7 @@
       "category": "anime",
       "hot": false,
       "color": "#6b94aa",
-      "poster": "media/poster/07.jpg",
+      "poster": "media/poster/07.webp",
       "preview": "media/preview/07.mp4",
       "w": 1920,
       "h": 1080
@@ -115,7 +115,7 @@
       "category": "anime",
       "hot": false,
       "color": "#283034",
-      "poster": "media/poster/08.jpg",
+      "poster": "media/poster/08.webp",
       "preview": "media/preview/08.mp4",
       "w": 1920,
       "h": 1080
@@ -130,7 +130,7 @@
       "category": "anime",
       "hot": false,
       "color": "#17162f",
-      "poster": "media/poster/09.jpg",
+      "poster": "media/poster/09.webp",
       "preview": "media/preview/09.mp4",
       "w": 1920,
       "h": 1080
@@ -145,7 +145,7 @@
       "category": "game",
       "hot": false,
       "color": "#1a2429",
-      "poster": "media/poster/10.jpg",
+      "poster": "media/poster/10.webp",
       "preview": "media/preview/10.mp4",
       "w": 1920,
       "h": 1080
@@ -160,7 +160,7 @@
       "category": "girl",
       "hot": false,
       "color": "#667691",
-      "poster": "media/poster/11.jpg",
+      "poster": "media/poster/11.webp",
       "preview": "media/preview/11.mp4",
       "w": 1920,
       "h": 1080
@@ -175,7 +175,7 @@
       "category": "game",
       "hot": false,
       "color": "#2c2d29",
-      "poster": "media/poster/12.jpg",
+      "poster": "media/poster/12.webp",
       "preview": "media/preview/12.mp4",
       "w": 1920,
       "h": 1080
@@ -190,7 +190,7 @@
       "category": "girl",
       "hot": false,
       "color": "#51504f",
-      "poster": "media/poster/13.jpg",
+      "poster": "media/poster/13.webp",
       "preview": "media/preview/13.mp4",
       "w": 1920,
       "h": 1080
@@ -205,7 +205,7 @@
       "category": "anime",
       "hot": true,
       "color": "#f2eff4",
-      "poster": "media/poster/14.jpg",
+      "poster": "media/poster/14.webp",
       "preview": "media/preview/14.mp4",
       "w": 1920,
       "h": 1080
@@ -220,7 +220,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#fdfefc",
-      "poster": "media/poster/15.jpg",
+      "poster": "media/poster/15.webp",
       "preview": "media/preview/15.mp4",
       "w": 1920,
       "h": 1080
@@ -235,7 +235,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#294d52",
-      "poster": "media/poster/16.jpg",
+      "poster": "media/poster/16.webp",
       "preview": "media/preview/16.mp4",
       "w": 1920,
       "h": 1080
@@ -250,7 +250,7 @@
       "category": "anime",
       "hot": false,
       "color": "#afb0ae",
-      "poster": "media/poster/17.jpg",
+      "poster": "media/poster/17.webp",
       "preview": "media/preview/17.mp4",
       "w": 1920,
       "h": 1080
@@ -265,7 +265,7 @@
       "category": "girl",
       "hot": false,
       "color": "#8d71aa",
-      "poster": "media/poster/18.jpg",
+      "poster": "media/poster/18.webp",
       "preview": "media/preview/18.mp4",
       "w": 1920,
       "h": 1080
@@ -280,7 +280,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#ebd4cd",
-      "poster": "media/poster/19.jpg",
+      "poster": "media/poster/19.webp",
       "preview": "media/preview/19.mp4",
       "w": 1920,
       "h": 1080
@@ -295,7 +295,7 @@
       "category": "anime",
       "hot": false,
       "color": "#cdd1b0",
-      "poster": "media/poster/20.jpg",
+      "poster": "media/poster/20.webp",
       "preview": "media/preview/20.mp4",
       "w": 1920,
       "h": 1080
@@ -310,7 +310,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#f3f8f6",
-      "poster": "media/poster/21.jpg",
+      "poster": "media/poster/21.webp",
       "preview": "media/preview/21.mp4",
       "w": 1920,
       "h": 1080
@@ -325,7 +325,7 @@
       "category": "girl",
       "hot": false,
       "color": "#8f6f4e",
-      "poster": "media/poster/22.jpg",
+      "poster": "media/poster/22.webp",
       "preview": "media/preview/22.mp4",
       "w": 1920,
       "h": 1080
@@ -340,7 +340,7 @@
       "category": "girl",
       "hot": true,
       "color": "#cad3cf",
-      "poster": "media/poster/23.jpg",
+      "poster": "media/poster/23.webp",
       "preview": "media/preview/23.mp4",
       "w": 1920,
       "h": 1080
@@ -355,7 +355,7 @@
       "category": "girl",
       "hot": false,
       "color": "#324b50",
-      "poster": "media/poster/24.jpg",
+      "poster": "media/poster/24.webp",
       "preview": "media/preview/24.mp4",
       "w": 1920,
       "h": 1080
@@ -370,7 +370,7 @@
       "category": "game",
       "hot": true,
       "color": "#8d3333",
-      "poster": "media/poster/25.jpg",
+      "poster": "media/poster/25.webp",
       "preview": "media/preview/25.mp4",
       "w": 1920,
       "h": 1080
@@ -385,7 +385,7 @@
       "category": "anime",
       "hot": false,
       "color": "#010202",
-      "poster": "media/poster/26.jpg",
+      "poster": "media/poster/26.webp",
       "preview": "media/preview/26.mp4",
       "w": 1920,
       "h": 1080
@@ -400,7 +400,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#19ac93",
-      "poster": "media/poster/27.jpg",
+      "poster": "media/poster/27.webp",
       "preview": "media/preview/27.mp4",
       "w": 1920,
       "h": 1080
@@ -415,7 +415,7 @@
       "category": "game",
       "hot": false,
       "color": "#070c14",
-      "poster": "media/poster/28.jpg",
+      "poster": "media/poster/28.webp",
       "preview": "media/preview/28.mp4",
       "w": 1920,
       "h": 1080
@@ -430,7 +430,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#290a12",
-      "poster": "media/poster/29.jpg",
+      "poster": "media/poster/29.webp",
       "preview": "media/preview/29.mp4",
       "w": 848,
       "h": 464
@@ -445,7 +445,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#324672",
-      "poster": "media/poster/30.jpg",
+      "poster": "media/poster/30.webp",
       "preview": "media/preview/30.mp4",
       "w": 1920,
       "h": 1080
@@ -460,7 +460,7 @@
       "category": "anime",
       "hot": false,
       "color": "#b4b4b1",
-      "poster": "media/poster/31.jpg",
+      "poster": "media/poster/31.webp",
       "preview": "media/preview/31.mp4",
       "w": 1920,
       "h": 1080
@@ -475,7 +475,7 @@
       "category": "anime",
       "hot": true,
       "color": "#321514",
-      "poster": "media/poster/32.jpg",
+      "poster": "media/poster/32.webp",
       "preview": "media/preview/32.mp4",
       "w": 1920,
       "h": 1080
@@ -490,7 +490,7 @@
       "category": "girl",
       "hot": false,
       "color": "#ac8d75",
-      "poster": "media/poster/33.jpg",
+      "poster": "media/poster/33.webp",
       "preview": "media/preview/33.mp4",
       "w": 1920,
       "h": 1080
@@ -505,7 +505,7 @@
       "category": "khac",
       "hot": false,
       "color": "#6d6e6d",
-      "poster": "media/poster/34.jpg",
+      "poster": "media/poster/34.webp",
       "preview": "media/preview/34.mp4",
       "w": 1920,
       "h": 1080
@@ -520,7 +520,7 @@
       "category": "khac",
       "hot": false,
       "color": "#a89390",
-      "poster": "media/poster/35.jpg",
+      "poster": "media/poster/35.webp",
       "preview": "media/preview/35.mp4",
       "w": 1920,
       "h": 1080
@@ -535,7 +535,7 @@
       "category": "khac",
       "hot": false,
       "color": "#8197b1",
-      "poster": "media/poster/36.jpg",
+      "poster": "media/poster/36.webp",
       "preview": "media/preview/36.mp4",
       "w": 1920,
       "h": 1080
@@ -550,7 +550,7 @@
       "category": "khac",
       "hot": false,
       "color": "#715337",
-      "poster": "media/poster/37.jpg",
+      "poster": "media/poster/37.webp",
       "preview": "media/preview/37.mp4",
       "w": 1920,
       "h": 1080
@@ -565,7 +565,7 @@
       "category": "khac",
       "hot": false,
       "color": "#32634d",
-      "poster": "media/poster/38.jpg",
+      "poster": "media/poster/38.webp",
       "preview": "media/preview/38.mp4",
       "w": 1920,
       "h": 1080
@@ -580,7 +580,7 @@
       "category": "khac",
       "hot": false,
       "color": "#3a3028",
-      "poster": "media/poster/39.jpg",
+      "poster": "media/poster/39.webp",
       "preview": "media/preview/39.mp4",
       "w": 1920,
       "h": 1080
@@ -595,7 +595,7 @@
       "category": "khac",
       "hot": false,
       "color": "#5584cb",
-      "poster": "media/poster/40.jpg",
+      "poster": "media/poster/40.webp",
       "preview": "media/preview/40.mp4",
       "w": 1920,
       "h": 1080
@@ -610,7 +610,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#4e615b",
-      "poster": "media/poster/41.jpg",
+      "poster": "media/poster/41.webp",
       "preview": "media/preview/41.mp4",
       "w": 1920,
       "h": 1080
@@ -625,7 +625,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#575e5a",
-      "poster": "media/poster/42.jpg",
+      "poster": "media/poster/42.webp",
       "preview": "media/preview/42.mp4",
       "w": 1920,
       "h": 1080
@@ -640,7 +640,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#3d6545",
-      "poster": "media/poster/43.jpg",
+      "poster": "media/poster/43.webp",
       "preview": "media/preview/43.mp4",
       "w": 1920,
       "h": 1080
@@ -655,7 +655,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#59696a",
-      "poster": "media/poster/44.jpg",
+      "poster": "media/poster/44.webp",
       "preview": "media/preview/44.mp4",
       "w": 1920,
       "h": 1080
@@ -670,7 +670,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#849eb4",
-      "poster": "media/poster/45.jpg",
+      "poster": "media/poster/45.webp",
       "preview": "media/preview/45.mp4",
       "w": 1920,
       "h": 1080
@@ -685,7 +685,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#4e585a",
-      "poster": "media/poster/46.jpg",
+      "poster": "media/poster/46.webp",
       "preview": "media/preview/46.mp4",
       "w": 1920,
       "h": 1080
@@ -700,7 +700,7 @@
       "category": "phongcanh",
       "hot": false,
       "color": "#35414e",
-      "poster": "media/poster/47.jpg",
+      "poster": "media/poster/47.webp",
       "preview": "media/preview/47.mp4",
       "w": 1920,
       "h": 1080
@@ -715,7 +715,7 @@
       "category": "girl",
       "hot": false,
       "color": "#2e0e19",
-      "poster": "media/poster/48.jpg",
+      "poster": "media/poster/48.webp",
       "preview": "media/preview/48.mp4",
       "w": 1920,
       "h": 1080
@@ -730,7 +730,7 @@
       "category": "girl",
       "hot": false,
       "color": "#8a8da3",
-      "poster": "media/poster/49.jpg",
+      "poster": "media/poster/49.webp",
       "preview": "media/preview/49.mp4",
       "w": 1920,
       "h": 1080
@@ -745,7 +745,7 @@
       "category": "girl",
       "hot": false,
       "color": "#5d5b5d",
-      "poster": "media/poster/50.jpg",
+      "poster": "media/poster/50.webp",
       "preview": "media/preview/50.mp4",
       "w": 1920,
       "h": 1080
@@ -760,7 +760,7 @@
       "category": "girl",
       "hot": false,
       "color": "#7c858b",
-      "poster": "media/poster/51.jpg",
+      "poster": "media/poster/51.webp",
       "preview": "media/preview/51.mp4",
       "w": 1920,
       "h": 1080
@@ -775,7 +775,7 @@
       "category": "girl",
       "hot": false,
       "color": "#a5a59f",
-      "poster": "media/poster/52.jpg",
+      "poster": "media/poster/52.webp",
       "preview": "media/preview/52.mp4",
       "w": 1920,
       "h": 1080
@@ -790,7 +790,7 @@
       "category": "girl",
       "hot": false,
       "color": "#887574",
-      "poster": "media/poster/53.jpg",
+      "poster": "media/poster/53.webp",
       "preview": "media/preview/53.mp4",
       "w": 1920,
       "h": 1080
@@ -805,7 +805,7 @@
       "category": "girl",
       "hot": false,
       "color": "#b1aca8",
-      "poster": "media/poster/54.jpg",
+      "poster": "media/poster/54.webp",
       "preview": "media/preview/54.mp4",
       "w": 1920,
       "h": 1080
@@ -820,7 +820,7 @@
       "category": "girl",
       "hot": false,
       "color": "#3f444d",
-      "poster": "media/poster/55.jpg",
+      "poster": "media/poster/55.webp",
       "preview": "media/preview/55.mp4",
       "w": 1920,
       "h": 1080
@@ -835,7 +835,7 @@
       "category": "game",
       "hot": false,
       "color": "#66749f",
-      "poster": "media/poster/56.jpg",
+      "poster": "media/poster/56.webp",
       "preview": "media/preview/56.mp4",
       "w": 1920,
       "h": 1080
@@ -850,7 +850,7 @@
       "category": "game",
       "hot": false,
       "color": "#434750",
-      "poster": "media/poster/57.jpg",
+      "poster": "media/poster/57.webp",
       "preview": "media/preview/57.mp4",
       "w": 1920,
       "h": 1080
@@ -865,7 +865,7 @@
       "category": "game",
       "hot": false,
       "color": "#7e7b78",
-      "poster": "media/poster/58.jpg",
+      "poster": "media/poster/58.webp",
       "preview": "media/preview/58.mp4",
       "w": 1920,
       "h": 1080
@@ -880,7 +880,7 @@
       "category": "game",
       "hot": false,
       "color": "#45576f",
-      "poster": "media/poster/59.jpg",
+      "poster": "media/poster/59.webp",
       "preview": "media/preview/59.mp4",
       "w": 1920,
       "h": 1080
@@ -895,7 +895,7 @@
       "category": "game",
       "hot": false,
       "color": "#a86161",
-      "poster": "media/poster/60.jpg",
+      "poster": "media/poster/60.webp",
       "preview": "media/preview/60.mp4",
       "w": 1920,
       "h": 1080
@@ -910,7 +910,7 @@
       "category": "game",
       "hot": false,
       "color": "#40434a",
-      "poster": "media/poster/61.jpg",
+      "poster": "media/poster/61.webp",
       "preview": "media/preview/61.mp4",
       "w": 1920,
       "h": 1080
@@ -925,7 +925,7 @@
       "category": "game",
       "hot": false,
       "color": "#5b4151",
-      "poster": "media/poster/62.jpg",
+      "poster": "media/poster/62.webp",
       "preview": "media/preview/62.mp4",
       "w": 1920,
       "h": 1080
@@ -940,7 +940,7 @@
       "category": "game",
       "hot": false,
       "color": "#696c88",
-      "poster": "media/poster/63.jpg",
+      "poster": "media/poster/63.webp",
       "preview": "media/preview/63.mp4",
       "w": 1920,
       "h": 1080
@@ -955,7 +955,7 @@
       "category": "game",
       "hot": false,
       "color": "#7182c2",
-      "poster": "media/poster/64.jpg",
+      "poster": "media/poster/64.webp",
       "preview": "media/preview/64.mp4",
       "w": 1920,
       "h": 1080
@@ -970,7 +970,7 @@
       "category": "game",
       "hot": false,
       "color": "#c9a8bb",
-      "poster": "media/poster/65.jpg",
+      "poster": "media/poster/65.webp",
       "preview": "media/preview/65.mp4",
       "w": 1920,
       "h": 1080
@@ -985,7 +985,7 @@
       "category": "game",
       "hot": false,
       "color": "#654051",
-      "poster": "media/poster/66.jpg",
+      "poster": "media/poster/66.webp",
       "preview": "media/preview/66.mp4",
       "w": 1920,
       "h": 1080
@@ -1000,7 +1000,7 @@
       "category": "game",
       "hot": false,
       "color": "#7a7284",
-      "poster": "media/poster/67.jpg",
+      "poster": "media/poster/67.webp",
       "preview": "media/preview/67.mp4",
       "w": 1920,
       "h": 1080
@@ -1015,7 +1015,7 @@
       "category": "girl",
       "hot": false,
       "color": "#4d7795",
-      "poster": "media/poster/68.jpg",
+      "poster": "media/poster/68.webp",
       "preview": "media/preview/68.mp4",
       "w": 1920,
       "h": 1080
@@ -1030,7 +1030,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#968c84",
-      "poster": "media/poster/69.jpg",
+      "poster": "media/poster/69.webp",
       "preview": "media/preview/69.mp4",
       "w": 1920,
       "h": 1080
@@ -1045,7 +1045,7 @@
       "category": "girl",
       "hot": false,
       "color": "#606c63",
-      "poster": "media/poster/70.jpg",
+      "poster": "media/poster/70.webp",
       "preview": "media/preview/70.mp4",
       "w": 1920,
       "h": 1080
@@ -1060,7 +1060,7 @@
       "category": "anime",
       "hot": false,
       "color": "#646c72",
-      "poster": "media/poster/71.jpg",
+      "poster": "media/poster/71.webp",
       "preview": "media/preview/71.mp4",
       "w": 1920,
       "h": 1080
@@ -1075,7 +1075,7 @@
       "category": "anime",
       "hot": false,
       "color": "#442829",
-      "poster": "media/poster/72.jpg",
+      "poster": "media/poster/72.webp",
       "preview": "media/preview/72.mp4",
       "w": 1920,
       "h": 1080
@@ -1090,7 +1090,7 @@
       "category": "anime",
       "hot": false,
       "color": "#442a55",
-      "poster": "media/poster/73.jpg",
+      "poster": "media/poster/73.webp",
       "preview": "media/preview/73.mp4",
       "w": 1920,
       "h": 1080
@@ -1105,7 +1105,7 @@
       "category": "girl",
       "hot": false,
       "color": "#545e4e",
-      "poster": "media/poster/74.jpg",
+      "poster": "media/poster/74.webp",
       "preview": "media/preview/74.mp4",
       "w": 1920,
       "h": 1080
@@ -1120,7 +1120,7 @@
       "category": "girl",
       "hot": false,
       "color": "#9fbbaa",
-      "poster": "media/poster/75.jpg",
+      "poster": "media/poster/75.webp",
       "preview": "media/preview/75.mp4",
       "w": 1920,
       "h": 1080
@@ -1135,7 +1135,7 @@
       "category": "girl",
       "hot": false,
       "color": "#4f536e",
-      "poster": "media/poster/76.jpg",
+      "poster": "media/poster/76.webp",
       "preview": "media/preview/76.mp4",
       "w": 1920,
       "h": 1080
@@ -1150,7 +1150,7 @@
       "category": "girl",
       "hot": false,
       "color": "#828a94",
-      "poster": "media/poster/77.jpg",
+      "poster": "media/poster/77.webp",
       "preview": "media/preview/77.mp4",
       "w": 1920,
       "h": 1080
@@ -1165,7 +1165,7 @@
       "category": "game",
       "hot": false,
       "color": "#242554",
-      "poster": "media/poster/78.jpg",
+      "poster": "media/poster/78.webp",
       "preview": "media/preview/78.mp4",
       "w": 1920,
       "h": 1080
@@ -1180,7 +1180,7 @@
       "category": "game",
       "hot": false,
       "color": "#3f3733",
-      "poster": "media/poster/79.jpg",
+      "poster": "media/poster/79.webp",
       "preview": "media/preview/79.mp4",
       "w": 1920,
       "h": 1080
@@ -1195,7 +1195,7 @@
       "category": "game",
       "hot": false,
       "color": "#393c45",
-      "poster": "media/poster/80.jpg",
+      "poster": "media/poster/80.webp",
       "preview": "media/preview/80.mp4",
       "w": 1920,
       "h": 1080
@@ -1210,7 +1210,7 @@
       "category": "game",
       "hot": false,
       "color": "#324744",
-      "poster": "media/poster/81.jpg",
+      "poster": "media/poster/81.webp",
       "preview": "media/preview/81.mp4",
       "w": 1920,
       "h": 1080
@@ -1225,7 +1225,7 @@
       "category": "anime",
       "hot": false,
       "color": "#111111",
-      "poster": "media/poster/82.jpg",
+      "poster": "media/poster/82.webp",
       "preview": "media/preview/82.mp4",
       "w": 1920,
       "h": 1080
@@ -1240,7 +1240,7 @@
       "category": "anime",
       "hot": false,
       "color": "#95998e",
-      "poster": "media/poster/83.jpg",
+      "poster": "media/poster/83.webp",
       "preview": "media/preview/83.mp4",
       "w": 1920,
       "h": 1080
@@ -1255,7 +1255,7 @@
       "category": "anime",
       "hot": false,
       "color": "#231213",
-      "poster": "media/poster/84.jpg",
+      "poster": "media/poster/84.webp",
       "preview": "media/preview/84.mp4",
       "w": 1920,
       "h": 1080
@@ -1270,7 +1270,7 @@
       "category": "anime",
       "hot": false,
       "color": "#5d515c",
-      "poster": "media/poster/85.jpg",
+      "poster": "media/poster/85.webp",
       "preview": "media/preview/85.mp4",
       "w": 1920,
       "h": 1080
@@ -1285,7 +1285,7 @@
       "category": "anime",
       "hot": false,
       "color": "#737779",
-      "poster": "media/poster/86.jpg",
+      "poster": "media/poster/86.webp",
       "preview": "media/preview/86.mp4",
       "w": 1920,
       "h": 1080
@@ -1300,7 +1300,7 @@
       "category": "game",
       "hot": false,
       "color": "#70768d",
-      "poster": "media/poster/87.jpg",
+      "poster": "media/poster/87.webp",
       "preview": "media/preview/87.mp4",
       "w": 1920,
       "h": 1080
@@ -1315,7 +1315,7 @@
       "category": "game",
       "hot": false,
       "color": "#514d4a",
-      "poster": "media/poster/88.jpg",
+      "poster": "media/poster/88.webp",
       "preview": "media/preview/88.mp4",
       "w": 1920,
       "h": 1080
@@ -1330,7 +1330,7 @@
       "category": "game",
       "hot": false,
       "color": "#3f4b50",
-      "poster": "media/poster/89.jpg",
+      "poster": "media/poster/89.webp",
       "preview": "media/preview/89.mp4",
       "w": 1920,
       "h": 1080
@@ -1345,7 +1345,7 @@
       "category": "game",
       "hot": false,
       "color": "#725b44",
-      "poster": "media/poster/90.jpg",
+      "poster": "media/poster/90.webp",
       "preview": "media/preview/90.mp4",
       "w": 1920,
       "h": 1080
@@ -1360,7 +1360,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#131413",
-      "poster": "media/poster/91.jpg",
+      "poster": "media/poster/91.webp",
       "preview": "media/preview/91.mp4",
       "w": 1920,
       "h": 1080
@@ -1375,7 +1375,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#101010",
-      "poster": "media/poster/92.jpg",
+      "poster": "media/poster/92.webp",
       "preview": "media/preview/92.mp4",
       "w": 1920,
       "h": 1080
@@ -1390,7 +1390,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#252525",
-      "poster": "media/poster/93.jpg",
+      "poster": "media/poster/93.webp",
       "preview": "media/preview/93.mp4",
       "w": 1920,
       "h": 1080
@@ -1405,7 +1405,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#151615",
-      "poster": "media/poster/94.jpg",
+      "poster": "media/poster/94.webp",
       "preview": "media/preview/94.mp4",
       "w": 1920,
       "h": 1080
@@ -1420,7 +1420,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#1a2830",
-      "poster": "media/poster/95.jpg",
+      "poster": "media/poster/95.webp",
       "preview": "media/preview/95.mp4",
       "w": 1920,
       "h": 1080
@@ -1435,7 +1435,7 @@
       "category": "truutuong",
       "hot": false,
       "color": "#010201",
-      "poster": "media/poster/96.jpg",
+      "poster": "media/poster/96.webp",
       "preview": "media/preview/96.mp4",
       "w": 1920,
       "h": 1080
@@ -1450,7 +1450,7 @@
       "category": "girl",
       "hot": false,
       "color": "#0f0c09",
-      "poster": "media/poster/97.jpg",
+      "poster": "media/poster/97.webp",
       "preview": "media/preview/97.mp4",
       "w": 1920,
       "h": 1080
@@ -1465,7 +1465,7 @@
       "category": "anime",
       "hot": false,
       "color": "#3e423e",
-      "poster": "media/poster/98.jpg",
+      "poster": "media/poster/98.webp",
       "preview": "media/preview/98.mp4",
       "w": 1920,
       "h": 1080
@@ -1480,7 +1480,7 @@
       "category": "anime",
       "hot": false,
       "color": "#57142b",
-      "poster": "media/poster/99.jpg",
+      "poster": "media/poster/99.webp",
       "preview": "media/preview/99.mp4",
       "w": 1920,
       "h": 1080
@@ -1495,7 +1495,7 @@
       "category": "anime",
       "hot": false,
       "color": "#37323f",
-      "poster": "media/poster/100.jpg",
+      "poster": "media/poster/100.webp",
       "preview": "media/preview/100.mp4",
       "w": 1920,
       "h": 1080
@@ -1510,7 +1510,7 @@
       "category": "anime",
       "hot": false,
       "color": "#495d86",
-      "poster": "media/poster/101.jpg",
+      "poster": "media/poster/101.webp",
       "preview": "media/preview/101.mp4",
       "w": 1920,
       "h": 1080
@@ -1525,7 +1525,7 @@
       "category": "anime",
       "hot": false,
       "color": "#3e4553",
-      "poster": "media/poster/102.jpg",
+      "poster": "media/poster/102.webp",
       "preview": "media/preview/102.mp4",
       "w": 1920,
       "h": 1080

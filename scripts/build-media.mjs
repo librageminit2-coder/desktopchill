@@ -129,7 +129,7 @@ for (const { name, num } of videos) {
   const id = String(num).padStart(2, '0');
   const input = join(SRC_DIR, name);
   const previewOut = join(PREVIEW_DIR, `${id}.mp4`);
-  const posterOut = join(POSTER_DIR, `${id}.jpg`);
+  const posterOut = join(POSTER_DIR, `${id}.webp`);
 
   const prev = byId.get(id);
   process.stdout.write(`[${idx}/${videos.length}] ${name} → id ${id} ... `);
@@ -146,7 +146,7 @@ for (const { name, num } of videos) {
 
   // Poster: lấy 1 khung hình ở giây thứ 1
   run(FFMPEG, ['-y', '-ss', '1', '-i', input, '-frames:v', '1',
-    '-vf', `scale=-2:${PREVIEW_HEIGHT}`, '-q:v', '3', posterOut]);
+    '-vf', `scale=-2:${PREVIEW_HEIGHT}`, '-c:v', 'libwebp', '-quality', '80', posterOut]);
 
   // Preview: clip ngắn, không tiếng, nén gọn
   run(FFMPEG, ['-y', '-i', input, '-t', String(PREVIEW_SECONDS), '-an',
@@ -161,7 +161,7 @@ for (const { name, num } of videos) {
     category: prev?.category || 'khac',
     hot: prev?.hot || false,
     color: prev?.color || avgColor(posterOut),
-    poster: `media/poster/${id}.jpg`,
+    poster: `media/poster/${id}.webp`,
     preview: `media/preview/${id}.mp4`,
     w, h,
   });

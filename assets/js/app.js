@@ -1,4 +1,4 @@
-import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912h';
+import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912i';
 
 const state = {
   lang: localStorage.getItem('dc_lang') || 'vi',
@@ -452,8 +452,8 @@ const REVIEWS = ['fb1', 'fb2', 'fb3', 'fb4', 'fb5', 'fb6', 'fb7', 'fb8', 'fb9'];
 function renderReviews() {
   const box = $('#reviewsStack'); if (!box) return;
   box.innerHTML = REVIEWS.map((f, i) => `
-    <figure class="stack-card" role="button" tabindex="-1" aria-label="Đánh giá khách hàng ${i + 1} — bấm để xem" data-src="assets/img/feedback/${f}.jpg">
-      <img src="assets/img/feedback/${f}.jpg" alt="Đánh giá khách hàng ${i + 1}" draggable="false" loading="lazy" decoding="async" />
+    <figure class="stack-card" role="button" tabindex="-1" aria-label="Đánh giá khách hàng ${i + 1} — bấm để xem" data-src="assets/img/feedback/${f}.webp">
+      <img src="assets/img/feedback/${f}.webp" alt="Đánh giá khách hàng ${i + 1}" draggable="false" loading="lazy" decoding="async" />
       <button class="stack-full" data-full type="button" aria-label="Xem đầy đủ">⤢</button>
     </figure>`).join('');
 
