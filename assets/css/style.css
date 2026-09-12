@@ -598,3 +598,24 @@ img, video { display: block; max-width: 100%; }
   .fab-zalo { height: 50px; right: 14px; bottom: 14px; padding: 0 15px 0 11px; font-size: .88rem; gap: 8px; }
   .fab-zalo img { width: 27px; height: 27px; }
 }
+
+/* ===================== Trust badges ===================== */
+.trust-badges { max-width: 1080px; margin: 0 auto 26px; padding: 0 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.trust-item { display: flex; align-items: center; gap: 11px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--surface-solid) 55%, transparent); backdrop-filter: blur(8px) saturate(140%); -webkit-backdrop-filter: blur(8px) saturate(140%); font-size: .9rem; font-weight: 600; color: var(--text); line-height: 1.35; }
+.trust-ic { font-size: 1.5rem; flex: 0 0 auto; }
+@media (max-width: 900px) { .trust-badges { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 460px) { .trust-badges { gap: 8px; } .trust-item { padding: 11px 12px; font-size: .8rem; gap: 8px; } .trust-ic { font-size: 1.25rem; } }
+
+/* ===================== Mobile sticky CTA bar ===================== */
+.mobile-cta { display: none; }
+@media (max-width: 760px) {
+  .mobile-cta { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 95; gap: 8px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); background: color-mix(in srgb, var(--surface-solid) 94%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border); box-shadow: 0 -6px 20px rgba(0,0,0,.18); }
+  .mcta-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 12px; font-weight: 800; font-size: .95rem; text-decoration: none; }
+  .mcta-btn img { width: 22px; height: 22px; background: #fff; border-radius: 6px; padding: 2px; box-sizing: border-box; }
+  .mcta-zalo { background: var(--zalo); color: #fff; }
+  .mcta-tiktok { background: #1f2029; color: #fff; }
+  body { padding-bottom: 66px; }
+  #floatingZalo { display: none; }
+  .fab-favs { bottom: 74px; }
+  .cat-helper { bottom: 74px; }
+}
