@@ -1,4 +1,4 @@
-import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912g';
+import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912h';
 
 const state = {
   lang: localStorage.getItem('dc_lang') || 'vi',
@@ -452,7 +452,7 @@ const REVIEWS = ['fb1', 'fb2', 'fb3', 'fb4', 'fb5', 'fb6', 'fb7', 'fb8', 'fb9'];
 function renderReviews() {
   const box = $('#reviewsStack'); if (!box) return;
   box.innerHTML = REVIEWS.map((f, i) => `
-    <figure class="stack-card" data-src="assets/img/feedback/${f}.jpg">
+    <figure class="stack-card" role="button" tabindex="-1" aria-label="Đánh giá khách hàng ${i + 1} — bấm để xem" data-src="assets/img/feedback/${f}.jpg">
       <img src="assets/img/feedback/${f}.jpg" alt="Đánh giá khách hàng ${i + 1}" draggable="false" loading="lazy" decoding="async" />
       <button class="stack-full" data-full type="button" aria-label="Xem đầy đủ">⤢</button>
     </figure>`).join('');
@@ -486,6 +486,7 @@ function renderReviews() {
         el.style.zIndex = N - pos;
         el.classList.remove('is-popped', 'is-top');
       }
+      el.tabIndex = pos === 0 ? 0 : -1;   // chỉ lá trên cùng focus được bằng bàn phím
     });
   };
   const advance = () => { clearTimeout(timer); popped = false; order = [...order.slice(1), order[0]]; layout(); };
@@ -495,6 +496,13 @@ function renderReviews() {
     const card = e.target.closest('.stack-card'); if (!card) return;
     if (order.indexOf(cards.indexOf(card)) !== 0) return;   // chỉ lá trên cùng bấm được
     if (e.target.closest('[data-full]')) { clearTimeout(timer); openLightbox(card.dataset.src); return; }
+    if (popped) advance(); else pop();
+  });
+  box.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('.stack-card'); if (!card) return;
+    if (order.indexOf(cards.indexOf(card)) !== 0) return;   // chỉ lá trên cùng
+    e.preventDefault();
     if (popped) advance(); else pop();
   });
   layout();
@@ -675,12 +683,6 @@ function initCountUp() {
   nums.forEach((n) => io.observe(n));
 }
 // Marquee dải vibe chạy ngang (nhân đôi để lặp liền mạch)
-function initMarquee() {
-  const box = $('#marquee'); if (!box) return;
-  const items = ['Anime', 'Phong cảnh', 'Game', 'Girl', 'Lofi · Chill', 'Cyberpunk', 'Trừu tượng', 'Thú cưng', 'Minimal', 'Đồng hồ · Lịch', 'Nhạc nền', 'Custom theo yêu cầu'];
-  const one = items.map((t) => `<span class="mq-item">${t}</span>`).join('<span class="mq-dot">✦</span>');
-  box.innerHTML = `<div class="marquee-track">${one}<span class="mq-dot">✦</span>${one}<span class="mq-dot">✦</span></div>`;
-}
 // Text reveal: tách chữ theo từ, hiện dần khi cuộn tới (chạy 1 lần)
 function initTextReveal() {
   const targets = $$('.section-title'); if (!targets.length) return;
@@ -692,15 +694,6 @@ function initTextReveal() {
     requestAnimationFrame(() => el.classList.add('rw-in'));
   }, { threshold: 0.4 }));
   targets.forEach((t) => io.observe(t));
-}
-// Spotlight sáng theo con trỏ trên thẻ giá
-function initCardSpotlight() {
-  const card = $('.pricing-card'); if (!card) return;
-  card.addEventListener('pointermove', (e) => {
-    const r = card.getBoundingClientRect();
-    card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-    card.style.setProperty('--my', (e.clientY - r.top) + 'px');
-  });
 }
 /* ---------------- init ---------------- */
 /* ---------------- promo countdown (đếm ngược tới 00:00 mỗi ngày) + đồng hồ cát ---------------- */

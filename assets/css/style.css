@@ -623,3 +623,10 @@ img, video { display: block; max-width: 100%; }
   .fab-favs { bottom: 74px; }
   .cat-helper { bottom: 74px; }
 }
+
+/* ===================== Accessible focus rings (keyboard only) ===================== */
+:where(a, button, [tabindex="0"], input, textarea, select):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+:where(a, button):focus:not(:focus-visible) { outline: none; }
