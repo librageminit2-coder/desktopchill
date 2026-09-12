@@ -5,6 +5,7 @@ export const I18N = {
     'nav.gallery': 'Bộ sưu tập',
     'nav.pricing': 'Bảng giá',
     'nav.faq': 'Hỏi đáp',
+    'nav.guide': 'Hướng dẫn',
     'nav.contact': 'Liên hệ',
     'nav.settings': 'Cài đặt',
 
@@ -123,6 +124,7 @@ export const I18N = {
     'nav.gallery': 'Collection',
     'nav.pricing': 'Pricing',
     'nav.faq': 'FAQ',
+    'nav.guide': 'Guide',
     'nav.contact': 'Contact',
     'nav.settings': 'Settings',
 
