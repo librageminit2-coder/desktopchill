@@ -1,4 +1,4 @@
-import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912i';
+import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912j';
 
 const state = {
   lang: localStorage.getItem('dc_lang') || 'vi',
@@ -60,7 +60,7 @@ function renderPreviewGallery() {
       <img src="${w.poster}" alt="Hình nền động ${w.title[state.lang] || w.title.vi} cho máy tính" loading="lazy" />
       <span class="pg-name">${w.title[state.lang] || w.title.vi}</span>
     </button>`).join('');
-  $$('#pgTrack .pg-thumb').forEach((th) => th.addEventListener('click', () => selectHero(th.dataset.id)));
+  $$('#pgTrack .pg-thumb').forEach((th) => th.addEventListener('click', () => { selectHero(th.dataset.id); initHeroAuto(); }));
   if (items[0]) selectHero(items[0].id, true);
 }
 function selectHero(id, instant = false) {
@@ -83,6 +83,20 @@ function selectHero(id, instant = false) {
   video.load();
   video.oncanplay = start;
   if (instant) setTimeout(start, 60);
+}
+
+/* Tự đổi hình nền trên màn hình hero — random trong kho bộ sưu tập, mỗi 10 giây */
+function initHeroAuto() {
+  clearInterval(window.__heroAuto);
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (state.wallpapers.length < 2) return;
+  window.__heroAuto = setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    const list = state.wallpapers;
+    let id;
+    do { id = list[Math.floor(Math.random() * list.length)].id; } while (id === state.current);
+    selectHero(id);
+  }, 10000);
 }
 
 /* ---------------- GALLERY ---------------- */
@@ -188,7 +202,7 @@ function renderPagination(totalPages) {
 }
 function wireCards() {
   const cards = $$('#galleryGrid .card');
-  const toScreen = (id) => { vibrate(); selectHero(id); $('#home').scrollIntoView({ behavior: 'smooth' }); };
+  const toScreen = (id) => { vibrate(); selectHero(id); initHeroAuto(); $('#home').scrollIntoView({ behavior: 'smooth' }); };
   // auto-play videos as they scroll into view (pause when off-screen for performance)
   if (window._cardIO) window._cardIO.disconnect();
   window._cardIO = new IntersectionObserver((entries) => {
@@ -492,11 +506,21 @@ function renderReviews() {
   const advance = () => { clearTimeout(timer); popped = false; order = [...order.slice(1), order[0]]; layout(); };
   const pop = () => { popped = true; layout(); clearTimeout(timer); timer = setTimeout(advance, 2600); };
 
+  // Tự đổi thẻ sau mỗi 5 giây (tạm dừng khi đang bung 1 thẻ hoặc tab ẩn; tôn trọng prefers-reduced-motion)
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let auto = null;
+  const startAuto = () => {
+    if (reduce) return;
+    clearInterval(auto);
+    auto = setInterval(() => { if (!popped && document.visibilityState === 'visible') advance(); }, 5000);
+  };
+
   box.addEventListener('click', (e) => {
     const card = e.target.closest('.stack-card'); if (!card) return;
     if (order.indexOf(cards.indexOf(card)) !== 0) return;   // chỉ lá trên cùng bấm được
     if (e.target.closest('[data-full]')) { clearTimeout(timer); openLightbox(card.dataset.src); return; }
     if (popped) advance(); else pop();
+    startAuto();   // đặt lại nhịp 5s sau khi người dùng tương tác
   });
   box.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
@@ -504,8 +528,10 @@ function renderReviews() {
     if (order.indexOf(cards.indexOf(card)) !== 0) return;   // chỉ lá trên cùng
     e.preventDefault();
     if (popped) advance(); else pop();
+    startAuto();
   });
   layout();
+  startAuto();
 }
 function openLightbox(src) {
   const lb = $('#lightbox'), img = $('#lightboxImg'); if (!lb || !img) return;
@@ -743,11 +769,12 @@ async function init() {
   initTextReveal();
   updateFavCount();
   initPromoTimer();
+  initHeroAuto();
   initCat();
   // deep-link: mở link ?w=<id> sẽ tự hiện mẫu đó lên màn hình
   try {
     const wid = new URLSearchParams(location.search).get('w');
-    if (wid && state.wallpapers.some((x) => x.id === wid)) selectHero(wid, true);
+    if (wid && state.wallpapers.some((x) => x.id === wid)) { selectHero(wid, true); initHeroAuto(); }
   } catch { /* bỏ qua */ }
 }
 init();
