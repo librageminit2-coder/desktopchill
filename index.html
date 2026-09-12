@@ -37,7 +37,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260912e" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260912f" />
   <script>try{document.documentElement.dataset.theme=localStorage.getItem('dc_theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
   <script type="application/ld+json">
   {
@@ -94,8 +94,8 @@
       </nav>
       <div class="header-actions">
         <button class="icon-btn" id="langBtn" title="Language / Ngôn ngữ" aria-label="Language"><span id="langCode">VI</span></button>
-        <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Theme"><span id="themeIcon">🌙</span></button>
-        <button class="icon-btn" id="settingsBtn" title="Cài đặt" aria-label="Settings">⚙️</button>
+        <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Theme"><span id="themeIcon"></span></button>
+        <button class="icon-btn" id="settingsBtn" title="Cài đặt" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       </div>
     </div>
   </header>
@@ -195,9 +195,6 @@
       </div>
     </section>
 
-    <!-- ==================== MARQUEE (dải vibe chạy ngang) ==================== -->
-    <div class="marquee" id="marquee" aria-hidden="true"></div>
-
     <!-- ==================== REVIEWS (đánh giá khách hàng) ==================== -->
     <section id="reviews" class="reviews-section">
       <div class="section-head reveal">
@@ -217,19 +214,19 @@
       <div class="howto-steps">
         <div class="howto-step reveal">
           <span class="howto-num">1</span>
-          <span class="howto-emoji">💬</span>
+          <span class="howto-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
           <h3 class="howto-step-title" data-i18n="howto.s1t">Nhắn Zalo tư vấn</h3>
           <p class="howto-step-desc" data-i18n="howto.s1d">Bạn nhắn Zalo, shop cài trọn kho hình nền cho bạn — thích mẫu nào cứ nói để ưu tiên, hoặc đặt làm riêng. Shop tư vấn và hẹn giờ cài.</p>
         </div>
         <div class="howto-step reveal">
           <span class="howto-num">2</span>
-          <span class="howto-emoji">🖥️</span>
+          <span class="howto-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
           <h3 class="howto-step-title" data-i18n="howto.s2t">Shop cài online tận nơi</h3>
           <p class="howto-step-desc" data-i18n="howto.s2d">Shop kết nối qua Ultraview và setup trọn gói, tối ưu theo máy bạn — bạn không phải thao tác gì.</p>
         </div>
         <div class="howto-step reveal">
           <span class="howto-num">3</span>
-          <span class="howto-emoji">✨</span>
+          <span class="howto-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg></span>
           <h3 class="howto-step-title" data-i18n="howto.s3t">Enjoy góc chill của bạn</h3>
           <p class="howto-step-desc" data-i18n="howto.s3d">Máy tính thành một góc chill mượt, mát. Có mẫu mới trên kênh sẽ update miễn phí trọn đời.</p>
         </div>
@@ -281,10 +278,10 @@
         <p class="section-subtitle" data-i18n="contact.subtitle">Nhắn tin để được tư vấn và cài đặt nhanh nhất</p>
       </div>
       <div class="trust-badges reveal">
-        <div class="trust-item"><span class="trust-ic">🖥️</span><span data-i18n="trust.t1">Cài online tận nơi qua Ultraview</span></div>
-        <div class="trust-item"><span class="trust-ic">⚡</span><span data-i18n="trust.t2">Tối ưu theo máy — mượt, ít hao pin</span></div>
-        <div class="trust-item"><span class="trust-ic">♾️</span><span data-i18n="trust.t3">Update mẫu mới trọn đời</span></div>
-        <div class="trust-item"><span class="trust-ic">💯</span><span data-i18n="trust.t4">Không ưng chỉnh lại miễn phí</span></div>
+        <div class="trust-item"><span class="trust-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span data-i18n="trust.t1">Cài online tận nơi qua Ultraview</span></div>
+        <div class="trust-item"><span class="trust-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></span><span data-i18n="trust.t2">Tối ưu theo máy — mượt, ít hao pin</span></div>
+        <div class="trust-item"><span class="trust-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10"/><path d="M1 20v-6h6"/><path d="M.6 14a9 9 0 0 0 14.9 3.4L21 14"/></svg></span><span data-i18n="trust.t3">Update mẫu mới trọn đời</span></div>
+        <div class="trust-item"><span class="trust-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span><span data-i18n="trust.t4">Không ưng chỉnh lại miễn phí</span></div>
       </div>
       <div class="contact-cards reveal">
         <a class="contact-card contact-zalo" id="contactZalo" target="_blank" rel="noopener">
@@ -427,6 +424,6 @@
 
   <!-- lottie-web (nhẹ) để phát animation mèo; trang vẫn chạy bình thường nếu tải lỗi -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js" defer></script>
-  <script type="module" src="assets/js/app.js?v=20260912"></script>
+  <script type="module" src="assets/js/app.js?v=20260912f"></script>
 </body>
 </html>

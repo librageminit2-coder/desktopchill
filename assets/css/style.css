@@ -81,6 +81,8 @@ img, video { display: block; max-width: 100%; }
 .header-actions { display: flex; gap: 6px; }
 .icon-btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; min-width: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text); font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer; transition: background .2s, border-color .2s; }
 .icon-btn:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+.icon-btn svg { width: 18px; height: 18px; display: block; }
+#themeIcon { display: inline-flex; }
 
 /* ---------- section heads ---------- */
 .section-head { text-align: center; margin: 0 auto 20px; }
@@ -315,8 +317,6 @@ img, video { display: block; max-width: 100%; }
 .pricing-card { position: relative; margin-top: 10px; padding: 34px 30px; background: color-mix(in srgb, var(--surface-solid) 46%, transparent); backdrop-filter: blur(9px) saturate(150%); -webkit-backdrop-filter: blur(9px) saturate(150%); border: 1px solid var(--border); border-radius: 26px; box-shadow: 0 4px 10px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.55); overflow: hidden; }
 .pricing-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent-grad); z-index: 1; }
 /* spotlight sáng theo con trỏ (Aceternity card-spotlight) */
-.pricing-card::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .35s ease; mix-blend-mode: screen; background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--accent) 26%, transparent), transparent 62%); }
-.pricing-card:hover::after { opacity: 1; }
 .pricing-card > * { position: relative; z-index: 1; }
 .pricing-badge { display: inline-block; font-size: .8rem; font-weight: 700; color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); padding: 5px 14px; border-radius: 999px; }
 .pricing-price { display: flex; align-items: baseline; gap: 12px; margin: 16px 0 6px; flex-wrap: wrap; }
@@ -380,7 +380,8 @@ img, video { display: block; max-width: 100%; }
   transition: transform .18s cubic-bezier(.2,.7,.3,1.4), box-shadow .22s; }
 .howto-step:hover { transform: translateY(-4px); box-shadow: 0 12px 26px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.65); }
 .howto-num { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--accent-grad); color: #fff; font-weight: 800; font-size: 1rem; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 45%, transparent); }
-.howto-emoji { display: inline-block; font-size: 2.4rem; margin: 8px 0 6px; }
+.howto-emoji { display: inline-flex; align-items: center; justify-content: center; margin: 6px 0 10px; }
+.howto-emoji svg { width: 40px; height: 40px; color: var(--accent); }
 .howto-step-title { font-weight: 800; font-size: 1.08rem; margin-bottom: 8px; }
 .howto-step-desc { color: var(--text-dim); font-size: .92rem; line-height: 1.6; }
 .howto-step:not(:last-child)::after { content: "→"; position: absolute; right: -17px; top: 50%; transform: translateY(-50%); font-size: 1.4rem; font-weight: 700; color: var(--text-faint); z-index: 1; }
@@ -454,11 +455,11 @@ img, video { display: block; max-width: 100%; }
 
 /* ==================== AURORA (nền gradient động sau mục Liên hệ) ==================== */
 .contact-section { position: relative; overflow: hidden; }
-.aurora { position: absolute; inset: -25% -10%; z-index: 0; pointer-events: none; filter: blur(72px); opacity: .38; }
+.aurora { position: absolute; inset: -25% -10%; z-index: 0; pointer-events: none; filter: blur(80px); opacity: .16; }
 .aurora span { position: absolute; display: block; width: 46%; height: 62%; border-radius: 50%; }
-.aurora span:nth-child(1) { left: 4%; top: 6%; background: #ff6a58; animation: auroraA 15s ease-in-out infinite; }
-.aurora span:nth-child(2) { right: 6%; top: -4%; background: #ffab6b; animation: auroraB 18s ease-in-out infinite; }
-.aurora span:nth-child(3) { left: 36%; bottom: -6%; background: #ffcf8f; animation: auroraA 21s ease-in-out infinite reverse; }
+.aurora span:nth-child(1) { left: 4%; top: 6%; background: #ff6a58; }
+.aurora span:nth-child(2) { right: 6%; top: -4%; background: #ffab6b; }
+.aurora span:nth-child(3) { left: 36%; bottom: -6%; background: #ffcf8f; }
 @keyframes auroraA { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(9%,-7%) scale(1.16); } }
 @keyframes auroraB { 0%,100% { transform: translate(0,0) scale(1.06); } 50% { transform: translate(-11%,9%) scale(.9); } }
 .contact-section > *:not(.aurora) { position: relative; z-index: 1; }
@@ -604,9 +605,10 @@ img, video { display: block; max-width: 100%; }
 /* ===================== Trust badges ===================== */
 .trust-badges { max-width: 1080px; margin: 0 auto 26px; padding: 0 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .trust-item { display: flex; align-items: center; gap: 11px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--surface-solid) 55%, transparent); backdrop-filter: blur(8px) saturate(140%); -webkit-backdrop-filter: blur(8px) saturate(140%); font-size: .9rem; font-weight: 600; color: var(--text); line-height: 1.35; }
-.trust-ic { font-size: 1.5rem; flex: 0 0 auto; }
+.trust-ic { display: inline-flex; flex: 0 0 auto; }
+.trust-ic svg { width: 26px; height: 26px; color: var(--accent); }
 @media (max-width: 900px) { .trust-badges { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 460px) { .trust-badges { gap: 8px; } .trust-item { padding: 11px 12px; font-size: .8rem; gap: 8px; } .trust-ic { font-size: 1.25rem; } }
+@media (max-width: 460px) { .trust-badges { gap: 8px; } .trust-item { padding: 11px 12px; font-size: .8rem; gap: 8px; } .trust-ic svg { width: 22px; height: 22px; } }
 
 /* ===================== Mobile sticky CTA bar ===================== */
 .mobile-cta { display: none; }

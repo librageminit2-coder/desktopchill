@@ -1,4 +1,4 @@
-import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912';
+import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912f';
 
 const state = {
   lang: localStorage.getItem('dc_lang') || 'vi',
@@ -26,7 +26,9 @@ function applyI18n() {
 }
 function applyTheme() {
   document.documentElement.dataset.theme = state.theme;
-  $('#themeIcon').textContent = state.theme === 'dark' ? '🌙' : '☀️';
+  const _moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  const _sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  const _ti = $('#themeIcon'); if (_ti) _ti.innerHTML = state.theme === 'dark' ? _moon : _sun;
   $$('#segTheme button').forEach((b) => b.classList.toggle('active', b.dataset.themeVal === state.theme));
 }
 function wireContacts() {
@@ -215,7 +217,7 @@ function wireCards() {
     if (shr) shr.addEventListener('click', (ev) => { ev.stopPropagation(); shareWallpaper(card.dataset.id); });
     // 3D tilt theo con trỏ (chỉ trên thiết bị có chuột)
     if (tiltOK) {
-      const MAXT = 10; // độ nghiêng tối đa
+      const MAXT = 4; // độ nghiêng tối đa (tinh tế)
       card.addEventListener('mousemove', (ev) => {
         const r = card.getBoundingClientRect();
         const px = (ev.clientX - r.left) / r.width - 0.5;
@@ -745,8 +747,6 @@ async function init() {
   initVisits();
   initScrollProgress();
   initCountUp();
-  initCardSpotlight();
-  initMarquee();
   initTextReveal();
   updateFavCount();
   initPromoTimer();
