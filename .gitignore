@@ -27,3 +27,8 @@
 Thumbs.db
 .DS_Store
 node_modules/
+
+# Dữ liệu Profit Tracker (nội bộ) — TUYỆT ĐỐI KHÔNG commit (chứa thông tin khách)
+Tracking*.json
+*backup*.json
+/admin/*.json
