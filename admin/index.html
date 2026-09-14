@@ -9,6 +9,35 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ===== Đồng bộ cloud qua Supabase — bật khi điền SB_URL + SB_ANON ===== */
+window.SB_URL  = "https://phcmbgaozkaibqsttonc.supabase.co";
+window.SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoY21iZ2FvemthaWJxc3R0b25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODk3NTgsImV4cCI6MjEwNDk2NTc1OH0.Hvs0Gxebog5gcKILnSdT3g6nz6-GI0CEepmMJM0gCxo";
+window.__SB = (window.SB_URL && window.SB_ANON && window.supabase)
+  ? window.supabase.createClient(window.SB_URL, window.SB_ANON)
+  : null;
+if (window.__SB) {
+  window.__sbReady = false;                       /* chỉ đẩy lên cloud sau khi tải xong */
+  window.__rawSet = localStorage.setItem.bind(localStorage);
+  var __sbT = null;
+  window.__sbPush = function () {
+    clearTimeout(__sbT);
+    __sbT = setTimeout(async function () {
+      try {
+        var u = (await window.__SB.auth.getUser()).data.user; if (!u) return;
+        var rec = JSON.parse(localStorage.getItem('dtc_profit_records_v1') || '[]');
+        var set = JSON.parse(localStorage.getItem('dtc_profit_settings_v1') || '{}');
+        await window.__SB.from('tracker_state').upsert({ user_id: u.id, records: rec, settings: set, updated_at: new Date().toISOString() });
+      } catch (e) { console.warn('Sync error', e); }
+    }, 800);
+  };
+  localStorage.setItem = function (k, v) {
+    window.__rawSet(k, v);
+    if (window.__sbReady && (k === 'dtc_profit_records_v1' || k === 'dtc_profit_settings_v1')) window.__sbPush();
+  };
+}
+</script>
 <style>
 /* ============================================================
    desktopchill — Profit Tracker  (self-contained, offline)
@@ -1555,6 +1584,7 @@ document.addEventListener("DOMContentLoaded",init);
 </script>
 <script>
 (function(){
+  if(window.__SB){ var g0=document.getElementById('dcGate'); if(g0) g0.remove(); return; }  /* dùng đăng nhập Supabase thay cho mật khẩu nhẹ */
   var KEY='dc_admin_pass', OK='dc_admin_ok';
   var gate=document.getElementById('dcGate'); if(!gate) return;
   var inp=document.getElementById('dcGateInput'), btn=document.getElementById('dcGateBtn'),
@@ -1573,6 +1603,53 @@ document.addEventListener("DOMContentLoaded",init);
   btn.addEventListener('click', submit);
   inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); submit(); } });
   setTimeout(function(){ try{inp.focus();}catch(e){} }, 100);
+})();
+</script>
+<div id="sbGate" style="position:fixed;inset:0;z-index:100001;display:none;align-items:center;justify-content:center;background:#0e0f13;color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
+  <div style="width:min(380px,90vw);text-align:center;padding:30px 26px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:18px">
+    <div style="font-weight:800;font-size:1.2rem;margin-bottom:4px">desktopchill · Admin</div>
+    <div id="sbSub" style="font-size:.86rem;opacity:.72;margin-bottom:16px">Đăng nhập để mở bảng dữ liệu</div>
+    <input id="sbEmail" type="email" autocomplete="email" placeholder="Email của bạn" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.3);color:#fff;font-size:1rem;outline:none" />
+    <div id="sbErr" style="color:#ff6a58;font-size:.8rem;min-height:16px;margin:8px 0"></div>
+    <button id="sbBtn" type="button" style="width:100%;padding:12px;border:0;border-radius:12px;background:linear-gradient(120deg,#d33a2c,#e8894a);color:#fff;font-weight:800;font-size:1rem;cursor:pointer">Gửi link đăng nhập</button>
+    <div id="sbHint" style="font-size:.74rem;opacity:.6;margin-top:14px">Bấm nút → mở email → bấm link để vào. Không cần mật khẩu.</div>
+  </div>
+</div>
+<script>
+(async function(){
+  if(!window.__SB) return;   /* chưa cấu hình Supabase → giữ hành vi cũ (mật khẩu nhẹ) */
+  var overlay=document.getElementById('sbGate'), sub=document.getElementById('sbSub'),
+      email=document.getElementById('sbEmail'), btn=document.getElementById('sbBtn'),
+      err=document.getElementById('sbErr'), hint=document.getElementById('sbHint');
+  function show(){ overlay.style.display='flex'; }
+  function hide(){ overlay.style.display='none'; }
+  function login(){
+    show();
+    btn.onclick=async function(){
+      var e=(email.value||'').trim(); if(!e){ err.textContent='Nhập email'; return; }
+      btn.disabled=true; err.textContent='Đang gửi…';
+      var res=await window.__SB.auth.signInWithOtp({ email:e, options:{ emailRedirectTo: location.origin + location.pathname } });
+      btn.disabled=false;
+      if(res.error){ err.textContent=res.error.message; }
+      else { sub.textContent='Đã gửi link!'; hint.textContent='Mở email và bấm vào link để đăng nhập.'; email.style.display='none'; btn.style.display='none'; err.textContent=''; }
+    };
+    email.addEventListener('keydown', function(ev){ if(ev.key==='Enter') btn.click(); });
+  }
+  try{
+    var s=(await window.__SB.auth.getSession()).data.session;
+    if(!s){ login(); return; }
+    if(sessionStorage.getItem('sb_hydrated')!=='1'){
+      show(); sub.textContent='Đang tải dữ liệu…'; email.style.display='none'; btn.style.display='none'; hint.style.display='none';
+      try{
+        var q=await window.__SB.from('tracker_state').select('records,settings').eq('user_id',s.user.id).maybeSingle();
+        if(q.data){ window.__rawSet('dtc_profit_records_v1', JSON.stringify(q.data.records||[])); window.__rawSet('dtc_profit_settings_v1', JSON.stringify(q.data.settings||{})); }
+      }catch(e){ console.warn('load error', e); }
+      sessionStorage.setItem('sb_hydrated','1');
+      location.reload(); return;
+    }
+    window.__sbReady=true;   /* đã tải xong → cho phép đẩy thay đổi lên cloud */
+    hide();
+  }catch(e){ console.warn(e); login(); }
 })();
 </script>
 </body>
