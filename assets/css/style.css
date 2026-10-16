@@ -630,3 +630,8 @@ img, video { display: block; max-width: 100%; }
   outline-offset: 2px;
 }
 :where(a, button):focus:not(:focus-visible) { outline: none; }
+
+/* Nút ▶ trên thẻ — chỉ hiện trên điện thoại (nơi video không tự chạy) */
+.card-play { display: none; }
+.no-autoplay .card-play { display: grid; place-items: center; position: absolute; left: 50%; top: 50%; width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); pointer-events: none; z-index: 2; }
+.no-autoplay .card-play svg { margin-left: 3px; }

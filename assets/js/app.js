@@ -16,6 +16,16 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const t = (k) => (I18N[state.lang] && I18N[state.lang][k]) || I18N.vi[k] || k;
 
+/* ---------------- Chặn video tự chạy trên điện thoại ----------------
+   Trên điện thoại & trình duyệt trong app (TikTok, Facebook, Instagram, Zalo…):
+   KHÔNG tự phát / tự tải video. Chỉ hiện ảnh poster; video chỉ chạy khi người dùng chạm.
+   Máy tính có chuột giữ nguyên hiệu ứng tự chạy như cũ. */
+const IN_APP = /TikTok|musical_ly|Bytedance|FBAN|FBAV|FB_IAB|Instagram|Zalo|Messenger|Line\//i.test(navigator.userAgent || '');
+const NO_AUTOPLAY = IN_APP
+  || window.matchMedia('(hover: none), (pointer: coarse)').matches
+  || !!(navigator.connection && navigator.connection.saveData);
+document.documentElement.classList.toggle('no-autoplay', NO_AUTOPLAY);
+
 /* ---------------- i18n ---------------- */
 function applyI18n() {
   document.documentElement.lang = state.lang;
@@ -75,6 +85,13 @@ function selectHero(id, instant = false) {
   $$('#pgTrack .pg-thumb').forEach((th) => th.classList.toggle('active', th.dataset.id === id));
   // label
   $('#liveName').textContent = w.title[state.lang] || w.title.vi;
+  // điện thoại: chỉ đổi ảnh poster, không tải/phát video (chạm vào màn hình → mở video)
+  if (NO_AUTOPLAY) {
+    if (video.getAttribute('src')) { video.pause(); video.removeAttribute('src'); video.load(); }
+    video.poster = w.poster;
+    screen.classList.add('ready');
+    return;
+  }
   // swap video with fade
   screen.classList.remove('ready');
   const start = () => { screen.classList.add('ready'); video.play().catch(() => {}); };
@@ -144,6 +161,7 @@ function renderGallery() {
         <div class="card-media">
           <img src="${w.poster}" alt="${title} — hình nền động ${cat} cho máy tính" loading="lazy" />
           <video class="card-vid" muted loop playsinline preload="none" data-src="${w.preview}"></video>
+          <span class="card-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></span>
           ${w.hot ? `<span class="card-hot">${t('card.hot')}</span>` : ''}
           <div class="card-tools">
             <button class="card-fav ${isFav(w.id) ? 'on' : ''}" data-fav type="button" aria-label="Yêu thích">♥</button>
@@ -203,6 +221,8 @@ function renderPagination(totalPages) {
 function wireCards() {
   const cards = $$('#galleryGrid .card');
   const toScreen = (id) => { vibrate(); selectHero(id); initHeroAuto(); $('#home').scrollIntoView({ behavior: 'smooth' }); };
+  // điện thoại: chạm vào thẻ → mở cửa sổ xem video (video chỉ chạy sau khi chạm)
+  const onCardTap = (id) => (NO_AUTOPLAY ? openModal(id) : toScreen(id));
   // auto-play videos as they scroll into view (pause when off-screen for performance)
   if (window._cardIO) window._cardIO.disconnect();
   window._cardIO = new IntersectionObserver((entries) => {
@@ -218,10 +238,10 @@ function wireCards() {
   const tiltOK = window.matchMedia('(hover: hover) and (pointer: fine)').matches
     && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   cards.forEach((card) => {
-    window._cardIO.observe(card);
+    if (!NO_AUTOPLAY) window._cardIO.observe(card); // điện thoại: không tự phát khi cuộn tới
     $('.card-media', card).addEventListener('click', (ev) => {
       if (ev.target.closest('[data-act],[data-fav],[data-share]')) return;
-      toScreen(card.dataset.id);
+      onCardTap(card.dataset.id);
     });
     const scr = $('[data-act="screen"]', card), con = $('[data-act="contact"]', card);
     if (scr) scr.addEventListener('click', (ev) => { ev.stopPropagation(); toScreen(card.dataset.id); });
@@ -594,7 +614,12 @@ function initMonitorFit() {
   window.addEventListener('resize', fitMonitor);
   const frame = $('#heroStage');
   if (frame && window.ResizeObserver) new ResizeObserver(fitMonitor).observe(frame);
-  const bg = $('#heroBg'); if (bg) bg.addEventListener('loadeddata', fitMonitor);
+  const bg = $('#heroBg');
+  if (bg) {
+    bg.addEventListener('loadeddata', fitMonitor);
+    // video nền chỉ tự chạy trên máy tính; điện thoại giữ ảnh poster tĩnh
+    if (!NO_AUTOPLAY) { bg.preload = 'auto'; bg.play().catch(() => {}); }
+  }
   setTimeout(fitMonitor, 300); setTimeout(fitMonitor, 900);
   window.MON = MON; window.fitMonitor = fitMonitor; // để tinh chỉnh trực tiếp
 }
