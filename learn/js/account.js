@@ -1,5 +1,5 @@
 // Tài khoản đơn giản: tên + mã PIN. Tiến trình lưu lên máy chủ (Supabase) qua 3 hàm RPC.
-import { S, onSave, replace } from './store.js?v=5';
+import { S, onSave, replace } from './store.js?v=6';
 const URL = 'https://phcmbgaozkaibqsttonc.supabase.co/rest/v1/rpc/';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoY21iZ2FvemthaWJxc3R0b25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODk3NTgsImV4cCI6MjEwNDk2NTc1OH0.Hvs0Gxebog5gcKILnSdT3g6nz6-GI0CEepmMJM0gCxo';
 const AKEY = 'dcl_account';

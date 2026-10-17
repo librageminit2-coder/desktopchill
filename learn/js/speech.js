@@ -38,25 +38,63 @@ export function stopSpeak() { try { speechSynthesis.cancel(); } catch (e) {} }
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 export const canListen = () => !!SR;
-let rec = null;
-export function listen(lang, { onPartial } = {}) {
-  return new Promise((res, rej) => {
+const ANDROID = /Android/i.test(navigator.userAgent);
+let rec = null, stream = null, mctx = null, raf = 0;
+// trạng thái quyền micro: granted | denied | prompt | unknown
+export async function micState() {
+  try { const p = await navigator.permissions.query({ name: 'microphone' }); return p.state; } catch (e) { return 'unknown'; }
+}
+async function openMic(onLevel) {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { throw new Error(e.name === 'NotAllowedError' || e.name === 'SecurityError' ? 'not-allowed' : e.name === 'NotFoundError' || e.name === 'NotReadableError' ? 'audio-capture' : 'mic-error'); }
+  // Android: giữ micro song song với nhận giọng nói dễ lỗi → chỉ xin quyền rồi nhả ra
+  if (ANDROID || !onLevel) { closeMic(); return; }
+  try {
+    const C = window.AudioContext || window.webkitAudioContext; mctx = new C();
+    const src = mctx.createMediaStreamSource(stream), an = mctx.createAnalyser(); an.fftSize = 512; src.connect(an);
+    const buf = new Uint8Array(an.fftSize);
+    const tick = () => { an.getByteTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i++) { const x = (buf[i] - 128) / 128; s += x * x; } onLevel(Math.min(1, Math.sqrt(s / buf.length) * 5)); raf = requestAnimationFrame(tick); };
+    tick();
+  } catch (e) { /* không có đồng hồ âm lượng cũng không sao */ }
+}
+function closeMic() {
+  cancelAnimationFrame(raf); raf = 0;
+  if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+  if (mctx) { try { mctx.close(); } catch (e) {} mctx = null; }
+}
+export function listen(lang, { onPartial, onLevel } = {}) {
+  return new Promise(async (res, rej) => {
     if (!SR) return rej(new Error('unsupported'));
     try { if (rec) rec.abort(); } catch (e) {}
+    try { await openMic(onLevel); } catch (e) { return rej(e); }
     rec = new SR(); rec.lang = LANG[lang]; rec.interimResults = true; rec.maxAlternatives = 3; rec.continuous = false;
-    let best = '', alts = [];
+    let best = '', alts = [], failed = null;
     rec.onresult = (e) => {
       const r = e.results[e.results.length - 1];
       best = Array.from(e.results).map((x) => x[0].transcript).join(' ');
       alts = Array.from(r).map((a) => a.transcript);
       if (onPartial) onPartial(best);
     };
-    rec.onerror = (e) => rej(new Error(e.error || 'error'));
-    rec.onend = () => res({ text: best, alts });
-    try { rec.start(); } catch (e) { rej(e); }
+    rec.onerror = (e) => { failed = e.error || 'error'; };
+    rec.onend = () => { closeMic(); if (onLevel) onLevel(0); if (failed && failed !== 'aborted' && !best) rej(new Error(failed)); else res({ text: best, alts }); };
+    try { rec.start(); } catch (e) { closeMic(); rej(e); }
   });
 }
 export function stopListen() { try { if (rec) rec.stop(); } catch (e) {} }
+// Thông báo lỗi micro dễ hiểu
+export function micMsg(code) {
+  switch (code) {
+    case 'not-allowed': case 'service-not-allowed': return 'Micro đang bị chặn cho trang này.';
+    case 'audio-capture': return 'Không tìm thấy micro. Kiểm tra micro hoặc tai nghe đã cắm chưa.';
+    case 'network': return 'Trình duyệt này không gửi được giọng nói để nhận dạng. Hãy dùng Chrome hoặc Edge bản mới và kiểm tra mạng.';
+    case 'no-speech': return 'Chưa nghe thấy gì. Bấm micro rồi nói to, rõ hơn nhé.';
+    case 'unsupported': return 'Trình duyệt này chưa hỗ trợ nhận giọng nói. Dùng Chrome hoặc Edge.';
+    default: return 'Chưa nghe được, bấm micro và thử lại nhé.';
+  }
+}
+export const micBlocked = (code) => code === 'not-allowed' || code === 'service-not-allowed';
+export const MIC_HELP = `<div class="mic-help"><b>Bật micro cho desktopchill.com</b><ol><li>Bấm biểu tượng ổ khoá hoặc cài đặt ở bên trái thanh địa chỉ.</li><li>Ở mục <b>Micrô</b>, chọn <b>Cho phép</b>.</li><li>Tải lại trang rồi bấm micro lần nữa.</li></ol><small>Trên điện thoại: Cài đặt trình duyệt › Cài đặt trang web › Micrô › cho phép desktopchill.com.</small></div>`;
 
 /* ---------- so khớp câu nói / câu gõ ---------- */
 export function norm(s, lang) {

@@ -33,5 +33,5 @@ export const I = {
   roleplay: s('<path d="M3 5h11v8H7l-4 3z"/><path d="M10 16v1h7l4 3v-11h-4"/>'),
   logout: s('<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h11"/>'),
 };
-// Logo: một nút giàn (tam giác + thanh chéo)
-export const LOGO = `<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="11" fill="var(--ink)"/><path d="M8 28h24L20 11z" fill="none" stroke="var(--hl)" stroke-width="3" stroke-linejoin="round"/><path d="M20 11v17M14 28l6-9 6 9" fill="none" stroke="var(--paper)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+// Logo: mặt bé mèo Mochi
+export const LOGO = `<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="12" fill="var(--acc)"/><path d="M10.5 22 L9.5 9.5 L18 15.5Z M29.5 22 L30.5 9.5 L22 15.5Z" fill="#FFF8F0" stroke="#3A2E4D" stroke-width="1.6" stroke-linejoin="round"/><ellipse cx="20" cy="24.5" rx="11.5" ry="9.5" fill="#FFF8F0" stroke="#3A2E4D" stroke-width="1.6"/><ellipse cx="16" cy="24" rx="1.6" ry="2" fill="#3A2E4D"/><ellipse cx="24" cy="24" rx="1.6" ry="2" fill="#3A2E4D"/><path d="M18.4 27.6 Q19.2 28.8 20 27.6 Q20.8 28.8 21.6 27.6" fill="none" stroke="#3A2E4D" stroke-width="1.1" stroke-linecap="round"/><ellipse cx="13" cy="28" rx="2" ry="1.2" fill="#FF9CB0"/><ellipse cx="27" cy="28" rx="2" ry="1.2" fill="#FF9CB0"/></svg>`;

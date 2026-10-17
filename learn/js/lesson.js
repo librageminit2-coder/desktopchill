@@ -1,9 +1,12 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=5';
-import { mascot } from './mascot.js?v=5';
-import { sfx } from './sound.js?v=5';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm } from './speech.js?v=5';
-import { S, addXP, markDone, addWords, save, bump } from './store.js?v=5';
+import { I } from './icons.js?v=6';
+import { mascot } from './mascot.js?v=6';
+import { sfx } from './sound.js?v=6';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP } from './speech.js?v=6';
+const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
+const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
+const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
+import { S, addXP, markDone, addWords, save, bump } from './store.js?v=6';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -12,10 +15,14 @@ const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) {
 const pick = (a, n) => shuffle(a).slice(0, n);
 const strip = (s) => s.replace(/\s+/g, '');
 export const LESSONS = [
-  { k: 0, name: 'Từ vựng', desc: 'Học từ mới, nghe và ghép nghĩa', icon: 'book' },
-  { k: 1, name: 'Hội thoại', desc: 'Nghe, ghép câu rồi đóng vai nói', icon: 'chat' },
-  { k: 2, name: 'Đọc hiểu', desc: 'Đọc bài, trả lời và nghe chép', icon: 'read' },
-  { k: 3, name: 'Ngữ pháp & tổng ôn', desc: 'Mẫu câu, điền từ, nói lại', icon: 'ruler' },
+  { k: 0, name: 'Từ vựng 1', desc: '10 từ mới: nghe, xem ví dụ, ghép nghĩa', icon: 'book' },
+  { k: 1, name: 'Từ vựng 2', desc: '10 từ tiếp theo, ôn lại từ phần 1', icon: 'cards' },
+  { k: 2, name: 'Hội thoại 1', desc: 'Nghe hội thoại, ghép câu, nói theo', icon: 'chat' },
+  { k: 3, name: 'Hội thoại 2', desc: 'Tình huống thứ hai, đóng vai nói', icon: 'roleplay' },
+  { k: 4, name: 'Đọc hiểu', desc: 'Đọc bài, trả lời câu hỏi, nghe chép', icon: 'read' },
+  { k: 5, name: 'Ngữ pháp 1', desc: 'Mẫu câu thứ nhất: hiểu, điền, đặt câu', icon: 'ruler' },
+  { k: 6, name: 'Ngữ pháp 2', desc: 'Mẫu câu thứ hai: hiểu, điền, nói', icon: 'target' },
+  { k: 7, name: 'Kiểm tra chủ đề', desc: 'Tổng hợp nghe, nói, đọc, từ và ngữ pháp', icon: 'trophy' },
 ];
 // tạm tắt bài nói / nghe khi người học đang ở nơi không tiện
 const pause = { mic: 0, audio: 0 };
@@ -24,39 +31,68 @@ const audioOff = () => Date.now() < pause.audio || !canSpeak();
 
 /* ---------------- dựng hàng đợi bài tập ---------------- */
 function textOf(lang, x) { return lang === 'zh' ? strip(x.t) : x.t; }
+const okLen = (x, a = 3, b = 12) => x && x.tk && x.tk.length >= a && x.tk.length <= b;
+function vocabQueue(Wn, W, lang, q) {
+  const groups = [Wn.slice(0, 3), Wn.slice(3, 6), Wn.slice(6, 8), Wn.slice(8, 10)].filter((g) => g.length);
+  groups.forEach((g, gi) => {
+    g.forEach((w) => q.push({ type: 'learn', w }));
+    shuffle(g).forEach((w, i) => q.push(i % 2 ? { type: 'listenWord', w } : { type: 'meaning', w }));
+    if (gi === 1 || gi === 3) { const ex = Wn.slice(0, (gi + 1) * 3).filter((w) => okLen({ tk: w.exTk }, 3, 11)); if (ex.length) { const w = pick(ex, 1)[0]; q.push({ type: 'order', s: { t: w.ex, vi: w.exVi, tk: w.exTk, py: w.exPy } }); } }
+  });
+  q.push({ type: 'match', words: pick(Wn, Math.min(5, Wn.length)) });
+  pick(Wn, 3).forEach((w) => q.push({ type: 'wordFromVi', w }));
+  if (lang === 'zh') pick(Wn.filter((w) => strip(w.w).length <= 2), 2).forEach((w) => q.push({ type: 'write', w }));
+  else pick(Wn.filter((w) => !/\s/.test(w.w)), 2).forEach((w) => q.push({ type: 'spell', w }));
+  const ex = Wn.filter((w) => okLen({ tk: w.exTk }, 3, 11));
+  if (ex.length) { const w = pick(ex, 1)[0]; q.push({ type: 'speak', s: { t: w.ex, vi: w.exVi, tk: w.exTk, py: w.exPy } }); }
+}
+function dlgQueue(D, which, W, q, roleplay) {
+  const L = D.lines;
+  q.push({ type: 'dialogue', d: which });
+  pick(L.filter((l) => okLen(l)), 3).forEach((l) => q.push({ type: 'order', s: l }));
+  pick(L, 2).forEach((l) => q.push({ type: 'listenLine', s: l, pool: L }));
+  pick(L.filter((l) => okLen(l, 2, 12)), 2).forEach((l) => q.push({ type: 'speak', s: l }));
+  pick(W, 2).forEach((w) => q.push({ type: 'meaning', w }));
+  if (roleplay) q.push({ type: 'roleplay', d: which });
+}
+function gramQueue(G, which, W, q, extraSents) {
+  q.push({ type: 'grammar', g: which });
+  G.drill.forEach((d) => q.push({ type: 'mcq', q: d.t, opts: d.opts, a: d.a, blank: true, note: G.title, vi: d.vi }));
+  pick(G.ex.filter((x) => okLen(x)), 3).forEach((s) => q.push({ type: 'order', s }));
+  pick(G.ex.filter((x) => okLen(x)), 1).forEach((s) => q.push({ type: 'speak', s }));
+  pick(extraSents, 1).forEach((s) => q.push({ type: 'speak', s }));
+  pick(W, 3).forEach((w, i) => q.push(i === 1 ? { type: 'listenWord', w } : { type: 'wordFromVi', w }));
+}
 export function buildQueue(unit, k, lang) {
-  const W = unit.words, q = [];
-  const sentences = [...unit.dlg.lines, ...unit.read.sents, ...unit.gram.ex, ...W.map((w) => ({ t: w.ex, vi: w.exVi, tk: w.exTk, py: w.exPy }))].filter((x) => x && x.t && x.tk && x.tk.length >= 3 && x.tk.length <= 12);
-  if (k === 0) {
-    const groups = [W.slice(0, 3), W.slice(3, 6), W.slice(6, 8), W.slice(8, 10)].filter((g) => g.length);
-    groups.forEach((g) => {
-      g.forEach((w) => q.push({ type: 'learn', w }));
-      shuffle(g).forEach((w, i) => q.push(i % 2 ? { type: 'listenWord', w } : { type: 'meaning', w }));
-    });
-    q.push({ type: 'match', words: pick(W, 5) });
-    pick(W, 2).forEach((w) => q.push({ type: 'wordFromVi', w }));
-    if (lang === 'zh') pick(W.filter((w) => strip(w.w).length <= 2), 2).forEach((w) => q.push({ type: 'write', w }));
-    else pick(W, 1).forEach((w) => q.push({ type: 'spell', w }));
-  } else if (k === 1) {
-    const L = unit.dlg.lines;
-    q.push({ type: 'dialogue' });
-    pick(L.filter((l) => l.tk.length >= 3 && l.tk.length <= 12), 3).forEach((l) => q.push({ type: 'order', s: l }));
-    pick(L, 2).forEach((l) => q.push({ type: 'listenLine', s: l, pool: L }));
-    pick(L.filter((l) => l.tk.length <= 12), 2).forEach((l) => q.push({ type: 'speak', s: l }));
-    pick(W, 2).forEach((w) => q.push({ type: 'meaning', w }));
-    q.push({ type: 'roleplay' });
-  } else if (k === 2) {
+  const W = unit.words, W1 = W.slice(0, 10), W2 = W.slice(10, 20), q = [];
+  const D2 = unit.dlg2 && unit.dlg2.lines && unit.dlg2.lines.length ? unit.dlg2 : unit.dlg;
+  const G2 = unit.gram2 && unit.gram2.drill ? unit.gram2 : unit.gram;
+  const sentences = [...unit.dlg.lines, ...D2.lines, ...unit.read.sents, ...unit.gram.ex, ...G2.ex].filter((x) => okLen(x));
+  if (k === 0) vocabQueue(W1, W, lang, q);
+  else if (k === 1) {
+    if (W2.length) { vocabQueue(W2, W, lang, q); pick(W1, 3).forEach((w, i) => q.splice(6 + i * 5, 0, { type: i % 2 ? 'listenWord' : 'meaning', w })); }
+    else vocabQueue(W1, W, lang, q);
+  } else if (k === 2) dlgQueue(unit.dlg, 'dlg', W, q, D2 === unit.dlg);
+  else if (k === 3) dlgQueue(D2, D2 === unit.dlg ? 'dlg' : 'dlg2', W, q, true);
+  else if (k === 4) {
     q.push({ type: 'reading' });
     unit.read.q.forEach((x) => q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'Theo bài đọc' }));
-    pick(unit.read.sents.filter((s) => s.tk.length >= 4 && s.tk.length <= 14), 2).forEach((s) => q.push(lang === 'zh' ? { type: 'listenOrder', s } : { type: 'dictation', s }));
+    pick(unit.read.sents.filter((s) => okLen(s, 4, 14)), 3).forEach((s) => q.push(lang === 'zh' ? { type: 'listenOrder', s } : { type: 'dictation', s }));
     const withWord = unit.read.sents.map((s) => ({ s, w: W.find((w) => textOf(lang, s).toLowerCase().includes((lang === 'zh' ? w.w : w.w.toLowerCase()))) })).filter((x) => x.w);
-    pick(withWord, 2).forEach((x) => q.push({ type: 'blank', s: x.s, w: x.w }));
-  } else {
-    q.push({ type: 'grammar' });
-    unit.gram.drill.forEach((d) => q.push({ type: 'mcq', q: d.t, opts: d.opts, a: d.a, blank: true, note: unit.gram.title, vi: d.vi }));
-    pick(unit.gram.ex.filter((x) => x.tk.length >= 3), 2).forEach((s) => q.push({ type: 'order', s }));
-    pick(sentences, 1).forEach((s) => q.push({ type: 'speak', s }));
-    pick(W, 3).forEach((w, i) => q.push(i === 1 ? { type: 'listenWord', w } : { type: 'wordFromVi', w }));
+    pick(withWord, 3).forEach((x) => q.push({ type: 'blank', s: x.s, w: x.w }));
+    pick(unit.read.sents.filter((s) => okLen(s, 3, 12)), 1).forEach((s) => q.push({ type: 'speak', s }));
+  } else if (k === 5) gramQueue(unit.gram, 'gram', W, q, sentences);
+  else if (k === 6) gramQueue(G2, G2 === unit.gram ? 'gram' : 'gram2', W, q, sentences);
+  else {
+    // kiểm tra chủ đề: không có thẻ học, trộn mọi kỹ năng
+    pick(W, 6).forEach((w, i) => q.push({ type: ['meaning', 'listenWord', 'wordFromVi'][i % 3], w }));
+    q.push({ type: 'match', words: pick(W, 5) });
+    [unit.dlg, D2].forEach((D) => pick(D.lines.filter((l) => okLen(l)), 1).forEach((s) => q.push({ type: 'order', s })));
+    pick(D2.lines, 1).forEach((l) => q.push({ type: 'listenLine', s: l, pool: D2.lines }));
+    pick(unit.read.sents.filter((s) => okLen(s, 4, 14)), 1).forEach((s) => q.push(lang === 'zh' ? { type: 'listenOrder', s } : { type: 'dictation', s }));
+    pick(unit.read.q, 2).forEach((x) => q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'Theo bài đọc: ' + unit.read.title }));
+    [unit.gram, G2].forEach((G) => pick(G.drill, 2).forEach((d) => q.push({ type: 'mcq', q: d.t, opts: d.opts, a: d.a, blank: true, note: G.title, vi: d.vi })));
+    pick(sentences, 2).forEach((s) => q.push({ type: 'speak', s }));
   }
   return q;
 }
@@ -232,7 +268,7 @@ R.speak = (el, it, api) => {
     if (mic.classList.contains('rec')) { stopListen(); return; }
     stopSpeak(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Đang nghe…';
     try {
-      const r = await listen(api.lang, { onPartial: (t) => { heard.textContent = t; } });
+      const r = await listen(api.lang, { onPartial: (t) => { heard.textContent = t; }, onLevel: lvl(mic) });
       mic.classList.remove('rec'); sfx('stop'); tries++;
       const cands = [r.text, ...(r.alts || [])].filter(Boolean);
       cands.forEach((c) => { const x = compare(txt, c, api.lang); if (x.score > best.score) best = x; });
@@ -242,9 +278,9 @@ R.speak = (el, it, api) => {
       api.ready(best.score >= 0.7 || tries >= 2);
       if (best.score >= 0.7) { bump('speak'); api.autoCheck(); }
     } catch (e) {
-      mic.classList.remove('rec');
-      heard.textContent = e.message === 'not-allowed' ? 'Trình duyệt chưa cho dùng micro. Bật quyền micro rồi thử lại.' : 'Chưa nghe được, thử lại nhé';
-      if (e.message === 'not-allowed' || e.message === 'unsupported') api.ready(true);
+      mic.classList.remove('rec'); sfx('bad');
+      heard.innerHTML = micErrHTML(e.message);
+      if (FATAL_MIC.includes(e.message)) el.querySelector('.skip').textContent = 'Học tiếp, tạm bỏ bài nói';
     }
   });
   el.querySelector('.skip').addEventListener('click', () => { pause.mic = Date.now() + 15 * 60000; api.skip('Đã tắt bài nói trong 15 phút'); });
@@ -303,7 +339,7 @@ async function playSeq(nodes, texts, lang, stopRef) {
   nodes.forEach((n) => n.classList.remove('now'));
 }
 R.dialogue = (el, it, api) => {
-  const d = api.unit.dlg, zh = api.lang === 'zh', speakers = [...new Set(d.lines.map((l) => l.s))];
+  const d = api.unit[it.d || 'dlg'] || api.unit.dlg, zh = api.lang === 'zh', speakers = [...new Set(d.lines.map((l) => l.s))];
   el.innerHTML = `<p class="q">${esc(d.title)}</p>
   <div class="toolbar"><button class="chip play" type="button">${I.play} Nghe cả đoạn</button><button class="chip vi" type="button" aria-pressed="${S.settings.vi}">Hiện nghĩa</button>${zh ? `<button class="chip pyb" type="button" aria-pressed="${S.settings.pinyin}">Pinyin</button>` : ''}</div>
   <div class="dlg ${S.settings.vi ? 'show-vi' : ''}">${d.lines.map((l) => `<div class="bubble ${l.s === speakers[1] ? 'me' : 'you'}" role="button" tabindex="0"><span class="who">${esc(l.s)}</span><span class="t ${zh ? 'zh' : ''}">${esc(textOf(api.lang, l))}</span>${zh ? `<small class="pyl" ${S.settings.pinyin ? '' : 'hidden'}>${esc((l.py || []).join(' '))}</small>` : ''}<small class="vi">${esc(l.vi)}</small></div>`).join('')}</div>
@@ -319,10 +355,10 @@ R.dialogue = (el, it, api) => {
 };
 // ---- đóng vai: người học nói phần của một nhân vật, máy đọc phần còn lại ----
 R.roleplay = (el, it, api) => {
-  const d = api.unit.dlg, zh = api.lang === 'zh', speakers = [...new Set(d.lines.map((l) => l.s))];
+  const d = api.unit[it.d || 'dlg'] || api.unit.dlg, zh = api.lang === 'zh', speakers = [...new Set(d.lines.map((l) => l.s))];
   const me = speakers.find((s) => /^(Minh|小明)$/.test(s)) || speakers[1] || speakers[0];
   const other = speakers.find((s) => s !== me) || '';
-  const live = !micOff();
+  let live = !micOff(), note = '';
   el.innerHTML = `<p class="q">Đóng vai: bạn là ${esc(me)}</p>
   <p class="muted rp-sub">${live ? `Máy đọc lời ${esc(other)}, đến lượt bạn thì bấm micro và nói. Bấm “Hiện câu” nếu cần nhắc.` : `Máy đọc lời ${esc(other)}. Đến lượt bạn: nghe câu mẫu rồi nói theo thật to.`}</p>
   <div class="dlg rp"></div><div class="rp-turn"></div>`;
@@ -347,7 +383,7 @@ R.roleplay = (el, it, api) => {
       b.classList.remove('now'); i++; return next();
     }
     const txt = textOf(api.lang, l);
-    turn.innerHTML = `<div class="rp-card">
+    turn.innerHTML = `<div class="rp-card">${note}
       <span class="tag">Đến lượt bạn</span>
       <div class="rp-vi">${esc(l.vi)}</div>
       <div class="rp-target ${zh ? 'zh' : ''} blur">${esc(txt)}${zh && S.settings.pinyin && l.py ? `<small class="py" style="display:block">${esc(l.py.join(' '))}</small>` : ''}</div>
@@ -372,7 +408,7 @@ R.roleplay = (el, it, api) => {
       if (mic.classList.contains('rec')) { stopListen(); return; }
       stopSpeak(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Đang nghe…';
       try {
-        const r = await listen(api.lang, { onPartial: (t) => { heard.textContent = t; } });
+        const r = await listen(api.lang, { onPartial: (t) => { heard.textContent = t; }, onLevel: lvl(mic) });
         mic.classList.remove('rec'); sfx('stop'); tries++;
         let best = { score: 0 };
         [r.text, ...(r.alts || [])].filter(Boolean).forEach((c) => { const x = compare(txt, c, api.lang); if (x.score > best.score) best = x; });
@@ -386,9 +422,9 @@ R.roleplay = (el, it, api) => {
           heard.innerHTML = best.tokens ? best.tokens.map((t, j) => `<span class="${best.hit[j] ? 'w-ok' : 'w-miss'}">${esc(t)}</span>`).join(zh ? '' : ' ') + `<br><small>Khớp ${Math.round(best.score * 100)}%, thử lại nhé</small>` : 'Chưa nghe rõ, thử lại nhé';
         }
       } catch (e) {
-        mic.classList.remove('rec');
-        heard.textContent = e.message === 'not-allowed' ? 'Trình duyệt chưa cho dùng micro. Bật quyền micro rồi thử lại.' : 'Chưa nghe được, thử lại nhé';
-        if (e.message === 'not-allowed' || e.message === 'unsupported') { pause.mic = Date.now() + 15 * 60000; scores.push(0); bubble(l, true); i++; next(); }
+        mic.classList.remove('rec'); sfx('bad');
+        if (FATAL_MIC.includes(e.message)) { live = false; note = micErrHTML(e.message) + '<p class="muted" style="margin-top:6px">Tạm thời bạn nghe câu mẫu rồi nói theo, bấm “Tôi đã nói câu này”.</p>'; next(); }
+        else heard.innerHTML = micErrHTML(e.message);
       }
     });
   };
@@ -412,7 +448,7 @@ R.reading = (el, it, api) => {
   return { info: true };
 };
 R.grammar = (el, it, api) => {
-  const g = api.unit.gram, zh = api.lang === 'zh';
+  const g = api.unit[it.g || 'gram'] || api.unit.gram, zh = api.lang === 'zh';
   el.innerHTML = `<div class="grammar"><p class="q" style="margin-bottom:4px">Ngữ pháp</p><div class="card"><h2>${esc(g.title)}</h2><p class="rule" style="margin:12px 0">${esc(g.rule)}</p><p style="color:var(--ink-2)">${esc(g.note || '')}</p></div>
   <div class="card"><ul>${g.ex.map((x, i) => `<li><span class="t ${zh ? 'zh' : ''}" style="display:flex;gap:8px;align-items:center"><button class="mini-say" type="button" data-i="${i}" aria-label="Nghe">${I.speaker}</button>${esc(textOf(api.lang, x))}</span>${zh && x.py ? `<small>${esc(x.py.join(' '))}</small>` : ''}<small>${esc(x.vi)}</small></li>`).join('')}</ul></div></div>`;
   el.querySelectorAll('.mini-say').forEach((b) => b.addEventListener('click', () => speak(textOf(api.lang, g.ex[+b.dataset.i]), api.lang, { btn: b })));
@@ -492,17 +528,16 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     const firstTime = !custom && !(S.done[unit.id] && S.done[unit.id][k]);
     const xp = custom ? Math.max(3, right) : 10 + (acc >= 0.95 ? 5 : acc >= 0.8 ? 2 : 0) + (firstTime ? 0 : -4);
     addXP(xp); bump('lessons');
-    if (!custom) { markDone(unit.id, k); if (k === 0) addWords(lang, unit.words.map((w) => w.w)); }
+    if (!custom) { markDone(unit.id, k); if (k === 0) addWords(lang, unit.words.slice(0, 10).map((w) => w.w)); if (k === 1) addWords(lang, unit.words.slice(10, 20).map((w) => w.w)); }
     const mins = Math.max(1, Math.round((Date.now() - t0) / 60000)); S.minutes += mins; save(true);
     bar.style.width = '100%'; sfx('done');
     const fresh = h(`<div class="p-inner"><div class="result">
-      <div class="res-art"><svg class="trophy" viewBox="0 0 200 120" aria-hidden="true"><path class="tr-m" d="M10 110h180L100 22z" fill="none" stroke="var(--acc)" stroke-width="7" stroke-linejoin="round"/><path class="tr-m" d="M55 110l45-50 45 50M100 22v88" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/><circle cx="10" cy="110" r="7" fill="var(--ink)"/><circle cx="190" cy="110" r="7" fill="var(--ink)"/></svg>${mascot({ size: 96, mood: acc >= 0.8 ? 'wow' : 'happy', cls: 'jump', wave: true })}</div>
+      <div class="res-art"><svg class="burst" viewBox="0 0 200 150" aria-hidden="true"><g class="rays"><path d="M100 75 L230 66 L230 84Z"/><path d="M100 75 L217 132 L208 148Z"/><path d="M100 75 L173 183 L157 192Z"/><path d="M100 75 L109 205 L91 205Z"/><path d="M100 75 L43 192 L27 183Z"/><path d="M100 75 L-8 148 L-17 132Z"/><path d="M100 75 L-30 84 L-30 66Z"/><path d="M100 75 L-17 18 L-8 2Z"/><path d="M100 75 L27 -33 L43 -42Z"/><path d="M100 75 L91 -55 L109 -55Z"/><path d="M100 75 L157 -42 L173 -33Z"/><path d="M100 75 L208 2 L217 18Z"/></g><circle cx="100" cy="80" r="46" class="halo"/><g class="stars"><path class="s1" d="M30 40l4 9 9 4-9 4-4 9-4-9-9-4 9-4z"/><path class="s2" d="M170 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path class="s3" d="M160 110l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/></g></svg>${mascot({ size: 96, mood: acc >= 0.8 ? 'wow' : 'happy', cls: 'jump', wave: true })}</div>
       <div><h1>${acc >= 0.95 ? 'Không sai câu nào!' : acc >= 0.8 ? 'Làm tốt lắm!' : 'Xong bài rồi!'}</h1><p class="muted" style="margin-top:6px">${custom ? 'Luyện tập' : esc(unit.title) + ' · ' + LESSONS[k].name}</p></div>
       <div class="stats"><div class="stat xp"><b data-count="${xp}">0</b><span>XP</span></div><div class="stat acc2"><b>${Math.round(acc * 100)}%</b><span>Chính xác</span></div><div class="stat tm"><b>${mins}′</b><span>Thời gian</span></div></div>
-      ${k === 0 && !custom ? `<p class="muted">${unit.words.length} từ mới đã vào thẻ ôn tập.</p>` : ''}
+      ${(k === 0 || k === 1) && !custom ? `<p class="muted">${Math.min(10, unit.words.length - k * 10)} từ mới đã vào thẻ ôn tập.</p>` : ''}
     </div></div>`);
     innerEl.replaceWith(fresh); innerEl = fresh;
-    fresh.querySelectorAll('.tr-m').forEach((p) => { const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L; p.animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: 900, easing: 'cubic-bezier(.6,.05,.3,1)', fill: 'forwards' }); });
     const c = fresh.querySelector('[data-count]'); let v = 0; const step = () => { v++; c.textContent = v; if (v < xp) setTimeout(step, 600 / xp); }; setTimeout(step, 300);
     confetti();
     foot.classList.remove('ok', 'bad'); skipb.hidden = true; btn.disabled = false; btn.textContent = 'Tiếp tục'; state = 'end';
