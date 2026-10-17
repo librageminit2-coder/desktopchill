@@ -994,9 +994,9 @@ tr.row-click{cursor:pointer}
         <div class="hq-grid">
           <div class="card panel">
             <div class="panel-head"><div class="panel-title">Bộ Rainmeter Layout của shop</div></div>
-            <p class="hq-p hq-sm hq-dim">File 74 MB, có trang tải riêng để gửi khách qua Zalo: desktopchill.com/rainmeter-layout.html</p>
+            <p class="hq-p hq-sm hq-dim">Cài file là có sẵn 4 layout trong Manage, tab Layouts (desktopchill Layout 1–4), tự bật Layout 1. Không cần load từng skin. File 73 MB, có trang tải riêng để gửi khách qua Zalo: desktopchill.com/rainmeter-layout.html</p>
             <div class="hq-row">
-              <a class="btn btn-primary hq-sm-btn" href="../files/desktopchill-Rainmeter-Layouts.rmskin" download>Tải về</a>
+              <a class="btn btn-primary hq-sm-btn" href="../files/desktopchill-Rainmeter-Layouts.rmskin?v=2" download>Tải về</a>
               <button class="btn btn-ghost hq-sm-btn" type="button" id="hqLayoutShare">Chia sẻ</button>
               <button class="btn btn-ghost hq-sm-btn" type="button" id="hqLayoutCopy">Copy link</button>
               <a class="btn btn-ghost hq-sm-btn" href="../rainmeter-layout.html" target="_blank" rel="noopener">Mở trang</a>
@@ -2009,7 +2009,7 @@ const MSGS=[
  {id:"m5",g:"mo",n:99,w:"Khách hỏi xem thêm ở đâu",t:"Trên web shop có để thông tin setup ở dưới cùng á bn"},
  {id:"g1",g:"gia",n:20,w:"Khách hỏi giá",t:"Trọn gói 175 đẹp lung linh bn nha"},
  {id:"g2",g:"gia",n:20,w:"Khách hỏi có tốn thêm gì không",t:"175 đã trọn gói mọi thứ bn nha. Nên 175 đã gồm WE r bn nha"},
- {id:"g3",g:"gia",n:20,w:"Khách đã có Wallpaper Engine",t:"Bn có app rồi sẽ giảm còn 100k nha"},
+ {id:"g3",g:"gia",n:20,w:"Khách đã có app",t:"Bn có app rồi sẽ giảm còn 100k nha"},
  {id:"g4",g:"gia",n:20,w:"Khách muốn thêm layout",t:"Shop đang nhận set thêm 25k/layout bn nha"},
  {id:"g5",g:"gia",n:20,w:"Khách có 2 màn hình",t:"Nếu muốn layout ở cả 2 màn sẽ cần thêm 25k bn nha"},
  {id:"g6",g:"gia",n:20,w:"Khách cũ cần setup lại",t:"Những bn đã setup bên shop sẽ ưu đãi còn 25k bn nha"},
@@ -2082,7 +2082,7 @@ function renderTalk(){
 
 /* ---------------- ảnh ---------------- */
 const IMGS=[["bang-gia","Bảng giá","Khi khách hỏi giá."],["3-buoc","3 bước cài đặt","Khi khách hỏi cài thế nào."],["feedback","Feedback khách","Khi khách lưỡng lự."],["mau-anime","Mẫu Anime","Khách thích anime."],["mau-game","Mẫu Game","Khách thích game."],["mau-girl","Mẫu Girl","Khách thích girl."],["mau-chill","Mẫu Phong cảnh, chill","Khách thích phong cảnh."],["mau-toi-gian","Mẫu Tối giản","Khách thích tối giản, màn tối."]];
-const imgURL=f=>`hq/img/${f}.jpg`;
+const imgURL=f=>`hq/img/${f}.jpg?v=20261017b`;
 async function copyImage(f){
   try{
     const img=new Image(); img.src=imgURL(f); await img.decode();
