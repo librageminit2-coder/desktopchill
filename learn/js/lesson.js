@@ -1,9 +1,9 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=3';
-import { mascot } from './mascot.js?v=3';
-import { sfx } from './sound.js?v=3';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm } from './speech.js?v=3';
-import { S, addXP, markDone, addWords, save, bump } from './store.js?v=3';
+import { I } from './icons.js?v=4';
+import { mascot } from './mascot.js?v=4';
+import { sfx } from './sound.js?v=4';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm } from './speech.js?v=4';
+import { S, addXP, markDone, addWords, save, bump } from './store.js?v=4';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };

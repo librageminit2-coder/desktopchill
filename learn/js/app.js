@@ -1,10 +1,10 @@
-import { I, LOGO } from './icons.js?v=3';
-import { sound, sfx, unlockAudio } from './sound.js?v=3';
-import { tts, speak, listVoices, canListen } from './speech.js?v=3';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump } from './store.js?v=3';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push } from './account.js?v=3';
-import { runLesson, LESSONS } from './lesson.js?v=3';
-import { mascot } from './mascot.js?v=3';
+import { I, LOGO } from './icons.js?v=4';
+import { sound, sfx, unlockAudio } from './sound.js?v=4';
+import { tts, speak, listVoices, canListen } from './speech.js?v=4';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump } from './store.js?v=4';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push } from './account.js?v=4';
+import { runLesson, LESSONS } from './lesson.js?v=4';
+import { mascot } from './mascot.js?v=4';
 
 const app = document.getElementById('app');
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -139,7 +139,7 @@ function wireAside() {
 /* ---------- lộ trình: giàn Warren, mỗi nút giàn là một bài ---------- */
 const JOINTS = 5; // 4 bài + 1 bản mã ôn tập
 function unitGeom(W, flip) {
-  const A = Math.min(92, W * 0.2), cx = W / 2, gap = 108, top = 54;
+  const A = Math.min(92, W * 0.2), cx = W / 2, gap = 108, top = 86;
   const pts = [...Array(JOINTS)].map((_, k) => ({ x: cx + (k % 2 ? 1 : -1) * (flip ? -1 : 1) * A, y: top + k * gap }));
   return { pts, H: top + (JOINTS - 1) * gap + 70, A, cx };
 }
@@ -499,7 +499,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone();
-  import('./lesson.js?v=3').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); render(); } }));
+  import('./lesson.js?v=4').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); render(); } }));
 }
 
 /* ---------- router ---------- */
