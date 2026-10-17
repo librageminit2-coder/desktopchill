@@ -28,10 +28,29 @@ document.documentElement.classList.toggle('no-autoplay', NO_AUTOPLAY);
 /* Điện thoại: thay video bằng ảnh động WebP (luôn chạy ngay trong khung, không bao giờ tự bung toàn màn hình).
    Video thật chỉ phát khi người dùng mở cửa sổ xem và tự bấm play. */
 const animOf = (w) => (w && w.preview ? w.preview.replace('/preview/', '/anim/').replace(/\.mp4(\?.*)?$/, '.webp') : '');
+const animHdOf = (w) => animOf(w).replace('/anim/', '/anim-hd/'); // bản nét (960px) cho màn hình hero và khung phóng to
+// hiện ảnh tĩnh trước, tải xong ảnh động nét thì đổi sang (không bị trống khung)
+function showAnim(img, w) {
+  const src = animHdOf(w); img.dataset.want = src;
+  if (img.getAttribute('src') !== src) img.src = w.poster;
+  const pre = new Image();
+  pre.onload = () => { if (img.dataset.want === src) img.src = src; };
+  pre.src = src;
+}
 if (NO_AUTOPLAY) {
   // bỏ thẻ <video> ở hero trên điện thoại (tránh nút play mặc định và tự bung toàn màn hình)
   const hv = document.getElementById('heroVideo');
   if (hv) { const im = document.createElement('img'); im.id = 'heroImg'; im.alt = ''; hv.replaceWith(im); }
+  // cửa sổ xem chi tiết: ảnh động trong khung thay cho video, chạm khung để xem toàn màn hình (xoay ngang)
+  const mv = document.getElementById('modalVideo');
+  if (mv) {
+    const im = document.createElement('img'); im.id = 'modalImg'; im.alt = ''; mv.replaceWith(im);
+    const wrap = im.closest('.modal-video-wrap');
+    if (wrap) {
+      wrap.insertAdjacentHTML('beforeend', '<span class="mv-hint"><span class="mv-in">⤢ Chạm để xem toàn màn hình</span><span class="mv-out">Chạm để thu nhỏ</span></span>');
+      wrap.addEventListener('click', () => { const on = wrap.classList.toggle('full'); document.documentElement.classList.toggle('mv-full', on); });
+    }
+  }
   const bg = document.getElementById('heroBg');
   if (bg) { const im = document.createElement('img'); im.id = 'heroBg'; im.className = bg.className; im.alt = ''; im.src = bg.getAttribute('poster'); bg.replaceWith(im); }
 }
@@ -98,7 +117,7 @@ function selectHero(id, instant = false, user = false) {
   // điện thoại: chỉ hiện ảnh tĩnh; khi người dùng chủ động chọn (bấm thumb / "Lên màn hình" / chạm màn hình) thì chạy ảnh động
   if (NO_AUTOPLAY) {
     const img = $('#heroImg');
-    if (img) img.src = user ? animOf(w) : w.poster;
+    if (img) { if (user) showAnim(img, w); else { img.dataset.want = ''; img.src = w.poster; } }
     screen.classList.add('ready');
     return;
   }
@@ -242,7 +261,7 @@ function wireCards() {
     const anim = img.dataset.anim;
     if (anim && img.getAttribute('src') !== anim) { img.src = anim; card.classList.add('playing'); }
   };
-  const onCardTap = (id, card) => (NO_AUTOPLAY ? playInline(card) : toScreen(id));
+  const onCardTap = (id, card) => (NO_AUTOPLAY ? (playInline(card), openModal(id)) : toScreen(id));
   // auto-play videos as they scroll into view (pause when off-screen for performance)
   if (window._cardIO) window._cardIO.disconnect();
   window._cardIO = new IntersectionObserver((entries) => {
@@ -319,10 +338,8 @@ function renderFaq() {
 /* ---------------- MODAL ---------------- */
 function openModal(id) {
   const w = state.wallpapers.find((x) => x.id === id); if (!w) return;
-  const video = $('#modalVideo');
-  video.src = w.preview; video.poster = w.poster;
-  if (NO_AUTOPLAY) { video.controls = true; video.preload = 'metadata'; } // điện thoại: chỉ phát khi người dùng tự bấm play
-  else video.play().catch(() => {});
+  if (NO_AUTOPLAY) { const im = $('#modalImg'); if (im) showAnim(im, w); } // điện thoại: ảnh động nét, không phát video
+  else { const video = $('#modalVideo'); video.src = w.preview; video.poster = w.poster; video.play().catch(() => {}); }
   $('#modalTitle').textContent = w.title[state.lang] || w.title.vi;
   $('#modalCat').textContent = t('cat.' + w.category);
   $('#modalZalo').href = CONTACT.zaloUrl;
@@ -331,7 +348,10 @@ function openModal(id) {
   $('#modal').hidden = false; document.body.style.overflow = 'hidden';
 }
 function closeModal() {
-  const video = $('#modalVideo'); video.pause(); video.removeAttribute('src'); video.load();
+  const video = $('#modalVideo'); if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
+  const im = $('#modalImg'); if (im) { im.dataset.want = ''; im.removeAttribute('src'); }
+  const wrap = $('#modal .modal-video-wrap'); if (wrap) wrap.classList.remove('full');
+  document.documentElement.classList.remove('mv-full');
   $('#modal').hidden = true; document.body.style.overflow = '';
 }
 function openSettings() { $('#settingsPanel').hidden = false; }
@@ -719,6 +739,7 @@ function wireEvents() {
   const favZaloEl = $('#favZalo'); if (favZaloEl) favZaloEl.addEventListener('click', sendFavs);
   const favTiktokEl = $('#favTiktok'); if (favTiktokEl) favTiktokEl.addEventListener('click', sendFavs);
   const modalFavEl = $('#modalFav'); if (modalFavEl) modalFavEl.addEventListener('click', () => { if (!modalCurrentId) return; const on = toggleFav(modalCurrentId); vibrate(); if (on) { const r = modalFavEl.getBoundingClientRect(); heartBurst(r.left + r.width / 2, r.top + r.height / 2); } });
+  const modalScreenEl = $('#modalScreen'); if (modalScreenEl) modalScreenEl.addEventListener('click', () => { const id = modalCurrentId; if (!id) return; closeModal(); selectHero(id, false, true); initHeroAuto(); $('#home').scrollIntoView({ behavior: 'smooth' }); });
   const modalShareEl = $('#modalShare'); if (modalShareEl) modalShareEl.addEventListener('click', () => { if (modalCurrentId) shareWallpaper(modalCurrentId); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSettings(); closeLightbox(); closeFavPanel(); } });
 }

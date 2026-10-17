@@ -640,3 +640,19 @@ img, video { display: block; max-width: 100%; }
 .screen-quad > #heroImg { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(.82) contrast(1.05) saturate(.9); }
 img.hero-video { object-fit: cover; }
 .card-play { display: none !important; }
+/* điện thoại: cửa sổ xem chi tiết với ảnh động nét, chạm khung để toàn màn hình */
+.no-autoplay .modal { padding: 10px; }
+.no-autoplay .modal-body { width: 100%; max-height: calc(100dvh - 20px); }
+.modal-video-wrap { position: relative; }
+#modalImg { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
+.mv-hint { position: absolute; right: 10px; bottom: 10px; padding: 6px 12px; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff; font-size: .78rem; font-weight: 700; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); pointer-events: none; }
+.mv-hint .mv-out { display: none; }
+.modal-video-wrap.full { position: fixed; inset: 0; z-index: 400; border-radius: 0; background: #000; display: grid; place-items: center; overflow: hidden; }
+.modal-video-wrap.full #modalImg { aspect-ratio: auto; position: absolute; left: 50%; top: 50%; width: 100vw; height: 100dvh; object-fit: contain; transform: translate(-50%, -50%); }
+@media (orientation: portrait) {
+  .modal-video-wrap.full #modalImg { width: 100dvh; height: 100vw; max-width: none; transform: translate(-50%, -50%) rotate(90deg); }
+}
+.modal-video-wrap.full .mv-hint { bottom: auto; top: 14px; right: 14px; }
+.modal-video-wrap.full .mv-in { display: none; }
+.modal-video-wrap.full .mv-out { display: inline; }
+.no-autoplay .modal-close { z-index: 5; }
