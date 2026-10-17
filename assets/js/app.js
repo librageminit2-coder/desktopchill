@@ -85,13 +85,7 @@ function selectHero(id, instant = false) {
   $$('#pgTrack .pg-thumb').forEach((th) => th.classList.toggle('active', th.dataset.id === id));
   // label
   $('#liveName').textContent = w.title[state.lang] || w.title.vi;
-  // điện thoại: chỉ đổi ảnh poster, không tải/phát video (chạm vào màn hình → mở video)
-  if (NO_AUTOPLAY) {
-    if (video.getAttribute('src')) { video.pause(); video.removeAttribute('src'); video.load(); }
-    video.poster = w.poster;
-    screen.classList.add('ready');
-    return;
-  }
+  // điện thoại: màn hình hero vẫn tự chạy (chỉ 1 video, tắt tiếng, phát ngay trong khung)
   // swap video with fade
   screen.classList.remove('ready');
   const start = () => { screen.classList.add('ready'); video.play().catch(() => {}); };
@@ -221,8 +215,18 @@ function renderPagination(totalPages) {
 function wireCards() {
   const cards = $$('#galleryGrid .card');
   const toScreen = (id) => { vibrate(); selectHero(id); initHeroAuto(); $('#home').scrollIntoView({ behavior: 'smooth' }); };
-  // điện thoại: chạm vào thẻ → mở cửa sổ xem video (video chỉ chạy sau khi chạm)
-  const onCardTap = (id) => (NO_AUTOPLAY ? openModal(id) : toScreen(id));
+  // điện thoại: chạm vào thẻ (bấm hoặc chạm để lướt) → video của thẻ đó chạy ngay trong khung, không phóng to.
+  // Mỗi lúc chỉ 1 thẻ chạy để đỡ tốn dữ liệu.
+  const playInline = (card) => {
+    const v = $('.card-vid', card); if (!v) return;
+    const prev = window._tapCard;
+    if (prev && prev !== card) { const pv = $('.card-vid', prev); if (pv) pv.pause(); prev.classList.remove('playing'); }
+    window._tapCard = card;
+    if (!v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
+    v.muted = true; v.playsInline = true;
+    if (v.paused) v.play().then(() => card.classList.add('playing')).catch(() => {});
+  };
+  const onCardTap = (id, card) => (NO_AUTOPLAY ? playInline(card) : toScreen(id));
   // auto-play videos as they scroll into view (pause when off-screen for performance)
   if (window._cardIO) window._cardIO.disconnect();
   window._cardIO = new IntersectionObserver((entries) => {
@@ -235,13 +239,25 @@ function wireCards() {
       } else { v.pause(); }
     });
   }, { rootMargin: '150px 0px', threshold: 0.1 });
+  // điện thoại: thẻ đang chạy mà lướt khuất khỏi màn hình thì dừng
+  if (window._cardPauseIO) window._cardPauseIO.disconnect();
+  window._cardPauseIO = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (!e.isIntersecting) { const v = $('.card-vid', e.target); if (v && !v.paused) { v.pause(); e.target.classList.remove('playing'); } }
+  }), { threshold: 0 });
   const tiltOK = window.matchMedia('(hover: hover) and (pointer: fine)').matches
     && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   cards.forEach((card) => {
     if (!NO_AUTOPLAY) window._cardIO.observe(card); // điện thoại: không tự phát khi cuộn tới
+    else {
+      window._cardPauseIO.observe(card);
+      card.addEventListener('touchstart', (ev) => {
+        if (ev.target.closest('[data-act],[data-fav],[data-share]')) return;
+        playInline(card);
+      }, { passive: true });
+    }
     $('.card-media', card).addEventListener('click', (ev) => {
       if (ev.target.closest('[data-act],[data-fav],[data-share]')) return;
-      onCardTap(card.dataset.id);
+      onCardTap(card.dataset.id, card);
     });
     const scr = $('[data-act="screen"]', card), con = $('[data-act="contact"]', card);
     if (scr) scr.addEventListener('click', (ev) => { ev.stopPropagation(); toScreen(card.dataset.id); });
@@ -661,7 +677,11 @@ function wireEvents() {
   $('#langBtn').addEventListener('click', () => setLang(state.lang === 'vi' ? 'en' : 'vi'));
   $('#themeBtn').addEventListener('click', () => setTheme(state.theme === 'dark' ? 'light' : 'dark'));
   $('#settingsBtn').addEventListener('click', openSettings);
-  const sq = $('#screenQuad'); if (sq) sq.addEventListener('click', () => { if (state.current) openModal(state.current); });
+  const sq = $('#screenQuad'); if (sq) sq.addEventListener('click', () => {
+    if (!state.current) return;
+    if (NO_AUTOPLAY) { const hv = $('#heroVideo'); if (hv && hv.paused) hv.play().catch(() => {}); return; } // điện thoại: chạm màn hình hero chỉ cho chạy, không phóng to
+    openModal(state.current);
+  });
   $('#searchInput').addEventListener('input', (e) => { state.search = e.target.value; state.page = 1; renderGallery(); });
   $$('#viewToggle button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   $$('[data-close]').forEach((el) => el.addEventListener('click', closeModal));
