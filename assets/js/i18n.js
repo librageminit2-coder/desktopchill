@@ -17,7 +17,8 @@ export const I18N = {
 
     'fab.zalo': 'Đặt ngay',
 
-    'stat.designs': 'mẫu hình nền động',
+    'stat.designsNum': 'Vô tận',
+    'stat.designs': 'kho hình nền động',
     'stat.price': 'trọn gói full tất cả mẫu, không phát sinh',
     'stat.lifetime': 'cập nhật trọn đời',
     'stat.online': 'online · cài từ xa',
@@ -142,7 +143,8 @@ export const I18N = {
 
     'fab.zalo': 'Book now',
 
-    'stat.designs': 'live wallpaper designs',
+    'stat.designsNum': 'Endless',
+    'stat.designs': 'live wallpaper library',
     'stat.price': 'all-inclusive, all designs, no extras',
     'stat.lifetime': 'lifetime updates',
     'stat.online': 'online · remote install',

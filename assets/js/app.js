@@ -1,4 +1,4 @@
-import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20260912j';
+import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20261017a';
 
 const state = {
   lang: localStorage.getItem('dc_lang') || 'vi',
@@ -780,7 +780,6 @@ async function init() {
     state.wallpapers = (await res.json()).wallpapers || [];
   } catch (err) { console.error('Không tải được danh sách:', err); state.wallpapers = []; }
   applyI18n();
-  const sc = $('#statCount'); if (sc && state.wallpapers.length) sc.dataset.to = state.wallpapers.length;
   renderPreviewGallery();
   renderChips();
   renderGallery();
