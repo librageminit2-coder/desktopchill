@@ -6,7 +6,8 @@ const yesterday = () => today(new Date(Date.now() - DAY));
 
 function fresh() {
   return {
-    v: 1, updated: 0, lang: 'en', level: { en: 'a1', zh: 'hsk1' },
+    v: 1, updated: 0, lang: 'en', level: { en: 'a1', zh: 'hsk4' },
+    daily: { d: '', lessons: 0, speak: 0, review: 0 }, // đếm cho nhiệm vụ hằng ngày
     done: {},          // "en-a1-1": [1,0,0,0]  (4 bài trong mỗi chủ đề)
     xp: 0, goal: 20,
     days: {},          // "2026-10-17": xp trong ngày
@@ -26,6 +27,9 @@ function merge(base, add) {
 }
 export let S = fresh();
 try { const raw = localStorage.getItem(KEY); if (raw) S = merge(fresh(), JSON.parse(raw)); } catch (e) {}
+// lộ trình tiếng Trung giờ bắt đầu từ HSK4
+const fixLevel = () => { if (/^hsk[123]$/.test(S.level.zh || '')) S.level.zh = 'hsk4'; };
+fixLevel();
 
 const subs = new Set();
 export const onSave = (fn) => subs.add(fn);
@@ -35,7 +39,7 @@ export function save(now = false) {
   const w = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} subs.forEach((f) => { try { f(S); } catch (e) {} }); };
   clearTimeout(tSave); if (now) w(); else tSave = setTimeout(w, 250);
 }
-export function replace(obj) { S = merge(fresh(), obj || {}); save(true); }
+export function replace(obj) { S = merge(fresh(), obj || {}); fixLevel(); save(true); }
 export function reset() { S = fresh(); save(true); }
 
 /* ---------- XP, chuỗi ngày ---------- */
@@ -52,6 +56,9 @@ export function addXP(n) {
 }
 export function streakNow() { return S.streak.last === today() || S.streak.last === yesterday() ? S.streak.n : 0; }
 export const todayXP = () => S.days[today()] || 0;
+/* ---------- đếm việc trong ngày (nhiệm vụ) ---------- */
+export function daily() { if (S.daily.d !== today()) S.daily = { d: today(), lessons: 0, speak: 0, review: 0 }; return S.daily; }
+export function bump(key, n = 1) { const d = daily(); d[key] = (d[key] || 0) + n; save(); }
 
 /* ---------- tiến độ bài học ---------- */
 export function lessonDone(unitId, k) { return !!(S.done[unitId] && S.done[unitId][k]); }

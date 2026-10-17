@@ -46,6 +46,8 @@ export function sfx(name) {
         noise(0.5, 0.6, { vol: 0.05, freq: 7000, q: 0.5 }); break;
       }
       case 'build': [60, 67].forEach((m, i) => tone(N(m), i * 0.12, 0.25, { type: 'square', vol: 0.04 })); noise(0, 0.08, { vol: 0.1, freq: 900, q: 3 }); break;
+      case 'open': tone(N(72), 0, 0.07, { type: 'sine', vol: 0.12, glide: 1.6 }); noise(0, 0.06, { vol: 0.05, freq: 2400, q: 1 }); break;
+      case 'quest': [79, 84, 91].forEach((m, i) => tone(N(m), i * 0.08, 0.3, { type: 'triangle', vol: 0.15 })); break;
       case 'rec': tone(N(88), 0, 0.08, { vol: 0.15 }); break;
       case 'stop': tone(N(81), 0, 0.08, { vol: 0.15 }); tone(N(76), 0.07, 0.1, { vol: 0.12 }); break;
     }

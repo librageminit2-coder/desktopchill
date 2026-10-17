@@ -1,8 +1,9 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js';
-import { sfx } from './sound.js';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm } from './speech.js';
-import { S, addXP, markDone, addWords, save } from './store.js';
+import { I } from './icons.js?v=3';
+import { mascot } from './mascot.js?v=3';
+import { sfx } from './sound.js?v=3';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm } from './speech.js?v=3';
+import { S, addXP, markDone, addWords, save, bump } from './store.js?v=3';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -12,7 +13,7 @@ const pick = (a, n) => shuffle(a).slice(0, n);
 const strip = (s) => s.replace(/\s+/g, '');
 export const LESSONS = [
   { k: 0, name: 'Từ vựng', desc: 'Học từ mới, nghe và ghép nghĩa', icon: 'book' },
-  { k: 1, name: 'Hội thoại', desc: 'Nghe, ghép câu và nói theo', icon: 'chat' },
+  { k: 1, name: 'Hội thoại', desc: 'Nghe, ghép câu rồi đóng vai nói', icon: 'chat' },
   { k: 2, name: 'Đọc hiểu', desc: 'Đọc bài, trả lời và nghe chép', icon: 'read' },
   { k: 3, name: 'Ngữ pháp & tổng ôn', desc: 'Mẫu câu, điền từ, nói lại', icon: 'ruler' },
 ];
@@ -43,6 +44,7 @@ export function buildQueue(unit, k, lang) {
     pick(L, 2).forEach((l) => q.push({ type: 'listenLine', s: l, pool: L }));
     pick(L.filter((l) => l.tk.length <= 12), 2).forEach((l) => q.push({ type: 'speak', s: l }));
     pick(W, 2).forEach((w) => q.push({ type: 'meaning', w }));
+    q.push({ type: 'roleplay' });
   } else if (k === 2) {
     q.push({ type: 'reading' });
     unit.read.q.forEach((x) => q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'Theo bài đọc' }));
@@ -238,7 +240,7 @@ R.speak = (el, it, api) => {
       heard.innerHTML = best.tokens.map((t, i) => `<span class="${best.hit[i] ? 'w-ok' : 'w-miss'}">${esc(t)}</span>`).join(zh ? '' : ' ');
       const n = Math.round(best.score * 5); sc.innerHTML = [0, 1, 2, 3, 4].map((i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('');
       api.ready(best.score >= 0.7 || tries >= 2);
-      if (best.score >= 0.7) api.autoCheck();
+      if (best.score >= 0.7) { bump('speak'); api.autoCheck(); }
     } catch (e) {
       mic.classList.remove('rec');
       heard.textContent = e.message === 'not-allowed' ? 'Trình duyệt chưa cho dùng micro. Bật quyền micro rồi thử lại.' : 'Chưa nghe được, thử lại nhé';
@@ -315,6 +317,85 @@ R.dialogue = (el, it, api) => {
   api.onLeave = () => { stop.stop = true; stopSpeak(); };
   return { info: true };
 };
+// ---- đóng vai: người học nói phần của một nhân vật, máy đọc phần còn lại ----
+R.roleplay = (el, it, api) => {
+  const d = api.unit.dlg, zh = api.lang === 'zh', speakers = [...new Set(d.lines.map((l) => l.s))];
+  const me = speakers.find((s) => /^(Minh|小明)$/.test(s)) || speakers[1] || speakers[0];
+  const other = speakers.find((s) => s !== me) || '';
+  const live = !micOff();
+  el.innerHTML = `<p class="q">Đóng vai: bạn là ${esc(me)}</p>
+  <p class="muted rp-sub">${live ? `Máy đọc lời ${esc(other)}, đến lượt bạn thì bấm micro và nói. Bấm “Hiện câu” nếu cần nhắc.` : `Máy đọc lời ${esc(other)}. Đến lượt bạn: nghe câu mẫu rồi nói theo thật to.`}</p>
+  <div class="dlg rp"></div><div class="rp-turn"></div>`;
+  const thread = el.querySelector('.rp'), turn = el.querySelector('.rp-turn'), stop = { stop: false };
+  let i = 0, scores = [];
+  const bubble = (l, mine, extra = '') => {
+    const b = h(`<div class="bubble ${mine ? 'me' : 'you'} rp-in"><span class="who">${esc(mine ? 'Bạn' : l.s)}</span><span class="t ${zh ? 'zh' : ''}">${esc(textOf(api.lang, l))}</span>${zh && S.settings.pinyin && l.py ? `<small>${esc(l.py.join(' '))}</small>` : ''}<small class="vi" style="display:block">${esc(l.vi)}</small>${extra}</div>`);
+    thread.appendChild(b); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return b;
+  };
+  const finishAll = () => {
+    turn.innerHTML = `<div class="rp-done">${I.check}<b>Xong vai ${esc(me)}!</b>${scores.length ? `<span>Độ khớp trung bình ${Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 100)}%</span>` : ''}</div>`;
+    sfx('pop'); api.ready(true); api.autoOk();
+  };
+  const next = async () => {
+    if (stop.stop) return;
+    if (i >= d.lines.length) return finishAll();
+    const l = d.lines[i];
+    if (l.s !== me) {
+      const b = bubble(l, false); b.classList.add('now');
+      turn.innerHTML = `<div class="rp-wait"><span class="dots"><i></i><i></i><i></i></span> ${esc(l.s)} đang nói…</div>`;
+      if (!audioOff()) await speak(textOf(api.lang, l), api.lang); else await new Promise((r) => setTimeout(r, 1400));
+      b.classList.remove('now'); i++; return next();
+    }
+    const txt = textOf(api.lang, l);
+    turn.innerHTML = `<div class="rp-card">
+      <span class="tag">Đến lượt bạn</span>
+      <div class="rp-vi">${esc(l.vi)}</div>
+      <div class="rp-target ${zh ? 'zh' : ''} blur">${esc(txt)}${zh && S.settings.pinyin && l.py ? `<small class="py" style="display:block">${esc(l.py.join(' '))}</small>` : ''}</div>
+      <div class="rp-act">
+        <button class="chip reveal" type="button">${I.eye} Hiện câu</button>
+        <button class="chip hear" type="button">${I.speaker} Nghe mẫu</button>
+      </div>
+      ${live ? `<button class="mic" type="button" aria-label="Bấm để nói">${I.mic}</button><div class="heard"></div>` : `<button class="btn acc wide said" type="button">${I.check} Tôi đã nói câu này</button>`}
+    </div>`;
+    const tgt = turn.querySelector('.rp-target');
+    turn.querySelector('.reveal').addEventListener('click', () => { tgt.classList.remove('blur'); sfx('tap'); });
+    turn.querySelector('.hear').addEventListener('click', (e) => { tgt.classList.remove('blur'); speak(txt, api.lang, { btn: e.currentTarget }); });
+    if (!live) {
+      tgt.classList.remove('blur');
+      if (!audioOff()) speak(txt, api.lang);
+      turn.querySelector('.said').addEventListener('click', () => { sfx('ok'); bump('speak'); bubble(l, true); i++; next(); });
+      return;
+    }
+    const mic = turn.querySelector('.mic'), heard = turn.querySelector('.heard');
+    let tries = 0;
+    mic.addEventListener('click', async () => {
+      if (mic.classList.contains('rec')) { stopListen(); return; }
+      stopSpeak(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Đang nghe…';
+      try {
+        const r = await listen(api.lang, { onPartial: (t) => { heard.textContent = t; } });
+        mic.classList.remove('rec'); sfx('stop'); tries++;
+        let best = { score: 0 };
+        [r.text, ...(r.alts || [])].filter(Boolean).forEach((c) => { const x = compare(txt, c, api.lang); if (x.score > best.score) best = x; });
+        if (best.score >= 0.6 || tries >= 3) {
+          scores.push(best.score); if (best.score >= 0.6) { sfx('ok'); bump('speak'); } else sfx('tap');
+          const b = bubble(l, true, `<span class="rp-score">${best.score >= 0.85 ? 'Rất chuẩn' : best.score >= 0.6 ? 'Ổn rồi' : 'Lần sau thử lại nhé'} · ${Math.round(best.score * 100)}%</span>`);
+          if (best.score >= 0.6) b.classList.add('good');
+          i++; setTimeout(next, 500);
+        } else {
+          sfx('bad'); tgt.classList.remove('blur');
+          heard.innerHTML = best.tokens ? best.tokens.map((t, j) => `<span class="${best.hit[j] ? 'w-ok' : 'w-miss'}">${esc(t)}</span>`).join(zh ? '' : ' ') + `<br><small>Khớp ${Math.round(best.score * 100)}%, thử lại nhé</small>` : 'Chưa nghe rõ, thử lại nhé';
+        }
+      } catch (e) {
+        mic.classList.remove('rec');
+        heard.textContent = e.message === 'not-allowed' ? 'Trình duyệt chưa cho dùng micro. Bật quyền micro rồi thử lại.' : 'Chưa nghe được, thử lại nhé';
+        if (e.message === 'not-allowed' || e.message === 'unsupported') { pause.mic = Date.now() + 15 * 60000; scores.push(0); bubble(l, true); i++; next(); }
+      }
+    });
+  };
+  setTimeout(next, 400);
+  api.onLeave = () => { stop.stop = true; stopSpeak(); stopListen(); };
+  return { check: () => ({ ok: true, answer: '' }), manual: true };
+};
 R.reading = (el, it, api) => {
   const rd = api.unit.read, zh = api.lang === 'zh', gm = glossMap(api.unit, api.lang);
   el.innerHTML = `<p class="q">${esc(rd.title)}</p>
@@ -350,7 +431,7 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     <div class="p-stage"><div class="p-inner"></div></div>
     <div class="p-foot"><div class="in"><div class="fb"><span class="mark"></span><div><b></b><p></p></div></div><div class="foot-row"><button class="btn ghost skipb" type="button" hidden>Bỏ qua</button><button class="btn acc check" type="button" disabled>Kiểm tra</button></div></div></div>
   </div>`);
-  document.body.appendChild(root); document.body.style.overflow = 'hidden';
+  document.body.appendChild(root); document.body.style.overflow = 'hidden'; document.body.classList.add('playing');
   let innerEl = $('.p-inner', root); const foot = $('.p-foot', root), btn = $('.check', root), skipb = $('.skipb', root), bar = $('.prog i', root);
   let api = null;
   const setProg = () => { const p = Math.round((idx / (total0 + requeued)) * 100); bar.style.width = p + '%'; };
@@ -366,7 +447,7 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     cur = R[it.type](fresh, it, api);
     if (cur.info) { btn.disabled = false; btn.textContent = 'Tiếp tục'; state = 'info'; }
     else { btn.disabled = true; btn.textContent = 'Kiểm tra'; }
-    skipb.hidden = !(it.type === 'listenWord' || it.type === 'listenLine' || it.type === 'dictation' || it.type === 'spell' || it.type === 'listenOrder');
+    skipb.hidden = !(it.type === 'listenWord' || it.type === 'listenLine' || it.type === 'dictation' || it.type === 'spell' || it.type === 'listenOrder' || it.type === 'roleplay' || it.type === 'write');
     setProg();
     function total0Adj() { /* giữ tiến độ */ }
   }
@@ -392,7 +473,7 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     if (state === 'answer') doCheck();
     else { if (state === 'info') sfx('tap'); idx++; show(); }
   });
-  skipb.addEventListener('click', () => { pause.audio = Date.now() + 15 * 60000; toastMsg('Đã tắt bài nghe trong 15 phút'); queue.splice(idx, 1); show(); });
+  skipb.addEventListener('click', () => { if (!['roleplay', 'write'].includes(queue[idx].type)) { pause.audio = Date.now() + 15 * 60000; toastMsg('Đã tắt bài nghe trong 15 phút'); } queue.splice(idx, 1); show(); });
   const onKey = (e) => {
     if (e.target.matches('textarea, input')) { if (e.key === 'Enter' && !e.shiftKey && !btn.disabled) { e.preventDefault(); btn.click(); } return; }
     if (e.key === 'Enter' && !btn.disabled) { e.preventDefault(); btn.click(); }
@@ -400,7 +481,7 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     else if (e.key === 'Escape') quit();
   };
   document.addEventListener('keydown', onKey);
-  function close() { stopSpeak(); stopListen(); document.removeEventListener('keydown', onKey); root.remove(); document.body.style.overflow = ''; document.querySelectorAll('.gloss').forEach((g) => g.remove()); }
+  function close() { document.body.classList.remove('playing'); const cf = document.getElementById('confetti'); if (cf) cf.remove(); stopSpeak(); stopListen(); document.removeEventListener('keydown', onKey); root.remove(); document.body.style.overflow = ''; document.querySelectorAll('.gloss').forEach((g) => g.remove()); }
   function quit() {
     if (idx === 0 || confirmQuit()) { close(); onExit({ done: false }); }
   }
@@ -410,14 +491,14 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     const acc = right / Math.max(1, right + wrong);
     const firstTime = !custom && !(S.done[unit.id] && S.done[unit.id][k]);
     const xp = custom ? Math.max(3, right) : 10 + (acc >= 0.95 ? 5 : acc >= 0.8 ? 2 : 0) + (firstTime ? 0 : -4);
-    addXP(xp);
+    addXP(xp); bump('lessons');
     if (!custom) { markDone(unit.id, k); if (k === 0) addWords(lang, unit.words.map((w) => w.w)); }
     const mins = Math.max(1, Math.round((Date.now() - t0) / 60000)); S.minutes += mins; save(true);
     bar.style.width = '100%'; sfx('done');
     const fresh = h(`<div class="p-inner"><div class="result">
-      <svg class="trophy" viewBox="0 0 140 120" aria-hidden="true"><path class="tr-m" d="M10 105h120L70 25z" fill="none" stroke="var(--acc)" stroke-width="6" stroke-linejoin="round"/><path class="tr-m" d="M70 25v80M40 105l30-40 30 40" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="70" cy="25" r="7" fill="var(--hl)"/><circle cx="10" cy="105" r="6" fill="var(--ink)"/><circle cx="130" cy="105" r="6" fill="var(--ink)"/></svg>
+      <div class="res-art"><svg class="trophy" viewBox="0 0 200 120" aria-hidden="true"><path class="tr-m" d="M10 110h180L100 22z" fill="none" stroke="var(--acc)" stroke-width="7" stroke-linejoin="round"/><path class="tr-m" d="M55 110l45-50 45 50M100 22v88" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/><circle cx="10" cy="110" r="7" fill="var(--ink)"/><circle cx="190" cy="110" r="7" fill="var(--ink)"/></svg>${mascot({ size: 96, mood: acc >= 0.8 ? 'wow' : 'happy', cls: 'jump', wave: true })}</div>
       <div><h1>${acc >= 0.95 ? 'Không sai câu nào!' : acc >= 0.8 ? 'Làm tốt lắm!' : 'Xong bài rồi!'}</h1><p class="muted" style="margin-top:6px">${custom ? 'Luyện tập' : esc(unit.title) + ' · ' + LESSONS[k].name}</p></div>
-      <div class="stats"><div class="stat xp"><b data-count="${xp}">0</b><span>XP</span></div><div class="stat acc2"><b>${Math.round(acc * 100)}%</b><span>Chính xác</span></div><div class="stat"><b>${mins}′</b><span>Thời gian</span></div></div>
+      <div class="stats"><div class="stat xp"><b data-count="${xp}">0</b><span>XP</span></div><div class="stat acc2"><b>${Math.round(acc * 100)}%</b><span>Chính xác</span></div><div class="stat tm"><b>${mins}′</b><span>Thời gian</span></div></div>
       ${k === 0 && !custom ? `<p class="muted">${unit.words.length} từ mới đã vào thẻ ôn tập.</p>` : ''}
     </div></div>`);
     innerEl.replaceWith(fresh); innerEl = fresh;
@@ -436,11 +517,12 @@ function confetti() {
   const cs = getComputedStyle(document.documentElement);
   const cols = ['--hl', '--en', '--zh', '--ink', '--ok'].map((v) => cs.getPropertyValue(v).trim());
   const P = Array.from({ length: 90 }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 120, y: innerHeight * 0.38, vx: (Math.random() - .5) * 11, vy: -Math.random() * 12 - 4, r: Math.random() * 6.28, vr: (Math.random() - .5) * .3, s: 6 + Math.random() * 7, c: cols[Math.floor(Math.random() * cols.length)] }));
-  let f = 0;
+  let f = 0; const t0 = performance.now();
+  setTimeout(() => cv.remove(), 3200);
   const tick = () => {
     c.clearRect(0, 0, innerWidth, innerHeight);
     P.forEach((p) => { p.vy += 0.32; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr; c.save(); c.translate(p.x, p.y); c.rotate(p.r); c.fillStyle = p.c; c.beginPath(); c.moveTo(0, -p.s / 1.4); c.lineTo(p.s / 1.4, p.s / 1.6); c.lineTo(-p.s / 1.4, p.s / 1.6); c.closePath(); c.fill(); c.restore(); });
-    if (++f < 150) requestAnimationFrame(tick); else cv.remove();
+    if (++f < 150 && performance.now() - t0 < 3000 && cv.isConnected) requestAnimationFrame(tick); else cv.remove();
   };
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) tick(); else cv.remove();
 }

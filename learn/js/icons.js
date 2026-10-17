@@ -27,6 +27,10 @@ export const I = {
   lock: s('<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>'),
   play: s('<path d="M7 4v16l13-8z"/>'),
   redo: s('<path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 0-2.4 5.7"/>'),
+  star: s('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>'),
+  trophy: s('<path d="M8 4h8v6a4 4 0 0 1-8 0z"/><path d="M8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4"/><path d="M12 14v4M8 21h8M9 18h6"/>'),
+  list: s('<path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/>'),
+  roleplay: s('<path d="M3 5h11v8H7l-4 3z"/><path d="M10 16v1h7l4 3v-11h-4"/>'),
   logout: s('<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h11"/>'),
 };
 // Logo: một nút giàn (tam giác + thanh chéo)
