@@ -196,6 +196,60 @@
       </div>
     </section>
 
+    <!-- ==================== ĐẶT LỊCH (form order) ==================== -->
+    <section id="dat-lich" class="booking-section">
+      <div class="section-head reveal">
+        <h2 class="section-title">Đặt lịch cài</h2>
+        <p class="section-subtitle">Chỉ cần chọn, bấm Đặt ngay là nhắn được cho shop</p>
+      </div>
+      <div class="pricing-card booking-card reveal">
+        <div class="bk-form">
+          <div class="bk-fs">
+            <div class="bk-t"><span class="bk-n">1</span>Thời gian cài</div>
+            <div class="bk-opt" id="bkWhen" role="group" aria-label="Thời gian cài">
+              <button type="button" data-v="today" aria-pressed="false"><b>Hôm nay</b><span>Cài ngay trong ngày</span></button>
+              <button type="button" data-v="other" aria-pressed="false"><b>Hôm khác</b><span>Hẹn ngày bạn rảnh</span></button>
+            </div>
+            <p class="bk-hint" style="margin-top:8px">Chưa chọn cũng được, shop sẽ trao đổi giờ với bạn.</p>
+          </div>
+          <div class="bk-fs">
+            <div class="bk-t"><span class="bk-n">2</span>Mẫu hình nền</div>
+            <div class="bk-all">
+              <span class="bk-all-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+              <div><b>Tất cả mẫu</b><span>Trọn kho hình nền động</span></div>
+              <span class="bk-ok">✓ Đã chọn</span>
+            </div>
+            <p class="bk-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Trong gói đã kèm full tất cả hình.</span></p>
+            <div class="bk-fld" style="margin-bottom:0">
+              <label for="bkPicks">Muốn cài sẵn mẫu nào? <small>Không bắt buộc, chỉ cần nhập số</small></label>
+              <input class="bk-inp" id="bkPicks" inputmode="numeric" placeholder="Ví dụ: 14, 23" maxlength="40" autocomplete="off" />
+              <p class="bk-hint" id="bkPicksHint"></p>
+              <div class="bk-picks" id="bkPicksView"></div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="bk-sum">
+          <div class="pricing-badge">Đơn của bạn</div>
+          <div class="pricing-price">
+            <span class="price-original">300k</span>
+            <span class="price-value">175k</span>
+            <span class="price-discount">-42%</span>
+          </div>
+          <p class="bk-save">Tiết kiệm <b>125k</b> · trọn gói, không phát sinh thêm</p>
+          <dl class="bk-list">
+            <div><dt>Thời gian</dt><dd id="bkSWhen">Trao đổi</dd></div>
+            <div><dt>Mẫu</dt><dd id="bkSPick">Tất cả mẫu</dd></div>
+            <div><dt>Cài đặt</dt><dd>Online qua Ultraview</dd></div>
+          </dl>
+          <a class="btn btn-primary bk-go" id="bkGo" href="https://zalo.me/0339903166" target="_blank" rel="noopener"><img src="assets/img/zalo.svg" alt="" width="22" height="22" />Đặt ngay</a>
+          <p class="bk-fine">Bấm Đặt ngay: đơn được copy sẵn và mở Zalo 0339903166 của shop, bạn chỉ cần dán rồi gửi.</p>
+        </aside>
+      </div>
+      <div class="bk-toast" id="bkToast" role="status"></div>
+    </section>
+
+
     <!-- ==================== REVIEWS (đánh giá khách hàng) ==================== -->
     <section id="reviews" class="reviews-section">
       <div class="section-head reveal">
@@ -270,59 +324,6 @@
       <div class="faq-list reveal" id="faqList"></div>
     </section>
     </div><!-- /price-faq -->
-
-    <!-- ==================== ĐẶT LỊCH (form order) ==================== -->
-    <section id="dat-lich" class="booking-section">
-      <div class="section-head reveal">
-        <h2 class="section-title">Đặt lịch cài</h2>
-        <p class="section-subtitle">Chỉ cần chọn, bấm Đặt ngay là nhắn được cho shop</p>
-      </div>
-      <div class="pricing-card booking-card reveal">
-        <div class="bk-form">
-          <div class="bk-fs">
-            <div class="bk-t"><span class="bk-n">1</span>Thời gian cài</div>
-            <div class="bk-opt" id="bkWhen" role="group" aria-label="Thời gian cài">
-              <button type="button" data-v="today" aria-pressed="false"><b>Hôm nay</b><span>Cài ngay trong ngày</span></button>
-              <button type="button" data-v="other" aria-pressed="false"><b>Hôm khác</b><span>Hẹn ngày bạn rảnh</span></button>
-            </div>
-            <p class="bk-hint" style="margin-top:8px">Chưa chọn cũng được, shop sẽ trao đổi giờ với bạn.</p>
-          </div>
-          <div class="bk-fs">
-            <div class="bk-t"><span class="bk-n">2</span>Mẫu hình nền</div>
-            <div class="bk-all">
-              <span class="bk-all-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
-              <div><b>Tất cả mẫu</b><span>Trọn kho hình nền động</span></div>
-              <span class="bk-ok">✓ Đã chọn</span>
-            </div>
-            <p class="bk-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Trong gói đã kèm full tất cả hình.</span></p>
-            <div class="bk-fld" style="margin-bottom:0">
-              <label for="bkPicks">Muốn cài sẵn mẫu nào? <small>Không bắt buộc, chỉ cần nhập số</small></label>
-              <input class="bk-inp" id="bkPicks" inputmode="numeric" placeholder="Ví dụ: 14, 23" maxlength="40" autocomplete="off" />
-              <p class="bk-hint" id="bkPicksHint"></p>
-              <div class="bk-picks" id="bkPicksView"></div>
-            </div>
-          </div>
-        </div>
-
-        <aside class="bk-sum">
-          <div class="pricing-badge">Đơn của bạn</div>
-          <div class="pricing-price">
-            <span class="price-original">300k</span>
-            <span class="price-value">175k</span>
-            <span class="price-discount">-42%</span>
-          </div>
-          <p class="bk-save">Tiết kiệm <b>125k</b> · trọn gói, không phát sinh thêm</p>
-          <dl class="bk-list">
-            <div><dt>Thời gian</dt><dd id="bkSWhen">Trao đổi</dd></div>
-            <div><dt>Mẫu</dt><dd id="bkSPick">Tất cả mẫu</dd></div>
-            <div><dt>Cài đặt</dt><dd>Online qua Ultraview</dd></div>
-          </dl>
-          <a class="btn btn-primary bk-go" id="bkGo" href="https://zalo.me/0339903166" target="_blank" rel="noopener"><img src="assets/img/zalo.svg" alt="" width="22" height="22" />Đặt ngay</a>
-          <p class="bk-fine">Bấm Đặt ngay: đơn được copy sẵn và mở Zalo 0339903166 của shop, bạn chỉ cần dán rồi gửi.</p>
-        </aside>
-      </div>
-      <div class="bk-toast" id="bkToast" role="status"></div>
-    </section>
 
     <!-- ==================== CONTACT ==================== -->
     <section id="contact" class="contact-section">
