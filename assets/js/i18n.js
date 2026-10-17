@@ -4,6 +4,7 @@ export const I18N = {
     'nav.home': 'Trang chủ',
     'nav.gallery': 'Bộ sưu tập',
     'nav.pricing': 'Bảng giá',
+    'nav.book': 'Đặt lịch',
     'nav.faq': 'Hỏi đáp',
     'nav.guide': 'Hướng dẫn',
     'nav.contact': 'Liên hệ',
@@ -108,7 +109,7 @@ export const I18N = {
     'pricing.f4': 'Tối ưu riêng theo máy — App dùng vĩnh viễn, mượt, mát, không hao pin',
     'pricing.f5': 'Trọn kho hình shop đã sưu tầm — không phát sinh phí',
     'pricing.f6': 'Cập nhật trọn đời — có hình mới trên kênh sẽ free cung cấp cho bạn',
-    'pricing.cta': 'Đặt ngay qua Zalo',
+    'pricing.cta': 'Đặt lịch ngay',
 
     'contact.title': 'Liên hệ với shop',
     'contact.subtitle': 'Nhắn tin để được tư vấn và cài đặt nhanh nhất',
@@ -130,6 +131,7 @@ export const I18N = {
     'nav.home': 'Home',
     'nav.gallery': 'Collection',
     'nav.pricing': 'Pricing',
+    'nav.book': 'Book',
     'nav.faq': 'FAQ',
     'nav.guide': 'Guide',
     'nav.contact': 'Contact',
@@ -234,7 +236,7 @@ export const I18N = {
     'pricing.f4': 'Optimized for your machine — lifetime app, smooth, cool, battery-friendly',
     'pricing.f5': 'Our entire curated wallpaper library — no extra cost',
     'pricing.f6': 'Lifetime updates — new designs on our channel are free for you',
-    'pricing.cta': 'Order now via Zalo',
+    'pricing.cta': 'Book now',
 
     'contact.title': 'Get in touch',
     'contact.subtitle': 'Message us for advice and the fastest setup',

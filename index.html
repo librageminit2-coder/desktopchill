@@ -37,7 +37,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261017d" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261017e" />
   <script>try{document.documentElement.dataset.theme=localStorage.getItem('dc_theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
   <script type="application/ld+json">
   {
@@ -88,6 +88,7 @@
         <a href="#home" data-i18n="nav.home">Trang chủ</a>
         <a href="#gallery" data-i18n="nav.gallery">Bộ sưu tập</a>
         <a href="#pricing" data-i18n="nav.pricing">Bảng giá</a>
+        <a href="#dat-lich" data-i18n="nav.book">Đặt lịch</a>
         <a href="#faq" data-i18n="nav.faq">Hỏi đáp</a>
         <a href="cach-cai-hinh-nen-dong.html" data-i18n="nav.guide">Hướng dẫn</a>
         <a href="#contact" data-i18n="nav.contact">Liên hệ</a>
@@ -256,7 +257,7 @@
           <li><span class="check">✓</span><span data-i18n="pricing.f5"></span></li>
           <li><span class="check">✓</span><span data-i18n="pricing.f6"></span></li>
         </ul>
-        <a href="#" class="btn btn-primary pricing-cta" id="pricingZalo" data-i18n="pricing.cta">Đặt ngay qua Zalo</a>
+        <a href="#dat-lich" class="btn btn-primary pricing-cta" id="pricingZalo" data-keep="1" data-i18n="pricing.cta">Đặt lịch ngay</a>
       </div>
     </section>
 
@@ -269,6 +270,127 @@
       <div class="faq-list reveal" id="faqList"></div>
     </section>
     </div><!-- /price-faq -->
+
+    <!-- ==================== ĐẶT LỊCH (form order) ==================== -->
+    <section id="dat-lich" class="booking-section">
+      <div class="section-head reveal">
+        <h2 class="section-title">Đặt lịch cài</h2>
+        <p class="section-subtitle">Điền 30 giây, bấm chốt đơn là shop nhận lịch của bạn</p>
+      </div>
+      <div class="pricing-card booking-card reveal">
+        <form class="bk-form" id="bkForm" novalidate autocomplete="on">
+          <fieldset class="bk-fs">
+            <legend class="bk-t"><span class="bk-n">1</span>Thông tin của bạn</legend>
+            <div class="bk-two">
+              <div class="bk-fld">
+                <label for="bkName">Tên của bạn</label>
+                <input class="bk-inp" id="bkName" autocomplete="name" placeholder="Ví dụ: Minh Anh" maxlength="60" />
+              </div>
+              <div class="bk-fld">
+                <label for="bkPhone">SĐT Zalo <small>(không bắt buộc)</small></label>
+                <input class="bk-inp" id="bkPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="09xx xxx xxx" maxlength="15" />
+              </div>
+            </div>
+            <div class="bk-fld">
+              <label>Máy của bạn <small>(không bắt buộc)</small></label>
+              <div class="bk-chips" id="bkDevice" role="group" aria-label="Máy của bạn">
+                <button type="button" data-v="Laptop" aria-pressed="false">Laptop</button>
+                <button type="button" data-v="PC bàn" aria-pressed="false">PC bàn</button>
+                <button type="button" data-v="2 màn hình" aria-pressed="false">2 màn hình</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="bk-fs">
+            <legend class="bk-t"><span class="bk-n">2</span>Thời gian cài</legend>
+            <div class="bk-opt" id="bkWhen" role="group" aria-label="Thời gian cài">
+              <button type="button" data-v="today" aria-pressed="true"><b>Hôm nay</b><span>Cài ngay trong ngày</span></button>
+              <button type="button" data-v="other" aria-pressed="false"><b>Hôm khác</b><span>Chọn ngày bạn rảnh</span></button>
+            </div>
+            <div class="bk-sub" id="bkDateBox" hidden>
+              <div class="bk-chips" id="bkQuick"></div>
+              <input class="bk-inp" type="date" id="bkDate" aria-label="Chọn ngày cài" />
+            </div>
+            <div class="bk-fld bk-sub">
+              <label>Khung giờ tiện cho bạn</label>
+              <div class="bk-chips" id="bkSlot" role="group" aria-label="Khung giờ">
+                <button type="button" data-v="Sáng" aria-pressed="false">Sáng</button>
+                <button type="button" data-v="Chiều" aria-pressed="false">Chiều</button>
+                <button type="button" data-v="Tối" aria-pressed="false">Tối</button>
+                <button type="button" data-v="Giờ nào cũng được" aria-pressed="true">Giờ nào cũng được</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="bk-fs">
+            <legend class="bk-t"><span class="bk-n">3</span>Mẫu hình nền</legend>
+            <div class="bk-all">
+              <span class="bk-all-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+              <div><b>Tất cả mẫu</b><span>Trọn kho hình nền động</span></div>
+              <span class="bk-ok">✓ Đã chọn</span>
+            </div>
+            <p class="bk-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Trong gói đã kèm full tất cả hình. Thích mẫu nào cứ ghi số, shop cài sẵn mẫu đó lên trước.</span></p>
+            <div class="bk-fld" style="margin-bottom:0">
+              <label for="bkPicks">Muốn cài sẵn mẫu cụ thể? <small>Chỉ cần nhập số</small></label>
+              <input class="bk-inp" id="bkPicks" inputmode="numeric" placeholder="Ví dụ: 14, 23" maxlength="60" autocomplete="off" />
+              <p class="bk-hint" id="bkPicksHint">Số mẫu ghi trên từng hình trong <a href="#gallery">bộ sưu tập</a></p>
+              <div class="bk-picks" id="bkPicksView"></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="bk-fs">
+            <legend class="bk-t"><span class="bk-n">4</span>Ghi chú <small>(không bắt buộc)</small></legend>
+            <textarea class="bk-inp" id="bkNote" maxlength="300" placeholder="Ví dụ: thích tông tối, muốn đồng hồ to…"></textarea>
+          </fieldset>
+        </form>
+
+        <aside class="bk-sum">
+          <div class="pricing-badge">Đơn của bạn</div>
+          <div class="pricing-price">
+            <span class="price-original">300k</span>
+            <span class="price-value">175k</span>
+            <span class="price-discount">-42%</span>
+          </div>
+          <p class="bk-save">Tiết kiệm <b>125k</b> · trọn gói, không phát sinh thêm</p>
+          <dl class="bk-list">
+            <div><dt>Thời gian</dt><dd id="bkSWhen">Hôm nay</dd></div>
+            <div><dt>Mẫu</dt><dd id="bkSPick">Tất cả mẫu</dd></div>
+            <div><dt>Cài đặt</dt><dd>Online qua Ultraview</dd></div>
+          </dl>
+          <ul class="bk-inc">
+            <li>App hình nền động bản quyền. Cài lại Win hay đổi máy mới, đăng nhập lại là dùng bình thường</li>
+            <li>Trọn kho hình shop sưu tầm, khỏi đi đâu tải</li>
+            <li>Layout ngày giờ, nhạc chỉnh vừa màn hình của bạn</li>
+            <li>Cập nhật mẫu mới trọn đời</li>
+          </ul>
+          <button class="btn btn-primary bk-go" type="button" id="bkGo"><img src="assets/img/zalo.svg" alt="" width="22" height="22" />Chốt đơn qua Zalo</button>
+          <div class="bk-acts">
+            <button class="btn btn-ghost" type="button" id="bkImg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Copy ảnh đơn</button>
+            <button class="btn btn-ghost" type="button" id="bkLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copy link</button>
+          </div>
+          <p class="bk-fine">Bấm chốt đơn, nội dung đơn được copy sẵn. Bạn chỉ cần mở Zalo của shop và dán vào.</p>
+        </aside>
+      </div>
+
+      <div class="bk-done" id="bkDone" hidden role="dialog" aria-modal="true" aria-labelledby="bkDoneT">
+        <div class="bk-done-box">
+          <div class="bk-done-ic">✓</div>
+          <h3 id="bkDoneT">Đã copy đơn của bạn!</h3>
+          <p>Còn 1 bước nữa thôi:</p>
+          <ol>
+            <li>Mở Zalo của shop (nút bên dưới)</li>
+            <li>Giữ vào ô chat, chọn <b>Dán</b> rồi gửi</li>
+          </ol>
+          <pre id="bkDoneText"></pre>
+          <div class="bk-done-row">
+            <a class="btn btn-primary" href="https://zalo.me/0339903166" target="_blank" rel="noopener">Mở Zalo shop</a>
+            <button class="btn btn-ghost" type="button" id="bkDoneCopy">Copy lại nội dung</button>
+          </div>
+          <button class="bk-x" type="button" id="bkDoneClose">Đóng</button>
+        </div>
+      </div>
+      <div class="bk-toast" id="bkToast" role="status"></div>
+    </section>
 
     <!-- ==================== CONTACT ==================== -->
     <section id="contact" class="contact-section">
@@ -425,6 +547,7 @@
 
   <!-- lottie-web (nhẹ) để phát animation mèo; trang vẫn chạy bình thường nếu tải lỗi -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js" defer></script>
-  <script type="module" src="assets/js/app.js?v=20261017d"></script>
+  <script type="module" src="assets/js/app.js?v=20261017e"></script>
+  <script defer src="assets/js/booking.js?v=20261017e"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20261017a';
+import { I18N, CATEGORIES, CONTACT, FAQ } from './i18n.js?v=20261017e';
 
 const state = {
   lang: localStorage.getItem('dc_lang') || 'vi',
@@ -73,7 +73,7 @@ function applyTheme() {
 function wireContacts() {
   $('#contactZalo').href = CONTACT.zaloUrl;
   $('#contactTiktok').href = CONTACT.tiktokUrl;
-  $('#pricingZalo').href = CONTACT.zaloUrl;
+  const pz = $('#pricingZalo'); if (pz && !pz.dataset.keep) pz.href = CONTACT.zaloUrl;
   $('#footerZalo').href = CONTACT.zaloUrl;
   $('#footerTiktok').href = CONTACT.tiktokUrl;
   const fab = $('#floatingZalo'); if (fab) fab.href = CONTACT.zaloUrl;
