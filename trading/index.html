@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desktopchill Trading</title>
+<meta name="description" content="Phân tích tự động cổ phiếu sàn HOSE: sức khỏe thị trường, dòng tiền, mã tiềm năng theo ngắn, trung và dài hạn.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#070b12">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/trading.css?v=1">
+<script>
+  // áp dụng giao diện sáng/tối trước khi vẽ để không nháy
+  try { var t = localStorage.getItem('dct_theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <video id="sky" muted loop playsinline preload="none" poster="assets/night.jpg"></video>
+  </div>
+  <div id="app"></div>
+  <script src="vendor/lightweight-charts.standalone.production.js?v=4.2.3"></script>
+  <script type="module" src="js/app.js?v=1"></script>
+</body>
+</html>
