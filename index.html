@@ -37,7 +37,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261017e" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261017f" />
   <script>try{document.documentElement.dataset.theme=localStorage.getItem('dc_theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
   <script type="application/ld+json">
   {
@@ -283,7 +283,7 @@
             <legend class="bk-t"><span class="bk-n">1</span>Thông tin của bạn</legend>
             <div class="bk-two">
               <div class="bk-fld">
-                <label for="bkName">Tên của bạn</label>
+                <label for="bkName">Tên của bạn <small>(không bắt buộc)</small></label>
                 <input class="bk-inp" id="bkName" autocomplete="name" placeholder="Ví dụ: Minh Anh" maxlength="60" />
               </div>
               <div class="bk-fld">
@@ -304,9 +304,10 @@
           <fieldset class="bk-fs">
             <legend class="bk-t"><span class="bk-n">2</span>Thời gian cài</legend>
             <div class="bk-opt" id="bkWhen" role="group" aria-label="Thời gian cài">
-              <button type="button" data-v="today" aria-pressed="true"><b>Hôm nay</b><span>Cài ngay trong ngày</span></button>
+              <button type="button" data-v="today" aria-pressed="false"><b>Hôm nay</b><span>Cài ngay trong ngày</span></button>
               <button type="button" data-v="other" aria-pressed="false"><b>Hôm khác</b><span>Chọn ngày bạn rảnh</span></button>
             </div>
+            <p class="bk-hint" style="margin-top:8px">Chưa chọn cũng được, shop sẽ nhắn trao đổi giờ với bạn.</p>
             <div class="bk-sub" id="bkDateBox" hidden>
               <div class="bk-chips" id="bkQuick"></div>
               <input class="bk-inp" type="date" id="bkDate" aria-label="Chọn ngày cài" />
@@ -317,7 +318,7 @@
                 <button type="button" data-v="Sáng" aria-pressed="false">Sáng</button>
                 <button type="button" data-v="Chiều" aria-pressed="false">Chiều</button>
                 <button type="button" data-v="Tối" aria-pressed="false">Tối</button>
-                <button type="button" data-v="Giờ nào cũng được" aria-pressed="true">Giờ nào cũng được</button>
+                <button type="button" data-v="Giờ nào cũng được" aria-pressed="false">Giờ nào cũng được</button>
               </div>
             </div>
           </fieldset>
@@ -353,7 +354,7 @@
           </div>
           <p class="bk-save">Tiết kiệm <b>125k</b> · trọn gói, không phát sinh thêm</p>
           <dl class="bk-list">
-            <div><dt>Thời gian</dt><dd id="bkSWhen">Hôm nay</dd></div>
+            <div><dt>Thời gian</dt><dd id="bkSWhen">Trao đổi</dd></div>
             <div><dt>Mẫu</dt><dd id="bkSPick">Tất cả mẫu</dd></div>
             <div><dt>Cài đặt</dt><dd>Online qua Ultraview</dd></div>
           </dl>
@@ -368,7 +369,7 @@
             <button class="btn btn-ghost" type="button" id="bkImg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Copy ảnh đơn</button>
             <button class="btn btn-ghost" type="button" id="bkLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copy link</button>
           </div>
-          <p class="bk-fine">Bấm chốt đơn, nội dung đơn được copy sẵn. Bạn chỉ cần mở Zalo của shop và dán vào.</p>
+          <p class="bk-fine">Không cần điền gì cũng chốt được. Bấm là có sẵn ảnh đơn để gửi qua Zalo cho shop.</p>
         </aside>
       </div>
 
@@ -381,6 +382,7 @@
             <li>Mở Zalo của shop (nút bên dưới)</li>
             <li>Giữ vào ô chat, chọn <b>Dán</b> rồi gửi</li>
           </ol>
+          <img id="bkDoneImg" class="bk-done-img" alt="Ảnh đơn đặt lịch" hidden />
           <pre id="bkDoneText"></pre>
           <div class="bk-done-row">
             <a class="btn btn-primary" href="https://zalo.me/0339903166" target="_blank" rel="noopener">Mở Zalo shop</a>
@@ -492,7 +494,7 @@
   <!-- ==================== MOBILE STICKY CTA BAR ==================== -->
   <nav class="mobile-cta" aria-label="Liên hệ nhanh">
     <a class="mcta-btn mcta-zalo" id="mctaZalo" target="_blank" rel="noopener">
-      <img src="assets/img/zalo.svg" alt="" /><span data-i18n="cta.zalo">Nhắn Zalo</span>
+      <img src="assets/img/zalo.svg" alt="" /><span>Đặt ngay</span>
     </a>
     <a class="mcta-btn mcta-tiktok" id="mctaTiktok" target="_blank" rel="noopener">
       <img src="assets/img/tiktok.svg" alt="" /><span data-i18n="cta.tiktok">Xem TikTok</span>
@@ -548,6 +550,6 @@
   <!-- lottie-web (nhẹ) để phát animation mèo; trang vẫn chạy bình thường nếu tải lỗi -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js" defer></script>
   <script type="module" src="assets/js/app.js?v=20261017e"></script>
-  <script defer src="assets/js/booking.js?v=20261017e"></script>
+  <script defer src="assets/js/booking.js?v=20261017f"></script>
 </body>
 </html>

@@ -742,3 +742,5 @@ textarea.bk-inp { min-height: 74px; resize: vertical; }
 @media (max-width: 420px) { .bk-two { grid-template-columns: 1fr; } .bk-pick { width: calc(33.3% - 6px); } }
 .booking-card { overflow: visible; }
 .booking-card::before { border-radius: 26px 26px 0 0; }
+.bk-done-img { display: block; width: 100%; max-width: 260px; margin: 0 auto 14px; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+.bk-done-img[hidden] { display: none; }
