@@ -636,3 +636,7 @@ img, video { display: block; max-width: 100%; }
 .no-autoplay .card-play { display: grid; place-items: center; position: absolute; left: 50%; top: 50%; width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); pointer-events: none; z-index: 2; }
 .no-autoplay .card-play svg { margin-left: 3px; }
 .no-autoplay .card.playing .card-play { display: none; }
+/* điện thoại: ảnh động thay video */
+.screen-quad > #heroImg { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(.82) contrast(1.05) saturate(.9); }
+img.hero-video { object-fit: cover; }
+.card-play { display: none !important; }

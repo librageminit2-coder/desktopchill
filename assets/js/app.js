@@ -25,6 +25,16 @@ const NO_AUTOPLAY = IN_APP
   || window.matchMedia('(hover: none), (pointer: coarse)').matches
   || !!(navigator.connection && navigator.connection.saveData);
 document.documentElement.classList.toggle('no-autoplay', NO_AUTOPLAY);
+/* Điện thoại: thay video bằng ảnh động WebP (luôn chạy ngay trong khung, không bao giờ tự bung toàn màn hình).
+   Video thật chỉ phát khi người dùng mở cửa sổ xem và tự bấm play. */
+const animOf = (w) => (w && w.preview ? w.preview.replace('/preview/', '/anim/').replace(/\.mp4(\?.*)?$/, '.webp') : '');
+if (NO_AUTOPLAY) {
+  // bỏ thẻ <video> ở hero trên điện thoại (tránh nút play mặc định và tự bung toàn màn hình)
+  const hv = document.getElementById('heroVideo');
+  if (hv) { const im = document.createElement('img'); im.id = 'heroImg'; im.alt = ''; hv.replaceWith(im); }
+  const bg = document.getElementById('heroBg');
+  if (bg) { const im = document.createElement('img'); im.id = 'heroBg'; im.className = bg.className; im.alt = ''; im.src = bg.getAttribute('poster'); bg.replaceWith(im); }
+}
 
 /* ---------------- i18n ---------------- */
 function applyI18n() {
@@ -70,10 +80,10 @@ function renderPreviewGallery() {
       <img src="${w.poster}" alt="Hình nền động ${w.title[state.lang] || w.title.vi} cho máy tính" loading="lazy" />
       <span class="pg-name">${w.title[state.lang] || w.title.vi}</span>
     </button>`).join('');
-  $$('#pgTrack .pg-thumb').forEach((th) => th.addEventListener('click', () => { selectHero(th.dataset.id); initHeroAuto(); }));
+  $$('#pgTrack .pg-thumb').forEach((th) => th.addEventListener('click', () => { selectHero(th.dataset.id, false, true); initHeroAuto(); }));
   if (items[0]) selectHero(items[0].id, true);
 }
-function selectHero(id, instant = false) {
+function selectHero(id, instant = false, user = false) {
   const w = state.wallpapers.find((x) => x.id === id);
   if (!w) return;
   state.current = id;
@@ -85,7 +95,13 @@ function selectHero(id, instant = false) {
   $$('#pgTrack .pg-thumb').forEach((th) => th.classList.toggle('active', th.dataset.id === id));
   // label
   $('#liveName').textContent = w.title[state.lang] || w.title.vi;
-  // điện thoại: màn hình hero vẫn tự chạy (chỉ 1 video, tắt tiếng, phát ngay trong khung)
+  // điện thoại: chỉ hiện ảnh tĩnh; khi người dùng chủ động chọn (bấm thumb / "Lên màn hình" / chạm màn hình) thì chạy ảnh động
+  if (NO_AUTOPLAY) {
+    const img = $('#heroImg');
+    if (img) img.src = user ? animOf(w) : w.poster;
+    screen.classList.add('ready');
+    return;
+  }
   // swap video with fade
   screen.classList.remove('ready');
   const start = () => { screen.classList.add('ready'); video.play().catch(() => {}); };
@@ -99,6 +115,7 @@ function selectHero(id, instant = false) {
 /* Tự đổi hình nền trên màn hình hero — random trong kho bộ sưu tập, mỗi 10 giây */
 function initHeroAuto() {
   clearInterval(window.__heroAuto);
+  if (NO_AUTOPLAY) return; // điện thoại: không tự đổi hình
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   if (state.wallpapers.length < 2) return;
   window.__heroAuto = setInterval(() => {
@@ -153,9 +170,8 @@ function renderGallery() {
     return `
       <article class="card" data-id="${w.id}" data-preview="${w.preview}" style="animation-delay:${Math.min(i, 12) * 0.03}s; --card-color:${w.color || '#6ea8ff'}">
         <div class="card-media">
-          <img src="${w.poster}" alt="${title} — hình nền động ${cat} cho máy tính" loading="lazy" />
-          <video class="card-vid" muted loop playsinline preload="none" data-src="${w.preview}"></video>
-          <span class="card-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></span>
+          <img src="${w.poster}" data-anim="${animOf(w)}" alt="${title} — hình nền động ${cat} cho máy tính" loading="lazy" />
+          ${NO_AUTOPLAY ? '' : `<video class="card-vid" muted loop playsinline preload="none" data-src="${w.preview}"></video>`}
           ${w.hot ? `<span class="card-hot">${t('card.hot')}</span>` : ''}
           <div class="card-tools">
             <button class="card-fav ${isFav(w.id) ? 'on' : ''}" data-fav type="button" aria-label="Yêu thích">♥</button>
@@ -214,17 +230,17 @@ function renderPagination(totalPages) {
 }
 function wireCards() {
   const cards = $$('#galleryGrid .card');
-  const toScreen = (id) => { vibrate(); selectHero(id); initHeroAuto(); $('#home').scrollIntoView({ behavior: 'smooth' }); };
+  const toScreen = (id) => { vibrate(); selectHero(id, false, true); initHeroAuto(); $('#home').scrollIntoView({ behavior: 'smooth' }); };
   // điện thoại: chạm vào thẻ (bấm hoặc chạm để lướt) → video của thẻ đó chạy ngay trong khung, không phóng to.
   // Mỗi lúc chỉ 1 thẻ chạy để đỡ tốn dữ liệu.
   const playInline = (card) => {
-    const v = $('.card-vid', card); if (!v) return;
+    const img = $('.card-media > img', card); if (!img) return;
     const prev = window._tapCard;
-    if (prev && prev !== card) { const pv = $('.card-vid', prev); if (pv) pv.pause(); prev.classList.remove('playing'); }
+    if (prev && prev !== card) { const pi = $('.card-media > img', prev); if (pi && pi.dataset.poster) pi.src = pi.dataset.poster; prev.classList.remove('playing'); }
     window._tapCard = card;
-    if (!v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
-    v.muted = true; v.playsInline = true;
-    if (v.paused) v.play().then(() => card.classList.add('playing')).catch(() => {});
+    if (!img.dataset.poster) img.dataset.poster = img.getAttribute('src');
+    const anim = img.dataset.anim;
+    if (anim && img.getAttribute('src') !== anim) { img.src = anim; card.classList.add('playing'); }
   };
   const onCardTap = (id, card) => (NO_AUTOPLAY ? playInline(card) : toScreen(id));
   // auto-play videos as they scroll into view (pause when off-screen for performance)
@@ -242,7 +258,7 @@ function wireCards() {
   // điện thoại: thẻ đang chạy mà lướt khuất khỏi màn hình thì dừng
   if (window._cardPauseIO) window._cardPauseIO.disconnect();
   window._cardPauseIO = new IntersectionObserver((entries) => entries.forEach((e) => {
-    if (!e.isIntersecting) { const v = $('.card-vid', e.target); if (v && !v.paused) { v.pause(); e.target.classList.remove('playing'); } }
+    if (!e.isIntersecting && e.target.classList.contains('playing')) { const pi = $('.card-media > img', e.target); if (pi && pi.dataset.poster) pi.src = pi.dataset.poster; e.target.classList.remove('playing'); }
   }), { threshold: 0 });
   const tiltOK = window.matchMedia('(hover: hover) and (pointer: fine)').matches
     && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -304,7 +320,9 @@ function renderFaq() {
 function openModal(id) {
   const w = state.wallpapers.find((x) => x.id === id); if (!w) return;
   const video = $('#modalVideo');
-  video.src = w.preview; video.poster = w.poster; video.play().catch(() => {});
+  video.src = w.preview; video.poster = w.poster;
+  if (NO_AUTOPLAY) { video.controls = true; video.preload = 'metadata'; } // điện thoại: chỉ phát khi người dùng tự bấm play
+  else video.play().catch(() => {});
   $('#modalTitle').textContent = w.title[state.lang] || w.title.vi;
   $('#modalCat').textContent = t('cat.' + w.category);
   $('#modalZalo').href = CONTACT.zaloUrl;
@@ -679,7 +697,7 @@ function wireEvents() {
   $('#settingsBtn').addEventListener('click', openSettings);
   const sq = $('#screenQuad'); if (sq) sq.addEventListener('click', () => {
     if (!state.current) return;
-    if (NO_AUTOPLAY) { const hv = $('#heroVideo'); if (hv && hv.paused) hv.play().catch(() => {}); return; } // điện thoại: chạm màn hình hero chỉ cho chạy, không phóng to
+    if (NO_AUTOPLAY) { selectHero(state.current, false, true); return; } // điện thoại: chạm màn hình hero chỉ chạy ảnh động, không phóng to
     openModal(state.current);
   });
   $('#searchInput').addEventListener('input', (e) => { state.search = e.target.value; state.page = 1; renderGallery(); });
