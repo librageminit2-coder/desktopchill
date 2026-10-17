@@ -1,17 +1,17 @@
-import { I, LOGO } from './icons.js?v=6';
-import { sound, sfx, unlockAudio } from './sound.js?v=6';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, micState } from './speech.js?v=6';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN } from './store.js?v=6';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push } from './account.js?v=6';
-import { runLesson, LESSONS } from './lesson.js?v=6';
-import { mascot } from './mascot.js?v=6';
+import { I, LOGO } from './icons.js?v=8';
+import { sound, sfx, unlockAudio } from './sound.js?v=8';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, micState } from './speech.js?v=8';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN } from './store.js?v=8';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push } from './account.js?v=8';
+import { runLesson, LESSONS } from './lesson.js?v=8';
+import { mascot } from './mascot.js?v=8';
 
 const app = document.getElementById('app');
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const strip = (s) => (s || '').replace(/\s+/g, '');
 const COURSE = {}, WORDS = {};
 let justBuilt = null;
-const DATA_V = 4;
+const DATA_V = 5;
 
 /* ---------- dữ liệu khoá học ---------- */
 async function course(lang) {
@@ -168,30 +168,8 @@ function curveSegs(Q) {
   }
   return out;
 }
-const DECO = [
-  // chậu cây
-  '<path d="M18 40h24l-3 16H21z" fill="#E9906A"/><path d="M16 38h28v5H16z" fill="#F2A983"/><path d="M30 38c0-10-8-14-13-22 9 1 14 8 13 22zm0 0c0-12 6-18 14-24-1 11-6 18-14 24zm0 0V18" fill="#5EB985" stroke="#46A673" stroke-width="1.5" stroke-linejoin="round"/>',
-  // tách cà phê bốc khói
-  '<g class="steam" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" opacity=".45"><path d="M24 22c-3-4 3-6 0-10"/><path d="M32 22c-3-4 3-6 0-10"/></g><path d="M14 28h30v10a12 12 0 0 1-12 12h-6a12 12 0 0 1-12-12z" fill="#FFFFFF" stroke="#3A2E4D" stroke-width="2.4"/><path d="M44 31h3a5 5 0 0 1 0 10h-4" fill="none" stroke="#3A2E4D" stroke-width="2.4"/><path d="M18 34h22" stroke="#C98B5B" stroke-width="3" stroke-linecap="round"/><ellipse cx="29" cy="54" rx="18" ry="3" fill="#000" opacity=".08"/>',
-  // hoa
-  '<path d="M30 56V32" stroke="#46A673" stroke-width="3" stroke-linecap="round"/><path d="M30 46c-6-1-10-5-10-10 6 0 10 4 10 10z" fill="#5EB985"/><g fill="#FF9CB4"><circle cx="30" cy="16" r="7"/><circle cx="40" cy="23" r="7"/><circle cx="36" cy="34" r="7"/><circle cx="24" cy="34" r="7"/><circle cx="20" cy="23" r="7"/></g><circle cx="30" cy="25" r="5.5" fill="#FFC531"/>',
-  // nấm
-  '<path d="M24 36h12v14a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3z" fill="#FFF3E2" stroke="#3A2E4D" stroke-width="2"/><path d="M8 36c0-14 10-22 22-22s22 8 22 22z" fill="#EF5660" stroke="#3A2E4D" stroke-width="2.2"/><circle cx="21" cy="26" r="3.5" fill="#fff"/><circle cx="35" cy="22" r="4.5" fill="#fff"/><circle cx="42" cy="31" r="2.6" fill="#fff"/>',
-  // chồng sách
-  '<rect x="10" y="42" width="40" height="9" rx="2" fill="#4C8DF6"/><rect x="14" y="33" width="34" height="9" rx="2" fill="#FFC531"/><rect x="8" y="24" width="38" height="9" rx="2" fill="#9B6BEF"/><path d="M12 28h28M16 37h26M14 46h30" stroke="#fff" stroke-width="1.4" opacity=".6"/><path d="M40 24l6-14 3 1-5 13z" fill="#EF5660"/>',
-  // tai nghe
-  '<path d="M14 38v-6a16 16 0 0 1 32 0v6" fill="none" stroke="#3A2E4D" stroke-width="4" stroke-linecap="round"/><rect x="9" y="34" width="10" height="17" rx="5" fill="var(--acc)" stroke="#3A2E4D" stroke-width="2"/><rect x="41" y="34" width="10" height="17" rx="5" fill="var(--acc)" stroke="#3A2E4D" stroke-width="2"/><g class="note" fill="#3A2E4D"><circle cx="31" cy="20" r="3"/><path d="M33.5 20V9l6 2" fill="none" stroke="#3A2E4D" stroke-width="2"/></g>',
-  // xương rồng
-  '<path d="M20 44h20l-2 12H22z" fill="#C98B5B"/><path d="M26 44V18a4 4 0 0 1 8 0v26zM26 34h-4a3 3 0 0 1-3-3v-7a2.5 2.5 0 0 1 5 0v5h2M34 30h4V22a2.5 2.5 0 0 1 5 0v7a3 3 0 0 1-3 3h-6" fill="#5EB985" stroke="#46A673" stroke-width="1.5"/><circle cx="30" cy="14" r="3" fill="#FF9CB4"/>',
-  // đèn lồng / ngôi sao
-  '<path d="M30 8l5.6 11.4 12.6 1.8-9.1 8.9 2.1 12.5L30 36.7l-11.2 5.9 2.1-12.5-9.1-8.9 12.6-1.8z" fill="#FFC531" stroke="#E9A800" stroke-width="2" stroke-linejoin="round"/><circle cx="25" cy="24" r="1.6" fill="#3A2E4D"/><circle cx="35" cy="24" r="1.6" fill="#3A2E4D"/><path d="M27 29q3 3 6 0" fill="none" stroke="#3A2E4D" stroke-width="1.6" stroke-linecap="round"/>',
-];
-const CHEST = `<svg class="chest" viewBox="0 0 72 64" aria-hidden="true"><g class="rays"><path d="M36 30 L30 -6 H42Z M36 30 L72 14 L76 26Z M36 30 L0 14 L-4 26Z M36 30 L62 -2 L70 6Z M36 30 L10 -2 L2 6Z"/></g>
-  <rect x="7" y="30" width="58" height="28" rx="6" class="cb"/><path d="M7 40h58" class="cband"/><rect x="31" y="30" width="10" height="28" class="cgold"/>
-  <g class="lid"><path d="M7 32 Q7 12 36 12 Q65 12 65 32Z" class="clid"/><rect x="31" y="12" width="10" height="20" class="cgold"/></g>
-  <rect x="30" y="34" width="12" height="11" rx="3" class="lock"/><circle cx="36" cy="39" r="2" class="kh"/></svg>`;
 function pathHTML(c, W) {
-  const L = curLevel(c), lang = S.lang, cur = currentPos(c), small = W < 420;
+  const L = curLevel(c), lang = S.lang, cur = currentPos(c);
   return L.units.map((u, i) => {
     const d = S.done[u.id] || [], p = unitProgress(u.id), flip = i % 2 === 1;
     const g = unitGeom(W, flip), P = g.pts;
@@ -211,23 +189,14 @@ function pathHTML(c, W) {
         ${isCur ? '<span class="tip">Bắt đầu</span>' : ''}<span class="face">${I[ls.icon]}</span>${dn ? `<span class="ok">${I.star}</span>` : ''}</button>`;
     }).join('');
     const cp = P[LN];
-    const cpBtn = `<button class="cp ${p === LN ? 'on' : p >= LN - 1 ? 'near' : ''}" style="left:${cp.x}px;top:${cp.y}px" data-u="${u.id}" aria-label="Rương ôn tập chủ đề ${esc(u.title)}">${CHEST}</button>`;
-    let mas = '', masK = -9;
-    if (cur.u === u) {
-      const pt = P[cur.k]; masK = cur.k;
-      const mx = pt.o > 0.01 ? g.cx - g.A * 0.86 : pt.o < -0.01 ? g.cx + g.A * 0.86 : g.cx + g.A * (small ? 0.9 : 1.05);
-      mas = `<div class="oc-wrap ${mx > pt.x ? 'r' : 'l'}" style="left:${mx}px;top:${pt.y}px">${mascot({ size: small ? 60 : 78 })}</div>`;
-    }
-    const deco = [2, 6].filter((k) => Math.abs(k - masK) > 1).map((k, j) => {
-      const pt = P[k], x = g.cx - Math.sign(pt.o) * g.A * (small ? 0.92 : 1.02), n = (i * 2 + (k === 6 ? 1 : 0)) % DECO.length;
-      return `<span class="deco" style="left:${x}px;top:${pt.y}px;--dl:${-(i * 1.3 + j * 2.1).toFixed(1)}s"><svg viewBox="0 0 60 60" aria-hidden="true">${DECO[n]}</svg></span>`;
-    }).join('');
+    const cpBtn = `<button class="cp ${p === LN ? 'on' : ''}" style="left:${cp.x}px;top:${cp.y}px;--p:${(p / LN).toFixed(3)}" data-u="${u.id}" aria-label="Ôn tập tổng hợp chủ đề ${esc(u.title)}, ${p}/${LN} bài"><span class="cpi">${I.trophy}</span></button>`;
     return `<section class="unit" data-u="${u.id}" style="--uc:${ucol(lang, i)}">
       <header class="unit-head">
-        <div class="uh-t"><span class="uh-k">${esc(L.name)} · Chủ đề ${i + 1}</span><h3>${esc(u.title)}</h3><p>${esc(u.goal || u.sub || '')}</p></div>
+        <span class="uh-n">${String(i + 1).padStart(2, '0')}</span>
+        <div class="uh-t"><span class="uh-k">${esc(L.name)} · Chủ đề ${i + 1}</span><h3>${esc(u.title)}</h3><p>${esc(u.goal || u.sub || '')}</p><span class="uh-bar"><i style="width:${Math.round(p / LN * 100)}%"></i></span></div>
         <div class="uh-r"><span class="uh-p">${p}/${LN}</span><button class="guide" type="button" data-u="${u.id}">${I.read}<span>Sổ tay</span></button></div>
       </header>
-      <div class="span" style="height:${g.H}px"><svg class="road" width="${W}" height="${g.H}" viewBox="0 0 ${W} ${g.H}" aria-hidden="true"><path class="edge" d="${full}"/><path class="bed" d="${full}"/><path class="dots" d="${full}"/>${done}</svg>${deco}${nodes}${cpBtn}${mas}</div>
+      <div class="span" style="height:${g.H}px"><svg class="road" width="${W}" height="${g.H}" viewBox="0 0 ${W} ${g.H}" aria-hidden="true"><path class="edge" d="${full}"/><path class="bed" d="${full}"/><path class="dots" d="${full}"/>${done}</svg>${nodes}${cpBtn}</div>
     </section>`;
   }).join('') + levelEnd(c, L);
 }
@@ -235,9 +204,9 @@ function levelEnd(c, L) {
   const all = L.units.every((u) => unitProgress(u.id) === LN);
   const idx = c.levels.indexOf(L), nx = c.levels[idx + 1];
   return `<div class="lvl-end ${all ? 'on' : ''}">
-    <svg viewBox="0 0 220 84" aria-hidden="true"><path d="M0 76 Q50 50 110 64 T220 60 V84 H0Z" fill="var(--h2)"/><path d="M0 84 Q70 66 140 76 T220 74 V84Z" fill="var(--h3)"/><path d="M110 64 V14" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><path class="flag" d="M112 15 Q132 12 150 22 Q132 30 112 34Z" fill="var(--acc)"/><circle cx="110" cy="12" r="4" fill="var(--hl)"/></svg>
+    <span class="le-ic">${I.trophy}</span>
     <h3>${all ? `Bạn đã đi hết chặng ${esc(L.name)}!` : `Hết ${esc(L.name)} là tới ${nx ? esc(nx.name) : 'đích'}`}</h3>
-    <p class="muted">${all ? 'Mọi rương quà đã mở. Sẵn sàng sang chặng tiếp theo.' : 'Hoàn thành mọi chủ đề để cắm cờ ở cuối chặng này.'}</p>
+    <p class="muted">${all ? 'Đã hoàn thành mọi chủ đề. Sẵn sàng sang chặng tiếp theo.' : 'Hoàn thành mọi chủ đề để mở chặng tiếp theo.'}</p>
     ${nx ? `<button class="btn ${all ? 'acc' : 'ghost'} next-lv" type="button" data-lv="${nx.id}">${all ? 'Lên ' : 'Xem trước '}${esc(nx.name)}</button>` : ''}
   </div>`;
 }
@@ -339,7 +308,7 @@ function start(c, uid, k) {
   const { u } = findUnit(c, uid);
   const before = questDone();
   runLesson({ unit: u, k, lang: S.lang, onExit: (r) => {
-    if (r && r.done) { justBuilt = { unit: u.id, k }; if (unitProgress(u.id) === LN) toast('Hoàn thành chủ đề! Rương quà đã mở.'); }
+    if (r && r.done) { justBuilt = { unit: u.id, k }; if (unitProgress(u.id) === LN) toast('Hoàn thành chủ đề! Huy hiệu đã mở khoá.'); }
     questCheer(before);
     if (location.hash !== '#/' && location.hash !== '') location.hash = '#/'; else home();
   } });
@@ -547,17 +516,6 @@ function authSheet(mode) {
 }
 
 /* ---------- chào mừng ---------- */
-function heroArt() {
-  const P = [{ x: 30, y: 196 }, { x: 120, y: 176 }, { x: 210, y: 140 }, { x: 300, y: 128 }, { x: 390, y: 92 }, { x: 476, y: 58 }];
-  const d = curveSegs(P).join(' '), col = ['var(--acc)', '#4C8DF6', '#9B6BEF', '#FF8A3D', '#2EB36A'];
-  return `<svg class="hero-road" viewBox="0 0 520 230" aria-hidden="true">
-    <path d="M0 200 Q130 150 260 178 T520 150 V230 H0Z" fill="var(--h2)" opacity=".8"/><path d="M0 222 Q160 190 320 210 T520 200 V230 H0Z" fill="var(--h3)" opacity=".8"/>
-    <path d="${d}" fill="none" stroke="var(--road-edge)" stroke-width="30" stroke-linecap="round"/><path d="${d}" fill="none" stroke="var(--road)" stroke-width="26" stroke-linecap="round"/>
-    <path class="wt" d="${d}" fill="none" stroke="var(--acc)" stroke-width="10" stroke-linecap="round"/>
-    ${P.slice(1, 5).map((p, i) => `<g class="hn" style="--d:${0.5 + i * 0.25}s"><circle cx="${p.x}" cy="${p.y + 5}" r="19" fill="#000" opacity=".12"/><circle cx="${p.x}" cy="${p.y}" r="19" fill="${col[i]}"/><circle cx="${p.x - 6}" cy="${p.y - 7}" r="6" fill="#fff" opacity=".45"/><path d="M${p.x - 6} ${p.y} l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></g>`).join('')}
-    <g class="hn" style="--d:1.6s">${CHEST.replace('<svg class="chest"', `<svg class="chest open" x="${P[5].x - 28}" y="${P[5].y - 44}" width="56" height="50"`)}</g>
-  </svg>`;
-}
 async function welcome() {
   const [en, zh] = await Promise.all([course('en'), course('zh')]);
   let lang = S.lang || 'en';
@@ -566,11 +524,6 @@ async function welcome() {
     const c = lang === 'en' ? en : zh;
     document.documentElement.dataset.lang = lang;
     app.innerHTML = `<div class="welcome"><div class="w-hero">
-      <div class="w-art">
-        <div class="w-oc">${mascot({ size: 110, wave: true })}<span class="w-bub">Xin chào! Mình là Mochi. Mỗi ngày mình cùng đi thêm một đoạn đường nhé.</span></div>
-        ${heroArt()}
-        
-      </div>
       <h1>Học tiếng Anh, tiếng Trung để nói được ở chỗ làm.</h1>
       <p class="lead">Lộ trình theo level, mỗi bài 5 phút: từ vựng, hội thoại với sếp và khách hàng, đọc hiểu, ngữ pháp, rồi đóng vai để luyện nói thành phản xạ.</p>
       <ul class="w-feat"><li>${I.roleplay}<span>Đóng vai hội thoại, máy chấm phát âm</span></li><li>${I.cards}<span>Thẻ ôn quay lại đúng lúc sắp quên</span></li><li>${I.flame}<span>Chuỗi ngày, nhiệm vụ, XP mỗi ngày</span></li></ul>
@@ -581,7 +534,6 @@ async function welcome() {
       <button class="btn acc wide go" type="button">Bắt đầu học</button>
       <button class="btn ghost wide have" type="button">Tôi đã có tài khoản</button>
     </div></div>`;
-    app.querySelectorAll('.wt').forEach((p, i) => { const Ln = p.getTotalLength(); p.style.strokeDasharray = p.getAttribute('stroke-dasharray') ? '' : Ln; if (!p.getAttribute('stroke-dasharray')) { p.style.strokeDashoffset = Ln; p.animate([{ strokeDashoffset: Ln }, { strokeDashoffset: 0 }], { duration: 1300, delay: i * 180, easing: 'cubic-bezier(.6,.05,.3,1)', fill: 'forwards' }); } });
     app.querySelectorAll('.pick button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); lang = b.dataset.l; draw(); }));
     app.querySelectorAll('.lvp').forEach((b) => b.addEventListener('click', () => { sfx('tap'); lv[lang] = b.dataset.lv; draw(); }));
     app.querySelector('.go').addEventListener('click', () => {
@@ -601,7 +553,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone();
-  import('./lesson.js?v=6').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); render(); } }));
+  import('./lesson.js?v=8').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); render(); } }));
 }
 
 /* ---------- router ---------- */

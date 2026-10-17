@@ -1,97 +1,110 @@
-// Nền động: ban ngày cánh hoa + bong bóng sáng bay lơ lửng, ban đêm sao lấp lánh + đom đóm + sao băng.
-// Vẽ bằng một canvas, tự dừng khi tab ẩn, tôn trọng "giảm chuyển động".
-const cv = document.querySelector('.scene canvas.fx');
+// Nền động: biển mây nhìn từ trên cao, vẽ bằng WebGL (shader), lặp vô tận.
+// Ban ngày: bình minh ấm. Ban đêm: biển mây dưới ánh trăng, trời sao.
+// Vẽ ở độ phân giải thấp rồi phóng to (mây vốn mềm nên không mất nét), giới hạn 30 khung/giây,
+// dừng khi tab ẩn, chỉ vẽ một khung khi bật "giảm chuyển động".
+const cv = document.querySelector('.scene canvas.sky');
 const scene = document.querySelector('.scene');
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let W = 0, H = 0, dpr = 1, ctx = null, parts = [], stars = [], shoot = null, nextShoot = 0, raf = 0, dark = false;
-const rnd = (a, b) => a + Math.random() * (b - a);
-const PETAL = ['#FFC2D1', '#FFD6E0', '#FFE7A8', '#FFFFFF', '#CDE8FF'];
-const BOKEH = ['255,214,102', '255,170,190', '160,210,255', '190,240,215'];
+const VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const FS = `precision highp float;
+uniform vec2 R;uniform float T;uniform float N;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+ return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);for(int i=0;i<6;i++){v+=a*n(p);p=m*p;a*=.5;}return v;}
+float fbmB(vec2 p){float v=0.,a=.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);for(int i=0;i<5;i++){v+=a*(1.-abs(2.*n(p)-1.));p=m*p;a*=.5;}return v;}
+float fbm3(vec2 p){float v=0.,a=.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);for(int i=0;i<4;i++){v+=a*n(p);p=m*p;a*=.5;}return v;}
+void main(){
+ vec2 uv=gl_FragCoord.xy/R; float asp=R.x/R.y; float x=(uv.x-.5)*asp;
+ float H=.40; // đường chân trời
+ // màu trời: ngày (bình minh) / đêm
+ vec3 dTop=vec3(.16,.36,.66), dMid=vec3(.50,.68,.88), dHor=vec3(1.,.83,.66);
+ vec3 nTop=vec3(.012,.018,.06), nMid=vec3(.04,.06,.16), nHor=vec3(.16,.16,.30);
+ vec3 top=mix(dTop,nTop,N), mid=mix(dMid,nMid,N), hor=mix(dHor,nHor,N);
+ vec2 sp=vec2(.26*asp,H+.045); // mặt trời / trăng
+ float sy=max(uv.y-H,0.);
+ vec3 sky=mix(hor,mid,smoothstep(0.,.22,sy)); sky=mix(sky,top,smoothstep(.18,.62,sy));
+ float sd=length(vec2(x,uv.y)-sp);
+ vec3 sunC=mix(vec3(1.,.78,.5),vec3(.75,.8,1.),N);
+ sky+=sunC*(mix(.42,.22,N)*exp(-sd*mix(7.,9.,N))+mix(.22,.12,N)*exp(-sd*2.));
+ sky+=mix(vec3(1.,.97,.9),vec3(.95,.96,1.),N)*smoothstep(mix(.032,.022,N),mix(.026,.016,N),sd);
+ // sao
+ if(N>.01){vec2 g=gl_FragCoord.xy/2.2;vec2 c=floor(g);float s=h(c);
+  float tw=.6+.4*sin(T*1.7+s*40.);float st=step(.9965,s)*tw*smoothstep(.03,.25,sy);
+  sky+=N*st*vec3(1.,.97,.9)*(1.-smoothstep(.0,.9,length(fract(g)-.5)*2.));}
+ // mây ti mỏng trên cao
+ vec2 cq=vec2(x*.9,1.)/(sy+.18); cq.x+=T*.012;
+ float ci=smoothstep(.55,.95,fbm3(vec2(cq.x*.5,cq.y*2.5)+fbm3(cq*.7)*.5));
+ sky=mix(sky,mix(vec3(1.,.95,.92),vec3(.35,.38,.55),N),ci*.35*smoothstep(.0,.15,sy)*(1.-smoothstep(.35,.6,sy)));
+ vec3 col=sky;
+ // biển mây phía dưới: mặt phẳng phối cảnh, trôi về phía người xem
+ if(uv.y<H+.02){
+  float dy=max(H-uv.y,.0015); float z=.32/dy;
+  vec2 q=vec2(x*z,z*1.25)*1.25; q.y+=T*.09; q.x+=T*.01;
+  vec2 w=vec2(fbm3(q*.3+T*.008),fbm3(q*.3+3.1));
+  vec2 o=vec2((sp.x-x)*.03,.07);
+  float d=.55*fbm(q*.45+w*1.3)+.45*fbmB(q*1.05+w*.6);
+  float d2=.55*fbm((q+o)*.45+w*1.3)+.45*fbmB((q+o)*1.05+w*.6);
+  float far=smoothstep(.0,.07,dy); d=mix(.5,d,far); d2=mix(.5,d2,far);
+  float dens=smoothstep(.36,.74,d);
+  float sh=clamp(.55+(d-d2)*9.,0.,1.);
+  vec3 lit=mix(vec3(1.,.94,.86),vec3(.74,.80,.98),N);
+  vec3 dk=mix(vec3(.47,.53,.70),vec3(.05,.07,.16),N);
+  vec3 cc=mix(dk,lit,clamp(sh*.8+dens*.35,0.,1.));
+  cc*=.78+.22*dens;
+  cc+=sunC*mix(.30,.14,N)*exp(-abs(x-sp.x)*2.4)*smoothstep(.22,0.,dy)*sh;
+  vec3 sea=cc;
+  float haze=exp(-dy*mix(14.,10.,N));
+  sea=mix(sea,hor*mix(1.,1.15,N),haze*.85);
+  col=mix(sea,sky,smoothstep(H-.004,H+.012,uv.y));
+ }
+ // vignette nhẹ + nhiễu hạt chống loang màu
+ float vg=1.-.22*length((uv-.5)*vec2(1.,.8));
+ col*=vg; col+=(h(gl_FragCoord.xy+fract(T))-.5)/255.*3.;
+ gl_FragColor=vec4(col,1.);
+}`;
 
-function isDark() { return document.documentElement.dataset.theme === 'dark'; }
+let gl, prog, uR, uT, uN, nightNow = 0, nightTarget = 0, last = 0, raf = 0, scale = 0.5, t0 = performance.now();
+const isDark = () => document.documentElement.dataset.theme === 'dark';
+
+function init() {
+  gl = cv.getContext('webgl', { antialias: false, alpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power' });
+  if (!gl) return false;
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
+  gl.useProgram(prog);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  uR = gl.getUniformLocation(prog, 'R'); uT = gl.getUniformLocation(prog, 'T'); uN = gl.getUniformLocation(prog, 'N');
+  return true;
+}
 function size() {
-  dpr = Math.min(1.5, window.devicePixelRatio || 1);
-  W = innerWidth; H = innerHeight;
-  cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
-  ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  scale = innerWidth < 700 ? 0.42 : innerWidth > 2200 ? 0.38 : 0.5;
+  cv.width = Math.max(2, Math.round(innerWidth * scale)); cv.height = Math.max(2, Math.round(innerHeight * scale));
+  gl.viewport(0, 0, cv.width, cv.height);
 }
-function seed() {
-  dark = isDark();
-  const area = W * H, small = W < 700;
-  parts = []; stars = [];
-  if (dark) {
-    const ns = Math.round(Math.min(170, area / 9000));
-    for (let i = 0; i < ns; i++) stars.push({ x: rnd(0, W), y: rnd(0, H * 0.72) ** 1.05, r: Math.random() < 0.12 ? rnd(1.2, 1.9) : rnd(0.4, 1.1), p: rnd(0, 6.3), s: rnd(0.4, 1.6) });
-    const nf = small ? 10 : 22;
-    for (let i = 0; i < nf; i++) parts.push({ k: 'fly', x: rnd(0, W), y: rnd(H * 0.35, H), a: rnd(0, 6.3), sp: rnd(0.15, 0.45), p: rnd(0, 6.3), r: rnd(1.6, 2.8) });
-    nextShoot = performance.now() + rnd(3000, 7000);
-  } else {
-    const np = small ? 9 : 18, nb = small ? 7 : 14;
-    for (let i = 0; i < np; i++) parts.push(petal(true));
-    for (let i = 0; i < nb; i++) parts.push({ k: 'bokeh', x: rnd(0, W), y: rnd(0, H), r: rnd(3, 9), c: BOKEH[i % BOKEH.length], al: rnd(0.25, 0.5), vy: rnd(-0.12, -0.32), p: rnd(0, 6.3) });
-  }
+function frame(now) {
+  raf = requestAnimationFrame(frame);
+  if (now - last < 33) return; last = now;
+  nightNow += (nightTarget - nightNow) * 0.06;
+  gl.uniform2f(uR, cv.width, cv.height); gl.uniform1f(uT, (now - t0) / 1000); gl.uniform1f(uN, nightNow);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
-function petal(anywhere) {
-  return { k: 'petal', x: rnd(-40, W), y: anywhere ? rnd(-20, H) : rnd(-60, -10), w: rnd(5, 9), vx: rnd(0.15, 0.5), vy: rnd(0.35, 0.8), rot: rnd(0, 6.3), vr: rnd(-0.02, 0.02), sw: rnd(0, 6.3), c: PETAL[Math.floor(Math.random() * PETAL.length)] };
-}
-function draw(t) {
-  ctx.clearRect(0, 0, W, H);
-  if (dark) {
-    for (const s of stars) {
-      const a = 0.45 + 0.55 * Math.sin(t * 0.001 * s.s + s.p) ** 2;
-      ctx.globalAlpha = a; ctx.fillStyle = '#FFF6DE';
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill();
-      if (s.r > 1.2) { ctx.globalAlpha = a * 0.35; ctx.fillRect(s.x - s.r * 3, s.y - 0.4, s.r * 6, 0.8); ctx.fillRect(s.x - 0.4, s.y - s.r * 3, 0.8, s.r * 6); }
-    }
-    for (const f of parts) {
-      f.a += rnd(-0.05, 0.05); f.x += Math.cos(f.a) * f.sp; f.y += Math.sin(f.a) * f.sp * 0.7;
-      if (f.x < -10) f.x = W + 10; if (f.x > W + 10) f.x = -10; if (f.y < H * 0.3) f.a = 1.4; if (f.y > H + 10) f.a = -1.6;
-      const g = 0.25 + 0.75 * Math.max(0, Math.sin(t * 0.0016 + f.p)) ** 2;
-      const grd = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 6);
-      grd.addColorStop(0, `rgba(255,236,140,${0.7 * g})`); grd.addColorStop(1, 'rgba(255,236,140,0)');
-      ctx.globalAlpha = 1; ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 6, 0, 7); ctx.fill();
-      ctx.fillStyle = `rgba(255,250,210,${0.5 + 0.5 * g})`; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 0.7, 0, 7); ctx.fill();
-    }
-    if (!shoot && t > nextShoot) shoot = { x: rnd(W * 0.2, W * 0.95), y: rnd(10, H * 0.3), vx: -rnd(7, 10), vy: rnd(2.5, 4), life: 1 };
-    if (shoot) {
-      const s = shoot, tx = s.x - s.vx * 9, ty = s.y - s.vy * 9;
-      const grd = ctx.createLinearGradient(s.x, s.y, tx, ty);
-      grd.addColorStop(0, `rgba(255,255,240,${s.life})`); grd.addColorStop(1, 'rgba(255,255,240,0)');
-      ctx.globalAlpha = 1; ctx.strokeStyle = grd; ctx.lineWidth = 2; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(tx, ty); ctx.stroke();
-      s.x += s.vx; s.y += s.vy; s.life -= 0.018;
-      if (s.life <= 0 || s.x < -50) { shoot = null; nextShoot = t + rnd(7000, 15000); }
-    }
-  } else {
-    for (const p of parts) {
-      if (p.k === 'bokeh') {
-        p.y += p.vy; p.x += Math.sin(t * 0.0006 + p.p) * 0.15;
-        if (p.y < -20) { p.y = H + 20; p.x = rnd(0, W); }
-        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.2);
-        grd.addColorStop(0, `rgba(${p.c},${p.al})`); grd.addColorStop(0.55, `rgba(${p.c},${p.al * 0.5})`); grd.addColorStop(1, `rgba(${p.c},0)`);
-        ctx.globalAlpha = 1; ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 2.2, 0, 7); ctx.fill();
-      } else {
-        p.sw += 0.02; p.x += p.vx + Math.sin(p.sw) * 0.5; p.y += p.vy; p.rot += p.vr + Math.sin(p.sw) * 0.01;
-        if (p.y > H + 20 || p.x > W + 40) Object.assign(p, petal(false));
-        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.scale(1, 0.55 + 0.45 * Math.abs(Math.sin(p.sw * 1.3)));
-        ctx.globalAlpha = 0.85; ctx.fillStyle = p.c;
-        ctx.beginPath(); ctx.moveTo(0, -p.w); ctx.bezierCurveTo(p.w * 0.9, -p.w * 0.6, p.w * 0.7, p.w * 0.7, 0, p.w); ctx.bezierCurveTo(-p.w * 0.7, p.w * 0.7, -p.w * 0.9, -p.w * 0.6, 0, -p.w); ctx.fill();
-        ctx.restore();
-      }
-    }
-  }
-  ctx.globalAlpha = 1;
-}
-function loop(t) { draw(t); raf = requestAnimationFrame(loop); }
-function start() { cancelAnimationFrame(raf); if (still) { draw(0); return; } raf = requestAnimationFrame(loop); }
+function drawOnce() { gl.uniform2f(uR, cv.width, cv.height); gl.uniform1f(uT, 20); gl.uniform1f(uN, nightNow); gl.drawArrays(gl.TRIANGLES, 0, 3); }
+function start() { cancelAnimationFrame(raf); if (still) drawOnce(); else raf = requestAnimationFrame(frame); }
 
-if (cv) {
-  size(); seed(); start();
-  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { size(); seed(); start(); }, 200); });
+let ok = false;
+try { ok = cv && init(); } catch (e) { ok = false; }
+if (ok) {
+  nightTarget = nightNow = isDark() ? 1 : 0;
+  size(); start(); scene.classList.add('gl');
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { size(); if (still) drawOnce(); }, 150); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimationFrame(raf); else start(); });
-  new MutationObserver(() => { if (isDark() !== dark) { seed(); start(); } }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  // đồi núi trôi nhẹ theo cuộn trang
-  let tick = false;
-  addEventListener('scroll', () => { if (tick) return; tick = true; requestAnimationFrame(() => { scene.style.setProperty('--sy', Math.min(scrollY, 1200)); tick = false; }); }, { passive: true });
+  new MutationObserver(() => { nightTarget = isDark() ? 1 : 0; if (still) { nightNow = nightTarget; drawOnce(); } })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); cancelAnimationFrame(raf); scene.classList.remove('gl'); });
 }
