@@ -560,6 +560,108 @@ tr.row-click{cursor:pointer}
 .pager .pdots{color:var(--text-faint);font-weight:700;padding:0 2px}
 .pager .pinfo{color:var(--text-dim);font-size:.82rem;margin-left:6px;font-weight:600}
 @media (max-width:560px){.pager .pinfo{width:100%;text-align:center;margin:6px 0 0}}
+
+/* =====================================================================
+   desktopchill HQ — Giao tiếp · Ảnh · Buổi cài · Skin · Nội dung
+   (dùng chung biến màu, card, panel, btn của Profit Tracker)
+   ===================================================================== */
+.nav-btn{white-space:nowrap} .main-nav .nav-btn{padding:8px 12px}
+#view-talk [hidden],#view-setup [hidden]{display:none!important}
+@media (max-width:1440px){ .main-nav .nav-btn span{display:none} .main-nav .nav-btn{padding:8px 11px} }
+@media (max-width:680px){ .main-nav{gap:2px} .main-nav .nav-btn{padding:8px 10px} }
+.hq-grid{display:grid;gap:16px}
+.hq-g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.hq-g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.hq-g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.hq-split{grid-template-columns:minmax(0,1fr) 330px;align-items:start}
+.hq-split-wide{grid-template-columns:minmax(0,1.45fr) minmax(320px,1fr);align-items:start}
+@media (max-width:1100px){ .hq-split,.hq-split-wide{grid-template-columns:minmax(0,1fr)} .hq-g4{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:820px){ .hq-g2,.hq-g3,.hq-g4{grid-template-columns:minmax(0,1fr)} }
+.hq-dim{color:var(--text-dim)} .hq-faint{color:var(--text-faint)} .hq-sm{font-size:.86rem} .hq-mt{margin-top:16px}
+.hq-p{margin:0 0 10px;line-height:1.55} .hq-p:last-child{margin-bottom:0}
+.hq-h3{font-size:.95rem;font-weight:800;margin:0 0 6px}
+.hq-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn.hq-sm-btn{padding:7px 14px;font-size:.84rem}
+.btn.hq-xs{padding:5px 12px;font-size:.8rem}
+.hq-table{width:100%;border-collapse:collapse;min-width:0;font-size:.88rem}
+.hq-table th{text-align:left;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-faint);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border)}
+.hq-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.hq-table tr:last-child td{border-bottom:0}
+.hq-table td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+
+/* ---- Giao tiếp ---- */
+.hq-groups{margin-bottom:6px}
+.hq-groups .chip{cursor:pointer}
+.hq-groups .chip b{font-weight:600;color:var(--text-faint);font-variant-numeric:tabular-nums}
+.hq-groups .chip.on{background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--accent)}
+.hq-groups .chip.on b{color:var(--accent)}
+.hq-gtitle{display:flex;align-items:baseline;gap:10px;margin:22px 0 10px}
+.hq-gtitle:first-child{margin-top:4px}
+.hq-gtitle h2{margin:0;font-size:1.05rem;font-weight:800;letter-spacing:-.01em}
+.hq-gtitle span{color:var(--text-faint);font-size:.82rem;font-weight:600}
+.hq-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.hq-msg{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.hq-msg .tx{padding:16px 18px 10px;white-space:pre-wrap;line-height:1.55;flex:1;outline:none;font-size:.95rem}
+.hq-msg .tx[contenteditable="true"]{background:var(--surface-hover);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 45%,transparent)}
+.hq-msg .ft{display:flex;align-items:center;gap:6px;padding:8px 12px 12px 18px;flex-wrap:wrap}
+.hq-msg .when{flex:1;min-width:150px;font-size:.78rem;color:var(--text-faint);line-height:1.4}
+.hq-freq{margin-right:6px}
+.badge.hq-hot{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.badge.hq-mid{background:var(--warn-bg);color:var(--warn)}
+.badge.hq-own{background:var(--surface-hover);color:var(--text-dim)}
+.hq-ph{background:var(--warn-bg);color:var(--warn);border-radius:5px;padding:0 4px}
+.hq-side{position:sticky;top:96px;display:flex;flex-direction:column;gap:16px}
+@media (max-width:1100px){ .hq-side{position:static} }
+.hq-mini{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.hq-mini button{border:1px solid var(--border);border-radius:12px;background:var(--surface-solid);padding:0;cursor:pointer;overflow:hidden;text-align:left;color:var(--text);transition:transform .15s,box-shadow .15s}
+.hq-mini button:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.hq-mini img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.hq-mini span{display:block;font-size:.76rem;font-weight:700;padding:6px 8px}
+.hq-add{margin-bottom:16px}
+
+/* ---- Ảnh ---- */
+.hq-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.hq-gal figure{margin:0;padding:0;overflow:hidden;display:flex;flex-direction:column}
+.hq-gal img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;cursor:zoom-in;background:#000}
+.hq-gal figcaption{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.hq-gal figcaption b{font-size:.92rem}
+.hq-gal figcaption span{font-size:.8rem;color:var(--text-dim)}
+.hq-lb{position:fixed;inset:0;z-index:400;background:rgba(6,7,10,.86);display:none;place-items:center;padding:20px;cursor:zoom-out}
+.hq-lb.on{display:grid}
+.hq-lb img{max-width:100%;max-height:92vh;border-radius:14px}
+
+/* ---- Buổi cài ---- */
+.hq-timer{font-size:clamp(3rem,6vw,4.4rem);font-weight:300;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.hq-timer.run{color:var(--accent)}
+.hq-steps{margin-top:6px}
+.hq-check{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.hq-check:last-child{border-bottom:0}
+.hq-check input{appearance:none;-webkit-appearance:none;flex:none;width:20px;height:20px;border:1.5px solid var(--border-strong);border-radius:6px;margin:1px 0 0;cursor:pointer;display:grid;place-items:center;background:var(--surface-solid)}
+.hq-check input:checked{background:var(--pos);border-color:var(--pos)}
+.hq-check input:checked::after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.hq-check input:disabled{opacity:.45;cursor:not-allowed}
+.hq-check .t{font-weight:700;font-size:.92rem}
+.hq-check .d{display:block;font-size:.8rem;color:var(--text-dim);margin-top:2px;line-height:1.45}
+.hq-check.done .t{color:var(--text-faint);text-decoration:line-through}
+.hq-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.hq-stats .stat{padding:16px}
+.hq-stats .val{font-size:1.6rem}
+.hq-bars{display:flex;align-items:flex-end;gap:5px;height:130px;position:relative;padding-top:10px}
+.hq-bars .b{flex:1;background:var(--accent-grad);border-radius:5px 5px 0 0;min-height:3px;opacity:.85}
+.hq-bars .b.over{background:var(--warn)}
+.hq-bars .target{position:absolute;left:0;right:0;border-top:1.5px dashed var(--text-faint)}
+.hq-bars .target span{position:absolute;right:0;top:-18px;font-size:.7rem;color:var(--text-faint);font-weight:700}
+.hq-inp{padding:11px 13px;border-radius:12px;border:1px solid var(--border);background:var(--surface-solid);color:var(--text);font:inherit;font-size:.9rem}
+
+/* ---- Skin ---- */
+.hq-shot{padding:0;overflow:hidden}
+.hq-shot img{width:100%;display:block}
+
+/* ---- Nội dung ---- */
+.hq-hbar{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;padding:5px 0;font-size:.88rem}
+.hq-hbar .tr{height:10px;background:var(--surface-hover);border-radius:6px;overflow:hidden}
+.hq-hbar .fi{height:100%;background:var(--accent-grad);border-radius:6px}
+.hq-hbar b{text-align:right;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -632,6 +734,27 @@ tr.row-click{cursor:pointer}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span>Customers</span>
       </button>
+      <button class="nav-btn" data-view="talk" title="Giao tiếp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+        <span>Giao tiếp</span>
+      </button>
+      <button class="nav-btn" data-view="assets" title="Ảnh gửi khách">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg>
+        <span>Ảnh</span>
+      </button>
+      <button class="nav-btn" data-view="setup" title="Buổi cài">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+        <span>Buổi cài</span>
+      </button>
+      <button class="nav-btn" data-view="skin" title="Skin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+        <span>Skin</span>
+      </button>
+      <button class="nav-btn" data-view="content" title="Nội dung">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M11 9l3 2-3 2z"/></svg>
+        <span>Nội dung</span>
+      </button>
+
     </nav>
     <div class="header-actions">
       <button class="icon-btn" id="notesBtn" title="Notes" aria-label="Notes">
@@ -725,6 +848,204 @@ tr.row-click{cursor:pointer}
       </div>
       <div id="tableHost"></div>
     </section>
+
+    <!-- ================= GIAO TIẾP ================= -->
+    <section class="view" id="view-talk">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Giao tiếp</h1>
+          <p class="page-sub">Câu chữ của bạn, lấy từ tin nhắn Zalo 16/07–16/10. Nhãn là số tin bạn đã gửi có từ khoá chính của câu. Bấm Copy rồi dán vào Zalo, bấm Sửa để chỉnh.</p>
+        </div>
+        <button class="btn btn-primary" id="hqAddToggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Thêm câu
+        </button>
+      </div>
+      <div class="card panel hq-add" id="hqAddBox" hidden>
+        <div class="form-grid">
+          <div class="field-group full"><label for="hqNewText">Nội dung</label><textarea class="field" id="hqNewText" rows="3" placeholder="Gõ câu bạn hay nhắn"></textarea></div>
+          <div class="field-group"><label for="hqNewGroup">Nhóm</label><select class="field" id="hqNewGroup"></select></div>
+          <div class="field-group"><label for="hqNewWhen">Khi nào dùng</label><input class="field" id="hqNewWhen" placeholder="Ví dụ: khách hỏi bảo hành"></div>
+        </div>
+        <div class="hq-row hq-mt"><button class="btn btn-primary hq-sm-btn" id="hqNewSave">Lưu câu</button><button class="btn btn-ghost hq-sm-btn" id="hqNewCancel">Huỷ</button></div>
+      </div>
+      <div class="toolbar">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="hqTalkSearch" placeholder="Tìm câu: ultraview, steam, 25k…">
+        </div>
+      </div>
+      <div class="chips hq-groups" id="hqGroups"></div>
+      <div class="hq-grid hq-split">
+        <div id="hqTalkList"></div>
+        <aside class="hq-side">
+          <div class="card panel">
+            <div class="panel-head"><div class="panel-title">Ảnh gửi nhanh</div></div>
+            <p class="hq-p hq-sm hq-dim">Bấm vào ảnh để copy, rồi Ctrl+V vào Zalo.</p>
+            <div class="hq-mini" id="hqMini"></div>
+          </div>
+          <div class="card panel">
+            <div class="panel-head"><div class="panel-title">Bảng giá bạn đang báo</div></div>
+            <table class="hq-table">
+              <tr><td>Trọn gói, chưa có app</td><td class="n">175k</td></tr>
+              <tr><td>Đã có app</td><td class="n">100k</td></tr>
+              <tr><td>Thêm 1 layout, thêm màn phụ</td><td class="n">25k</td></tr>
+              <tr><td>Setup lại cho khách cũ</td><td class="n">25k</td></tr>
+              <tr><td>Hình riêng theo yêu cầu</td><td class="n">từ 150k</td></tr>
+            </table>
+          </div>
+          <div class="card panel">
+            <div class="panel-head"><div class="panel-title">Số tài khoản</div></div>
+            <div class="field-group"><label for="hqStk">Điền vào câu gửi STK</label><textarea class="field" id="hqStk" rows="3" placeholder="STK – Ngân hàng – Tên"></textarea></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ================= ẢNH GỬI KHÁCH ================= -->
+    <section class="view" id="view-assets">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Ảnh gửi khách</h1>
+          <p class="page-sub">Bấm Copy ảnh rồi dán thẳng vào ô chat Zalo. Ảnh nhẹ hơn video, khách xem được ngay cả khi mạng yếu.</p>
+        </div>
+      </div>
+      <div class="hq-gal" id="hqGal"></div>
+    </section>
+
+    <!-- ================= BUỔI CÀI ================= -->
+    <section class="view" id="view-setup">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Buổi cài</h1>
+          <p class="page-sub">Bấm giờ mỗi buổi cài, đi theo đúng thứ tự. Mục tiêu 15–20 phút mỗi buổi.</p>
+        </div>
+      </div>
+      <div class="hq-grid hq-split-wide">
+        <div class="card panel">
+          <div class="hq-row" style="justify-content:space-between;align-items:flex-end;margin-bottom:10px">
+            <div><div class="hq-timer" id="hqTimer">00:00</div><div class="hq-sm hq-dim" id="hqTimerSub"></div></div>
+            <div class="hq-row">
+              <input class="hq-inp" id="hqSesName" placeholder="Tên khách" style="width:160px">
+              <button class="btn btn-primary hq-sm-btn" id="hqSesStart">Bắt đầu buổi cài</button>
+              <button class="btn btn-primary hq-sm-btn" id="hqSesStop" hidden>Xong, lưu thời gian</button>
+              <button class="btn btn-ghost hq-sm-btn" id="hqSesCancel" hidden>Huỷ</button>
+            </div>
+          </div>
+          <div class="hq-steps" id="hqSteps"></div>
+        </div>
+        <div class="hq-grid">
+          <div class="hq-stats" id="hqSetupStats"></div>
+          <div class="card panel">
+            <div class="panel-head"><div class="panel-title">15 buổi gần nhất <span class="muted">phút</span></div></div>
+            <div class="hq-bars" id="hqBars"></div>
+            <div id="hqSetupList" class="hq-mt hq-sm"></div>
+          </div>
+        </div>
+      </div>
+      <div class="hq-grid hq-g3 hq-mt">
+        <div class="card panel">
+          <div class="panel-head"><div class="panel-title">Setup Kit</div></div>
+          <p class="hq-p hq-sm hq-dim">Script chạy trên máy khách: kiểm tra cấu hình, cài Rainmeter im lặng, cài skin, áp layout co giãn theo màn hình, ghi tên khách lên skin, checklist Wallpaper Engine.</p>
+          <a class="btn btn-primary hq-sm-btn" href="hq/desktopchill-kit.zip" download>Tải desktopchill-kit.zip</a>
+          <div class="hq-h3 hq-mt">Chuẩn bị một lần</div>
+          <div id="hqKitPrep"></div>
+        </div>
+        <div class="card panel">
+          <div class="panel-head"><div class="panel-title">Đề xuất theo cấu hình</div></div>
+          <table class="hq-table">
+            <tr><th>Máy</th><th>Wallpaper Engine</th></tr>
+            <tr><td>RAM dưới 8GB, Celeron, Pentium</td><td>FPS 25, chất lượng Thấp, mẫu video 1080p</td></tr>
+            <tr><td>Card onboard</td><td>FPS 30, chất lượng Trung bình</td></tr>
+            <tr><td>Card rời</td><td>FPS 30–60, chất lượng Cao</td></tr>
+            <tr><td>Laptop</td><td>Tạm dừng khi dùng pin</td></tr>
+            <tr><td>Màn dưới 1600px</td><td>Scale skin khoảng 0.8</td></tr>
+            <tr><td>Màn 2K, 4K</td><td>Scale skin 1.3–2</td></tr>
+          </table>
+        </div>
+        <div class="card panel">
+          <div class="panel-head"><div class="panel-title">Khi gặp lỗi</div></div>
+          <table class="hq-table">
+            <tr><th>Vấn đề</th><th>Xử lý</th></tr>
+            <tr><td>Steam không vào được</td><td>Đổi DNS, câu có sẵn trong Giao tiếp, nhóm Lúc cài</td></tr>
+            <tr><td>Máy chậm, nóng</td><td>FPS 25–30, chất lượng Thấp, dừng khi có app toàn màn hình</td></tr>
+            <tr><td>Mất đồng hồ sau khởi động lại</td><td>Bật Rainmeter cùng Windows, Manage, Layouts, Load</td></tr>
+            <tr><td>Skin lệch khi đổi màn hình</td><td>Setup Kit mục 4, áp lại layout</td></tr>
+            <tr><td>Hình nền đen</td><td>Cập nhật driver card màn hình, đổi sang mẫu video</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SKIN ================= -->
+    <section class="view" id="view-skin">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Skin desktopchill</h1>
+          <p class="page-sub">Bộ skin đầu tiên của shop: đồng hồ lớn, thứ ngày tiếng Việt, lời chào theo buổi có tên khách, câu nói đổi mỗi 30 phút. Font Be Vietnam Pro, giấy phép mở.</p>
+        </div>
+        <a class="btn btn-primary" href="hq/desktopchill_1.0.rmskin" download>Tải desktopchill_1.0.rmskin</a>
+      </div>
+      <div class="hq-grid hq-split-wide">
+        <div>
+          <div class="card panel hq-shot"><img src="hq/img/skin-preview.jpg" alt="Ảnh mô phỏng skin desktopchill trên hình nền núi Phú Sĩ" loading="lazy"></div>
+          <p class="hq-p hq-sm hq-faint" style="margin-top:8px">Ảnh mô phỏng bằng trình duyệt, không phải chụp từ Rainmeter. Chữ đỏ bị chìm trên nền lá đỏ, nên đổi màu nhấn theo từng hình nền.</p>
+        </div>
+        <div class="hq-grid">
+          <div class="card panel"><div class="hq-h3">Cài và chỉnh</div><p class="hq-p hq-sm hq-dim">Nhấp đúp file .rmskin, hoặc Setup Kit mục 3 rồi mục 7. Chuột phải vào skin, chọn “Chỉnh tên, màu, kích cỡ” để sửa Ten, Scale, Color1, Accent.</p></div>
+          <div class="card panel"><div class="hq-h3">Bán thêm</div><p class="hq-p hq-sm hq-dim">Bạn đang bán layout thêm 25k. Skin có tên khách là thứ khách không tự tải được, hợp để làm gói nâng cấp.</p></div>
+          <div class="card panel"><div class="hq-h3">Chưa chạy thử trên Rainmeter thật</div><p class="hq-p hq-sm hq-dim">Cài thử trên máy bạn trước. Dòng nào hiển thị sai, chụp màn hình gửi lại để sửa.</p></div>
+        </div>
+      </div>
+      <div class="hq-grid hq-g2 hq-mt">
+        <div class="card panel">
+          <div class="panel-head"><div class="panel-title">Skin làm tiếp</div></div>
+          <table class="hq-table">
+            <tr><th>Skin</th><th>Ghi chú</th></tr>
+            <tr><td>Âm lịch và ngày lễ Việt</td><td>Khách Việt thích, gần như chưa ai làm. Tính âm lịch bằng Lua.</td></tr>
+            <tr><td>Thời tiết tiếng Việt</td><td>Open-Meteo, miễn phí, không cần key.</td></tr>
+            <tr><td>Thanh nhạc tối giản</td><td>Plugin WebNowPlaying, theo màu desktopchill.</td></tr>
+            <tr><td>Layout theo mùa</td><td>Tết, Trung thu, Halloween, Giáng sinh.</td></tr>
+          </table>
+        </div>
+        <div class="card panel">
+          <div class="panel-head"><div class="panel-title">Kiểm tra skin tải về</div></div>
+          <div id="hqSkinCheck"></div>
+          <p class="hq-p hq-sm hq-faint hq-mt">Nguồn: DeviantArt (nhóm Rainmeter), visualskins.com, r/Rainmeter, forum.rainmeter.net.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= NỘI DUNG ================= -->
+    <section class="view" id="view-content">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Nội dung</h1>
+          <p class="page-sub">Quay theo lô mỗi tuần, đăng đều 4 video, ghi lại inbox mỗi video mang về. Con số cần nhìn là inbox trên 1000 lượt xem.</p>
+        </div>
+      </div>
+      <div class="hq-grid hq-g3">
+        <div class="card panel"><div class="panel-head"><div class="panel-title">Lịch tuần</div></div><table class="hq-table" id="hqWeek"></table></div>
+        <div class="card panel"><div class="panel-head"><div class="panel-title">Sáu dạng video</div></div><table class="hq-table" id="hqFormats"></table></div>
+        <div class="card panel"><div class="panel-head"><div class="panel-title">Câu mở đầu</div></div><div id="hqHooks"></div></div>
+      </div>
+      <div class="card panel hq-mt">
+        <div class="panel-head"><div class="panel-title">Theo dõi video</div></div>
+        <div class="hq-grid hq-g4" id="hqVidForm" style="gap:12px"></div>
+        <div class="hq-row hq-mt"><button class="btn btn-primary hq-sm-btn" id="hqVidAdd">Thêm video</button></div>
+        <div class="hq-grid hq-g2 hq-mt" style="align-items:start">
+          <div id="hqVidBy"></div>
+          <div class="hq-sm hq-dim">
+            <p class="hq-p"><b>Ba giây đầu</b> là một câu chữ to, màn hình đẹp xuất hiện ngay.</p>
+            <p class="hq-p"><b>Cuối video và comment ghim:</b> giá 175k, Zalo 0339903166, link ở bio.</p>
+            <p class="hq-p"><b>Xuất 1080×1920</b>, quay OBS 1080p 60fps thay cho 8K.</p>
+            <p class="hq-p"><b>Đăng cùng lúc</b> lên TikTok, Facebook Reels và YouTube Shorts.</p>
+          </div>
+        </div>
+        <div id="hqVidTbl" style="overflow-x:auto" class="hq-mt"></div>
+      </div>
+    </section>
+
 
   </div>
 </main>
@@ -1650,6 +1971,215 @@ document.addEventListener("DOMContentLoaded",init);
     window.__sbReady=true;   /* đã tải xong → cho phép đẩy thay đổi lên cloud */
     hide();
   }catch(e){ console.warn(e); login(); }
+})();
+</script>
+<script>
+/* =====================================================================
+   desktopchill HQ — Giao tiếp · Ảnh · Buổi cài · Skin · Nội dung
+   Dữ liệu lưu trong settings.hq → tự đồng bộ cùng Profit Tracker (Supabase / file JSON)
+   ===================================================================== */
+(function(){
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const isoDay=(d=new Date())=>{const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10);};
+const say=(m,t)=>{try{toast(m,t||"ok");}catch(e){}};
+function H(){ if(!settings.hq||typeof settings.hq!=="object") settings.hq={}; return settings.hq; }
+function hget(k,d){ const v=H()[k]; return v==null?d:v; }
+function hset(k,v){ H()[k]=v; try{saveSettings();}catch(e){} }
+async function copyText(t){ try{await navigator.clipboard.writeText(t);}catch(e){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();} }
+
+/* ---------------- câu nhắn (từ Zalo của shop, 16/07–16/10/2026) ----------------
+   n: số tin đã gửi có từ khoá chính (Zalo hiện 99+ / 20+), -1 = có trong Zalo nhưng không đếm, 0 = câu chủ shop đưa */
+const GROUPS=[["mo","Chào và gửi thông tin"],["gia","Báo giá"],["hen","Hẹn giờ"],["ck","Chuyển khoản"],["cai","Lúc cài"],["xong","Cài xong, hướng dẫn"],["fb","Feedback và cảm ơn"],["khong","Từ chối, giải thích"]];
+const MSGS=[
+ {id:"m1",g:"mo",n:-1,w:"Khách vừa nhắn hỏi",t:"Hi bn"},
+ {id:"m2",g:"mo",n:99,w:"Trước khi gửi video giới thiệu",t:"Shop gởi bn thông tin nha"},
+ {id:"m3",g:"mo",n:0,w:"Gửi kèm 2 video giới thiệu",t:"Shop setup vĩnh viễn chính chủ và kho hình kèm custom layout ngày giờ nha. Bn ko cần đi đâu để tải hình cả, có sẵn hết nha bn chỉ việc dùng thôi."},
+ {id:"m4",g:"mo",n:20,w:"Khách lưỡng lự, gửi kèm ảnh feedback",t:"Vài feedback bên shop. Shop chuyên setup dịch vụ nên bn yên tâm nha"},
+ {id:"m5",g:"mo",n:99,w:"Khách hỏi xem thêm ở đâu",t:"Trên web shop có để thông tin setup ở dưới cùng á bn"},
+ {id:"g1",g:"gia",n:20,w:"Khách hỏi giá",t:"Trọn gói 175 đẹp lung linh bn nha"},
+ {id:"g2",g:"gia",n:20,w:"Khách hỏi có tốn thêm gì không",t:"175 đã trọn gói mọi thứ bn nha. Nên 175 đã gồm WE r bn nha"},
+ {id:"g3",g:"gia",n:20,w:"Khách đã có Wallpaper Engine",t:"Bn có app rồi sẽ giảm còn 100k nha"},
+ {id:"g4",g:"gia",n:20,w:"Khách muốn thêm layout",t:"Shop đang nhận set thêm 25k/layout bn nha"},
+ {id:"g5",g:"gia",n:20,w:"Khách có 2 màn hình",t:"Nếu muốn layout ở cả 2 màn sẽ cần thêm 25k bn nha"},
+ {id:"g6",g:"gia",n:20,w:"Khách cũ cần setup lại",t:"Những bn đã setup bên shop sẽ ưu đãi còn 25k bn nha"},
+ {id:"g7",g:"gia",n:1,w:"Khách muốn hình theo yêu cầu",t:"Hình riêng sẽ từ 150 tuỳ độ khó mỗi hình bn nha"},
+ {id:"h1",g:"hen",n:99,w:"Khách hỏi khi nào cài",t:"Tầm tối nay sau 8h bn có rảnh đó"},
+ {id:"h2",g:"hen",n:99,w:"Hẹn ngày mai",t:"Tối mai bn nha"},
+ {id:"h3",g:"hen",n:99,w:"Khách sợ trễ",t:"Shop online tới 11h30 lận bn"},
+ {id:"h4",g:"hen",n:99,w:"Khách muốn tự cài theo hướng dẫn",t:"Hướng dẫn phải từng bước bn. Chắc hơn 1 tiếng mới xong. Chưa kể có khả năng có vấn đề lúc cài nữa. V nên để tối shop setup hết cho tiện"},
+ {id:"c1",g:"ck",n:99,w:"Sau khi chốt",t:"Bạn ck xong cho shop xin ảnh ck với nha"},
+ {id:"c2",g:"ck",n:0,w:"Gửi số tài khoản (điền ở khung bên phải)",t:"{stk}"},
+ {id:"i1",g:"cai",n:99,w:"Tới giờ cài",t:"Bạn gởi shop ultraview nha"},
+ {id:"i2",g:"cai",n:-1,w:"Khách chưa trả lời lúc tới giờ",t:"alo bn"},
+ {id:"i3",g:"cai",n:99,w:"Bước Steam",t:"oke bn login vào acc steam đi"},
+ {id:"i4",g:"cai",n:0,w:"Steam bị wifi chặn, đổi DNS",t:"8.8.8.8\n8.8.4.4\n2001:4860:4860::8888\n2001:4860:4860::4444"},
+ {id:"i5",g:"cai",n:99,w:"Đang tải kho hình",t:"Đợi nó load xong là đc bn"},
+ {id:"i6",g:"cai",n:99,w:"Khách hỏi xong chưa",t:"oke đợi tí bn"},
+ {id:"i7",g:"cai",n:-1,w:"Đã tắt Defender lúc cài",t:"Nhớ bật cái defender lại bn nha"},
+ {id:"x1",g:"xong",n:-1,w:"Báo cài xong",t:"Shop done bn nhé"},
+ {id:"x2",g:"xong",n:99,w:"Chỉ chỗ đổi layout",t:"Shop có tạo sẵn bn 4 bộ layout để đổi gió"},
+ {id:"x3",g:"xong",n:-1,w:"Chỉ chỗ thêm skin",t:"Bên tab skin còn full skins nha, bn vào đó là load đc"},
+ {id:"x4",g:"xong",n:-1,w:"Khách muốn lưu layout tự chỉnh",t:"Xong vào layout đặt tên mới rồi save là đc"},
+ {id:"x5",g:"xong",n:99,w:"Khách hỏi cách đổi hình",t:"Bn vào đó để đổi hình nền nha"},
+ {id:"x6",g:"xong",n:-1,w:"Khách hỏi tải thêm có mất tiền không",t:"Mọi hình nền đều free bn nha"},
+ {id:"f1",g:"fb",n:20,w:"Sau khi khách khen",t:"Nếu được bn cho shop xin 1 cmt ảnh feedback lên video fb với nha"},
+ {id:"f2",g:"fb",n:20,w:"Kết thúc",t:"Shop cảm ơn bạn nhiều nhiều"},
+ {id:"f3",g:"fb",n:-1,w:"Chào tạm biệt",t:"Chúc bn chill vui nha"},
+ {id:"k1",g:"khong",n:-1,w:"Khách dùng Linux, Mac",t:"Shop chỉ cài trên windows chưa gặp linux bao h"},
+ {id:"k2",g:"khong",n:-1,w:"Khách muốn mẫu cần phần mềm khác",t:"Cục này phải setup thêm phần mềm khác có phí bn nha"}
+];
+const freq=n=>n>=99?'<span class="badge hq-hot hq-freq">99+ lần</span>':n>=20?'<span class="badge hq-mid hq-freq">20+ lần</span>':n>0?'<span class="badge hq-own hq-freq">'+n+' lần</span>':n<0?'<span class="badge hq-own hq-freq">có trong Zalo</span>':'<span class="badge hq-own hq-freq">câu của bạn</span>';
+let curGroup="all";
+const custom=()=>hget("custom",[]), edits=()=>hget("edits",{});
+const all=()=>MSGS.concat(custom().map(c=>Object.assign({},c,{custom:true})));
+const textOf=m=>edits()[m.id]??m.t;
+const vars=()=>({stk:hget("stk","")||"(điền STK ở khung bên phải)"});
+const fill=t=>t.replace(/\{(\w+)\}/g,(x,k)=>vars()[k]??x);
+const fillHTML=t=>esc(t).replace(/\{(\w+)\}/g,(x,k)=>`<span class="hq-ph">${esc(vars()[k]??x)}</span>`);
+async function copyMsg(id){ const m=all().find(x=>x.id===id); if(!m) return; await copyText(fill(textOf(m))); const c=hget("copies",{}); c[id]=(c[id]||0)+1; hset("copies",c); say("Đã copy, dán vào Zalo là gửi được"); }
+function renderGroups(){
+  const L=all();
+  $("#hqGroups").innerHTML=`<button class="chip ${curGroup==="all"?"on":""}" data-g="all">Tất cả <b>${L.length}</b></button>`+GROUPS.map(([g,n])=>`<button class="chip ${curGroup===g?"on":""}" data-g="${g}">${n} <b>${L.filter(m=>m.g===g).length}</b></button>`).join("");
+  $$("#hqGroups .chip").forEach(b=>b.onclick=()=>{curGroup=b.dataset.g;renderGroups();renderTalk();});
+}
+function renderTalk(){
+  const q=($("#hqTalkSearch").value||"").trim().toLowerCase();
+  const L=all().filter(m=>(curGroup==="all"||m.g===curGroup)&&(!q||(textOf(m)+" "+m.w).toLowerCase().includes(q)));
+  const E=edits();
+  $("#hqTalkList").innerHTML=GROUPS.filter(([g])=>L.some(m=>m.g===g)).map(([g,name])=>{
+    const ms=L.filter(m=>m.g===g);
+    return `<div class="hq-gtitle"><h2>${name}</h2><span>${ms.length} câu</span></div><div class="hq-cards">${ms.map(m=>`
+      <article class="card hq-msg" data-id="${m.id}">
+        <div class="tx">${fillHTML(textOf(m))}</div>
+        <div class="ft"><span class="when">${m.custom?'<span class="badge hq-own hq-freq">bạn thêm</span>':freq(m.n)}${esc(m.w||"")}${E[m.id]!=null?" · đã sửa":""}</span>
+          <button class="btn btn-ghost hq-xs" data-edit="${m.id}">Sửa</button>${m.custom?`<button class="btn btn-ghost hq-xs" data-del="${m.id}">Xoá</button>`:""}
+          <button class="btn btn-primary hq-xs" data-copy="${m.id}">Copy</button></div>
+      </article>`).join("")}</div>`;
+  }).join("")||`<div class="card panel hq-dim">Không có câu nào khớp. Thử từ khoá khác, hoặc bấm “Thêm câu”.</div>`;
+  $$("#hqTalkList [data-copy]").forEach(b=>b.onclick=()=>copyMsg(b.dataset.copy));
+  $$("#hqTalkList [data-del]").forEach(b=>b.onclick=()=>{hset("custom",custom().filter(c=>c.id!==b.dataset.del));renderGroups();renderTalk();say("Đã xoá câu");});
+  $$("#hqTalkList [data-edit]").forEach(b=>b.onclick=()=>{
+    const card=b.closest(".hq-msg"), tx=$(".tx",card), id=b.dataset.edit, m=all().find(x=>x.id===id);
+    if(tx.isContentEditable){
+      const v=tx.innerText.replace(/\n$/,"");
+      if(m.custom){ hset("custom",custom().map(c=>c.id===id?Object.assign({},c,{t:v}):c)); }
+      else { const e=Object.assign({},edits()); if(v===m.t) delete e[id]; else e[id]=v; hset("edits",e); }
+      renderTalk(); say("Đã lưu câu");
+    } else { tx.textContent=textOf(m); tx.contentEditable="true"; tx.focus(); b.textContent="Lưu"; }
+  });
+}
+
+/* ---------------- ảnh ---------------- */
+const IMGS=[["bang-gia","Bảng giá","Khi khách hỏi giá."],["3-buoc","3 bước cài đặt","Khi khách hỏi cài thế nào."],["feedback","Feedback khách","Khi khách lưỡng lự."],["mau-anime","Mẫu Anime","Khách thích anime."],["mau-game","Mẫu Game","Khách thích game."],["mau-girl","Mẫu Girl","Khách thích girl."],["mau-chill","Mẫu Phong cảnh, chill","Khách thích phong cảnh."],["mau-toi-gian","Mẫu Tối giản","Khách thích tối giản, màn tối."]];
+const imgURL=f=>`hq/img/${f}.jpg`;
+async function copyImage(f){
+  try{
+    const img=new Image(); img.src=imgURL(f); await img.decode();
+    const c=document.createElement("canvas"); c.width=img.naturalWidth; c.height=img.naturalHeight; c.getContext("2d").drawImage(img,0,0);
+    const blob=await new Promise(r=>c.toBlob(r,"image/png"));
+    await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
+    say("Đã copy ảnh, dán vào Zalo bằng Ctrl+V");
+  }catch(e){ const a=document.createElement("a"); a.href=imgURL(f); a.download=f+".jpg"; document.body.appendChild(a); a.click(); a.remove(); say("Trình duyệt chặn copy ảnh, đã tải ảnh xuống","info"); }
+}
+function renderImages(){
+  $("#hqGal").innerHTML=IMGS.map(([f,n,d])=>`<figure class="card"><img src="${imgURL(f)}" alt="${esc(n)}" loading="lazy" data-zoom><figcaption><b>${esc(n)}</b><span>${esc(d)}</span><div class="hq-row"><button class="btn btn-primary hq-xs" data-img="${f}">Copy ảnh</button><a class="btn btn-ghost hq-xs" href="${imgURL(f)}" download>Tải</a></div></figcaption></figure>`).join("");
+  $("#hqMini").innerHTML=IMGS.map(([f,n])=>`<button type="button" data-img="${f}" title="Copy ảnh ${esc(n)}"><img src="${imgURL(f)}" alt="" loading="lazy"><span>${esc(n.replace("Mẫu ",""))}</span></button>`).join("");
+  $$("[data-img]").forEach(b=>b.onclick=()=>copyImage(b.dataset.img));
+  const lb=document.createElement("div"); lb.className="hq-lb"; lb.innerHTML='<img alt="">'; document.body.appendChild(lb);
+  document.addEventListener("click",e=>{const z=e.target.closest("[data-zoom]"); if(z){$("img",lb).src=z.src;lb.classList.add("on");} else if(e.target.closest(".hq-lb")) lb.classList.remove("on");});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")lb.classList.remove("on");});
+}
+
+/* ---------------- checklist ---------------- */
+function checklist(el,items,key){
+  const st=hget(key,{});
+  el.innerHTML=items.map(([id,t,d])=>`<label class="hq-check ${st[id]?"done":""}"><input type="checkbox" data-id="${id}" ${st[id]?"checked":""}><span><span class="t">${esc(t)}</span>${d?`<span class="d">${esc(d)}</span>`:""}</span></label>`).join("");
+  $$("input",el).forEach(i=>i.addEventListener("change",()=>{const s=Object.assign({},hget(key,{}));s[i.dataset.id]=i.checked;hset(key,s);i.closest(".hq-check").classList.toggle("done",i.checked);}));
+}
+
+/* ---------------- buổi cài ---------------- */
+const STEPS=[["Kết nối Ultraview","Gửi “Bạn gởi shop ultraview nha”. Mở trình duyệt trên máy khách, tải desktopchill-kit.zip rồi giải nén."],["Kiểm tra máy","Chạy CHAY-SETUP.bat, chọn 1. Tóm tắt cấu hình đã được copy, dán vào ghi chú của khách."],["Steam và Wallpaper Engine","Chọn 6. Khách login acc Steam, bị chặn thì đổi DNS. Subscribe bộ sưu tập Workshop để tải ngầm."],["Rainmeter, skin, layout","Chọn 2, 3 rồi 4."],["Cá nhân hoá","Chọn 7, nhập tên khách, giữ Scale đề xuất."],["Chỉnh Wallpaper Engine","Theo bảng đề xuất, chọn hình khách thích."],["Kết thúc","Xoá thư mục kit, nhắc bật lại Defender, gửi “Shop done bn nhé”, xin feedback."]];
+function cur(){ return hget("cur",null); }
+function renderSteps(){
+  const C=cur(), done=C?C.steps:[];
+  $("#hqSteps").innerHTML=STEPS.map(([t,d],i)=>`<label class="hq-check ${done[i]?"done":""}"><input type="checkbox" data-i="${i}" ${done[i]?"checked":""} ${C?"":"disabled"}><span><span class="t">${i+1}. ${t}</span><span class="d">${d}</span></span></label>`).join("");
+  $$("#hqSteps input").forEach(c=>c.onchange=()=>{const C2=Object.assign({},cur());C2.steps=(C2.steps||[]).slice();C2.steps[+c.dataset.i]=c.checked;hset("cur",C2);c.closest(".hq-check").classList.toggle("done",c.checked);});
+  $("#hqSesStart").hidden=!!C; $("#hqSesStop").hidden=!C; $("#hqSesCancel").hidden=!C;
+  $("#hqSesName").disabled=!!C; if(C) $("#hqSesName").value=C.name||"";
+  $("#hqTimer").classList.toggle("run",!!C);
+  $("#hqTimerSub").textContent=C?`Đang cài cho ${C.name||"khách"}, bắt đầu lúc ${new Date(C.start).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})}`:"Bấm bắt đầu khi khách gửi ID Ultraview";
+}
+function tick(){ const C=cur(); if(!C){$("#hqTimer").textContent="00:00";return;} const s=Math.floor((Date.now()-C.start)/1000); $("#hqTimer").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
+function renderSetupStats(){
+  const log=hget("setupLog",[]), last=log.slice(-10);
+  const avg=last.length?Math.round(last.reduce((a,b)=>a+b.min,0)/last.length):null, best=log.length?Math.min(...log.map(x=>x.min)):null;
+  const st=(v,l)=>`<div class="stat card"><div class="lbl">${l}</div><div class="val">${v}</div></div>`;
+  $("#hqSetupStats").innerHTML=st(log.length,"Buổi đã bấm giờ")+st(avg==null?"–":avg+"′","Trung bình 10 buổi")+st(best==null?"–":best+"′","Nhanh nhất");
+  const l15=log.slice(-15), mx=Math.max(35,...l15.map(x=>x.min));
+  $("#hqBars").innerHTML=`<div class="target" style="bottom:${20/mx*100}%"><span>mục tiêu 20 phút</span></div>`+l15.map(x=>`<div class="b ${x.min>20?"over":""}" style="height:${x.min/mx*100}%" title="${esc(x.name||"Khách")}: ${x.min} phút"></div>`).join("");
+  $("#hqSetupList").innerHTML=l15.length?`<table class="hq-table">${l15.slice().reverse().slice(0,5).map(x=>`<tr><td>${x.date.slice(8)}/${x.date.slice(5,7)}</td><td>${esc(x.name||"Khách")}</td><td class="n">${x.min} phút</td></tr>`).join("")}</table>`:`<p class="hq-p hq-dim">Chưa có buổi nào. Bấm “Bắt đầu buổi cài” ở buổi tới.</p>`;
+}
+
+/* ---------------- nội dung ---------------- */
+const WEEK=[["CN","Quay theo lô 5–7 layout, mỗi layout 15–20 giây","60–90′"],["T2","Edit 3 video bằng template CapCut","45′"],["T3","Đăng video 1 lúc 19–21h, ghim comment có số Zalo","10′"],["T4","Edit phần còn lại, trả lời comment bằng video","45′"],["T5","Đăng video 2, dạng Cài cho khách","10′"],["T6","Đăng video 3, điền số liệu 48 giờ","20′"],["T7","Đăng video 4, dạng Trước và sau","10′"]];
+const FORMATS=[["Trước và sau","Desktop lộn xộn sang desktop đã cài."],["Cài cho khách","Quay nhanh một buổi cài thật, che tên khách."],["Theo trend","Anime, phim đang hot."],["Trả lời comment","Xử lý băn khoăn trước khi khách hỏi."],["Mẹo dùng","Đổi hình 2 click, tự dừng khi chơi game."],["Giới thiệu layout","Skin có tên khách, âm lịch."]];
+const HOOKS=["Màn hình của bạn đang trông như thế này à?","175k để desktop đẹp như thế này","Cài cho khách lúc 10h tối, xem kết quả nè","Fan [tên anime] nhất định phải có màn hình này","Đồng hồ trên màn hình biết chào bạn theo buổi","Hình nền này tự dừng khi bạn chơi game","Laptop cùi cũng chạy mượt được nè","Màn hình này có tên của bạn"];
+const PLATFORMS=["TikTok","Facebook Reels","YouTube Shorts"], TOPICS=["Anime","Game","Girl","Phong cảnh, chill","Tối giản","Tiên hiệp, phim","Tổng hợp"];
+function renderContent(){
+  $("#hqWeek").innerHTML=WEEK.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="n hq-faint">${r[2]}</td></tr>`).join("");
+  $("#hqFormats").innerHTML=FORMATS.map(r=>`<tr><td style="width:42%"><b>${r[0]}</b></td><td class="hq-dim">${r[1]}</td></tr>`).join("");
+  const used=hget("hooks",{});
+  $("#hqHooks").innerHTML=HOOKS.map((h,i)=>`<div class="hq-check ${used[i]?"done":""}" style="cursor:default;align-items:center"><input type="checkbox" data-h="${i}" ${used[i]?"checked":""} aria-label="Đã dùng"><span class="t" style="flex:1;font-weight:600">${esc(h)}</span><button class="btn btn-ghost hq-xs" data-hk="${i}">Copy</button></div>`).join("");
+  $$("#hqHooks [data-h]").forEach(c=>c.onchange=()=>{const u=Object.assign({},hget("hooks",{}));u[c.dataset.h]=c.checked;hset("hooks",u);c.closest(".hq-check").classList.toggle("done",c.checked);});
+  $$("#hqHooks [data-hk]").forEach(b=>b.onclick=async()=>{await copyText(HOOKS[+b.dataset.hk]);say("Đã copy câu mở đầu");});
+  $("#hqVidForm").innerHTML=`<div class="field-group"><label>Ngày đăng</label><input class="field" type="date" id="hqvDate" value="${isoDay()}"></div>
+    <div class="field-group"><label>Nền tảng</label><select class="field" id="hqvPf">${PLATFORMS.map(p=>`<option>${p}</option>`).join("")}</select></div>
+    <div class="field-group"><label>Dạng video</label><select class="field" id="hqvFm">${FORMATS.map(f=>`<option>${f[0]}</option>`).join("")}</select></div>
+    <div class="field-group"><label>Chủ đề</label><select class="field" id="hqvTp">${TOPICS.map(t=>`<option>${t}</option>`).join("")}</select></div>
+    <div class="field-group"><label>Câu mở đầu</label><input class="field" id="hqvHook"></div>
+    <div class="field-group"><label>Lượt xem sau 48 giờ</label><input class="field" type="number" min="0" id="hqvView"></div>
+    <div class="field-group"><label>Inbox từ video</label><input class="field" type="number" min="0" id="hqvInbox"></div>
+    <div class="field-group"><label>Đơn từ video</label><input class="field" type="number" min="0" id="hqvWon"></div>`;
+  renderVideos();
+}
+function renderVideos(){
+  const V=hget("videos",[]), by={};
+  V.forEach(v=>{by[v.fm]=by[v.fm]||{view:0,inbox:0};by[v.fm].view+=+v.view||0;by[v.fm].inbox+=+v.inbox||0;});
+  const rows=Object.entries(by).map(([k,o])=>[k,o.view?o.inbox/o.view*1000:0]).sort((a,b)=>b[1]-a[1]), mx=Math.max(.01,...rows.map(r=>r[1]));
+  $("#hqVidBy").innerHTML=rows.length?`<div class="hq-h3">Inbox trên 1000 lượt xem, theo dạng video</div>`+rows.map(([k,r])=>`<div class="hq-hbar"><span>${esc(k)}</span><div class="tr"><div class="fi" style="width:${r/mx*100}%"></div></div><b>${r.toFixed(1)}</b></div>`).join(""):`<p class="hq-p hq-sm hq-dim">Chưa có video nào. Thêm video đầu tiên, sau 48 giờ quay lại cập nhật số liệu.</p>`;
+  $("#hqVidTbl").innerHTML=V.length?`<table class="hq-table"><tr><th>Ngày</th><th>Nền tảng</th><th>Dạng</th><th>Chủ đề</th><th>Câu mở đầu</th><th>Xem</th><th>Inbox</th><th>Đơn</th><th>/1000</th><th></th></tr>${V.map((v,i)=>`<tr><td>${v.date.slice(8)}/${v.date.slice(5,7)}</td><td>${esc(v.pf)}</td><td>${esc(v.fm)}</td><td>${esc(v.tp)}</td><td>${esc(v.hook)}</td><td class="n">${(+v.view||0).toLocaleString("vi-VN")}</td><td class="n">${v.inbox||0}</td><td class="n">${v.won||0}</td><td class="n">${v.view?(v.inbox/v.view*1000).toFixed(1):"–"}</td><td><button class="btn btn-ghost hq-xs" data-vdel="${i}">Xoá</button></td></tr>`).reverse().join("")}</table>`:"";
+  $$("#hqVidTbl [data-vdel]").forEach(b=>b.onclick=()=>{const V2=hget("videos",[]).slice();V2.splice(+b.dataset.vdel,1);hset("videos",V2);renderVideos();});
+}
+
+/* ---------------- init ---------------- */
+function init(){
+  if(!$("#view-talk")) return;
+  $("#hqNewGroup").innerHTML=GROUPS.map(([g,n])=>`<option value="${g}">${n}</option>`).join("");
+  $("#hqAddToggle").onclick=()=>{$("#hqAddBox").hidden=!$("#hqAddBox").hidden;if(!$("#hqAddBox").hidden)$("#hqNewText").focus();};
+  $("#hqNewCancel").onclick=()=>{$("#hqAddBox").hidden=true;};
+  $("#hqNewSave").onclick=()=>{const t=$("#hqNewText").value.trim(); if(!t){say("Gõ nội dung câu trước đã","err");return;}
+    hset("custom",custom().concat([{id:"u"+Date.now(),g:$("#hqNewGroup").value,n:0,w:$("#hqNewWhen").value.trim(),t}]));
+    $("#hqNewText").value="";$("#hqNewWhen").value="";$("#hqAddBox").hidden=true;renderGroups();renderTalk();say("Đã thêm câu");};
+  $("#hqTalkSearch").addEventListener("input",renderTalk);
+  $("#hqStk").value=hget("stk","");
+  let stkT=null; $("#hqStk").addEventListener("input",()=>{clearTimeout(stkT);stkT=setTimeout(()=>{hset("stk",$("#hqStk").value);renderTalk();},500);});
+  renderGroups(); renderTalk(); renderImages();
+  $("#hqSesStart").onclick=()=>{hset("cur",{start:Date.now(),name:$("#hqSesName").value.trim(),steps:[]});renderSteps();tick();};
+  $("#hqSesCancel").onclick=()=>{hset("cur",null);renderSteps();tick();};
+  $("#hqSesStop").onclick=()=>{const C=cur(); const min=Math.max(1,Math.round((Date.now()-C.start)/60000));
+    hset("setupLog",hget("setupLog",[]).concat([{date:isoDay(new Date(C.start)),name:C.name,min,steps:(C.steps||[]).filter(Boolean).length}]));
+    hset("cur",null); $("#hqSesName").value=""; renderSteps(); tick(); renderSetupStats(); say(`Đã lưu buổi cài ${min} phút`);};
+  renderSteps(); tick(); renderSetupStats(); setInterval(tick,1000);
+  checklist($("#hqKitPrep"),[["k1","Chép Rainmeter-4.5.23.exe và Rainmeter Layouts.rmskin vào thư mục files của kit"],["k2","Trên máy bạn, chạy mục 5 để lưu 4 layout chuẩn"],["k3","Nén thành zip, đưa lên Google Drive, ai có link cũng xem được"],["k4","Chạy thử toàn bộ trên máy bạn trước khi dùng cho khách"]],"kitPrep");
+  checklist($("#hqSkinCheck"),[["s1","Giấy phép không phải CC BY-NC (phi thương mại)"],["s2","Font không phải bản Personal Use hoặc DEMO"],["s3","Không dùng Update=16 hoặc nhiều plugin nặng"]],"skinCheck");
+  renderContent();
+  $("#hqVidAdd").onclick=()=>{const v={date:$("#hqvDate").value||isoDay(),pf:$("#hqvPf").value,fm:$("#hqvFm").value,tp:$("#hqvTp").value,hook:$("#hqvHook").value.trim(),view:+$("#hqvView").value||0,inbox:+$("#hqvInbox").value||0,won:+$("#hqvWon").value||0};
+    hset("videos",hget("videos",[]).concat([v]));["hqvHook","hqvView","hqvInbox","hqvWon"].forEach(id=>{$("#"+id).value="";});renderVideos();say("Đã thêm video");};
+  /* mở đúng tab khi vào bằng link #talk, #setup… */
+  const h=location.hash.slice(1); if(["talk","assets","setup","skin","content"].includes(h)){ try{switchView(h);}catch(e){} }
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
 </script>
 </body>
