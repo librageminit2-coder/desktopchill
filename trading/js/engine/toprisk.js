@@ -28,7 +28,8 @@ export function topRisk(f) {
   const g15 = c[i] / lowest(l, 15) - 1;
   let maxUp = 0, maxUpI = -1; for (let k = Math.max(1, n - 120); k < n; k++) { const r = c[k] / c[k - 1] - 1; if (r > maxUp) { maxUp = r; maxUpI = k; } }
   let ups = 0; for (let k = n - 10; k < n; k++) if (c[k] > c[k - 1]) ups++;
-  if (g15 >= 0.25 && f.fromLo > 50) add('climax', 20, `Tăng tốc ${(g15 * 100).toFixed(0)}% trong 3 tuần sau đợt tăng dài${maxUpI >= n - 15 ? ', kèm phiên tăng mạnh nhất cả đợt' : ''} — dấu hiệu "climax top" của O'Neil`);
+  const nearHigh = f.fromHi > -15; // các lý thuyết tạo đỉnh chỉ áp dụng khi giá ở gần đỉnh sau một đợt tăng
+  if (g15 >= 0.25 && f.fromLo > 50 && nearHigh) add('climax', 20, `Tăng tốc ${(g15 * 100).toFixed(0)}% trong 3 tuần sau đợt tăng dài${maxUpI >= n - 15 ? ', kèm phiên tăng mạnh nhất cả đợt' : ''} — dấu hiệu "climax top" của O'Neil`);
   else if (ups >= 8 && cur50 > 0.1) add('climax', 10, `${ups}/10 phiên gần nhất đều tăng — đà tăng dốc đứng, dễ kiệt sức`);
 
   // 4) Gap kiệt sức
@@ -68,10 +69,14 @@ export function topRisk(f) {
     else if (bases === 3) add('late', 6, 'Đang ở nền thứ 3 kể từ đáy — bắt đầu giai đoạn muộn'); }
   // 13) Weinstein Stage 3: MA150 (≈ MA30 tuần) đi ngang sau đợt tăng, giá cắt qua lại
   { const m150 = sma(c, 150); const sl = slopePct(m150, 20); let cross = 0;
+    const priorUp = ok(m150[n - 60]) && ok(m150[n - 140]) && m150[n - 60] / m150[n - 140] - 1 > 0.08; // trước đó MA phải đi lên (đã có đợt tăng)
     for (let k = n - 40; k < n; k++) if (ok(m150[k]) && ok(m150[k - 1]) && (c[k] - m150[k]) * (c[k - 1] - m150[k - 1]) < 0) cross++;
-    if (ok(sl) && Math.abs(sl) < 0.03 && cross >= 3 && f.fromLo > 30) add('stage3', 12, `MA30 tuần đi ngang, giá cắt qua lại ${cross} lần — giai đoạn 3 (tạo đỉnh) theo Weinstein`); }
+    if (ok(sl) && Math.abs(sl) < 0.03 && cross >= 3 && f.fromLo > 30 && priorUp && f.fromHi > -25) add('stage3', 12, `MA30 tuần đi ngang, giá cắt qua lại ${cross} lần — giai đoạn 3 (tạo đỉnh) theo Weinstein`); }
 
-  const score = Math.min(100, S.reduce((s, x) => s + x.pts, 0));
+  // Mã còn cách xa đỉnh 52 tuần là nhịp hồi trong xu hướng giảm, không phải vùng phân phối đỉnh → giảm mạnh trọng số
+  const ctxMult = f.fromHi >= -15 ? 1 : f.fromHi >= -30 ? 0.6 : 0.3;
+  const score = Math.round(Math.min(100, S.reduce((s, x) => s + x.pts, 0) * ctxMult));
+  if (ctxMult < 1 && S.length) S.push({ k: 'ctx', pts: 0, text: `Giá còn cách đỉnh 52 tuần ${Math.abs(f.fromHi).toFixed(0)}% — đây là nhịp hồi, rủi ro chính là kháng cự phía trên hơn là phân phối đỉnh` });
   return { score, level: lvl(score), signals: S.sort((a, b) => b.pts - a.pts) };
 }
 

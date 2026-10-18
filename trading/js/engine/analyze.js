@@ -1,7 +1,7 @@
 // Phân tích một mã: tính đặc trưng (features) rồi chấm điểm 3 khung thời gian.
 import { computeAll, toWeekly, rsi, macd, sma, ema, slopePct, highest, lowest, roc } from './indicators.js?v=8e6ac8b1';
 import { levels, fibonacci, divergences, candles, chartPatterns, trendStructure, fmtP } from './structure.js?v=c3bd6cc0';
-import { topRisk } from './toprisk.js?v=9f73eb9f';
+import { topRisk } from './toprisk.js?v=a2074962';
 
 const clamp = (x, a = -1, b = 1) => Math.max(a, Math.min(b, x));
 const pct = (a, b) => (a / b - 1) * 100;

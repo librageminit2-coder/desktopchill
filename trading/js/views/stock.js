@@ -1,7 +1,7 @@
 // Trang chi tiết mã: nhận định 3 khung thời gian, biểu đồ có Fibo/hỗ trợ/kháng cự/tín hiệu, chỉ báo, cơ bản, khối ngoại, lưu nhận định.
-import * as store from '../data/store.js?v=a69908ee';
+import * as store from '../data/store.js?v=a29f6ded';
 import * as auth from '../auth.js?v=5f446a77';
-import { features, score, keyZones } from '../engine/analyze.js?v=3c86c1df';
+import { features, score, keyZones } from '../engine/analyze.js?v=31ff57ca';
 import { tradePlans } from '../engine/plan.js?v=887fce06';
 import { bottomScore } from '../engine/bottom.js?v=78a2248a';
 import { computeAll, toWeekly } from '../engine/indicators.js?v=8e6ac8b1';

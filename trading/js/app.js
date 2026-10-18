@@ -1,13 +1,13 @@
 // Khung ứng dụng: đăng nhập, thanh điều hướng, định tuyến, trạng thái realtime.
 import * as auth from './auth.js?v=5f446a77';
-import * as store from './data/store.js?v=a69908ee';
+import * as store from './data/store.js?v=a29f6ded';
 import { $, $$, esc, ico, LOGO, toast, modal, timeVN } from './ui/util.js?v=70d78725';
-import marketView from './views/market.js?v=e952e692';
-import screenerView from './views/screener.js?v=48dfa71e';
-import stockView from './views/stock.js?v=55978793';
-import journalView from './views/journal.js?v=129676d1';
+import marketView from './views/market.js?v=23adec07';
+import screenerView from './views/screener.js?v=3b603406';
+import stockView from './views/stock.js?v=9b7c1488';
+import journalView from './views/journal.js?v=c4c4b1f5';
 import methodView from './views/method.js?v=2165a2b8';
-import scenarioView from './views/scenario.js?v=599257fc';
+import scenarioView from './views/scenario.js?v=e0f5e4ff';
 import adminView from './views/admin.js?v=57398de0';
 
 const app = $('#app');
