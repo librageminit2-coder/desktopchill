@@ -45,6 +45,9 @@ function plan(f, hz, bottom, M = { extra: 0, warn: null }) {
   const res = f.lv.resistance.map((x) => x.p), sup = f.lv.support.map((x) => x.p);
   const chandelier = highest(h, 22) - 3 * (atrFn(h, l, c, 22)[i] || A);
 
+  // dừng lỗ theo cấu trúc: dùng đáy sóng gần nhất nếu nó nằm trong mức rủi ro tối đa, nếu không thì dùng ATR quanh vùng vào
+  const structStop = (anchor) => { const cand = lastLow - 0.3 * A; const atrStop = anchor - C.stopAtr * A;
+    return dn(cand < anchor && cand >= anchor * (1 - C.maxRisk) ? Math.min(atrStop, cand) : atrStop); };
   const finish = (o) => {
     const entry = o.entryHi ?? o.entry; const risk = entry - o.stop;
     if (!(risk > 0)) return { setup: 'none', label: 'Chưa có điểm vào đạt chuẩn', note: 'Không xác định được vùng dừng lỗ hợp lý dưới điểm vào.' };
@@ -65,15 +68,15 @@ function plan(f, hz, bottom, M = { extra: 0, warn: null }) {
   if (top.score >= 40) {
     const z = hz === 'short' ? f.ema20 : f.ma50; if (!ok(z)) return { setup: 'none', label: 'Đứng ngoài', note: 'Rủi ro vùng đỉnh cao.' };
     const lo = dn(z), hi = up(z + 0.3 * A);
-    return finish({ setup: 'wait', label: `Không mua đuổi — chờ về ${hz === 'short' ? 'EMA20' : 'MA50'}`, entry: lo, entryHi: hi, stop: dn(Math.min(z - C.stopAtr * A, lastLow - 0.3 * A)), t1: up(swingHigh), t2: null,
+    return finish({ setup: 'wait', label: `Không mua đuổi — chờ về ${hz === 'short' ? 'EMA20' : 'MA50'}`, entry: lo, entryHi: hi, stop: structStop(z), t1: up(swingHigh), t2: null,
       note: `${top.level.label} (điểm rủi ro ${top.score}/100). Chỉ cân nhắc khi giá điều chỉnh về vùng ${hz === 'short' ? 'EMA20' : 'MA50'} và giữ được.`, blocked: top.score >= 60 ? 'Rủi ro đỉnh cao — đứng ngoài, không mở vị thế mới' : null });
   }
   // 1) Đảo chiều từ vùng đáy
   if (bottom && bottom.inZone && bottom.score >= 55 && bottom.stage && bottom.stage.key !== 'falling' && !uptrend) {
     const trig = up(Math.max(p, f.ema20 || p) + 0.1 * A);
     return finish({ setup: 'reversal', label: bottom.stage.key === 'turning' ? 'Đảo chiều từ đáy — đã xác nhận' : 'Đảo chiều từ đáy — chờ xác nhận', entry: bottom.stage.key === 'turning' ? dn(p) : trig, entryHi: bottom.stage.key === 'turning' ? up(p + 0.3 * A) : null,
-      stop: dn(Math.min(lastLow, bottom.stopRef || lastLow) - 0.5 * A), t1: dn(bottom.target382), t2: dn(bottom.target618), trigger: bottom.stage.key === 'turning' ? 'zone' : 'stop',
-      note: bottom.stage.key === 'turning' ? 'Giá đã lấy lại EMA20 với đáy sau cao hơn. Mua trong vùng, dừng lỗ dưới đáy nền.' : `Chỉ vào khi giá vượt ${trig.toLocaleString('vi-VN')} (trên EMA20). Mục tiêu là các mức hồi Fibonacci của sóng giảm.` });
+      stop: hz === 'long' ? dn(Math.min(lastLow, bottom.stopRef || lastLow) - 0.5 * A) : dn(lowest(l, hz === 'short' ? 10 : 25) - 0.5 * A), t1: dn(bottom.target382), t2: dn(bottom.target618), trigger: bottom.stage.key === 'turning' ? 'zone' : 'stop',
+      note: bottom.stage.key === 'turning' ? 'Giá đã lấy lại EMA20 với đáy sau cao hơn. Mua trong vùng, dừng lỗ dưới đáy gần nhất của nền.' : `Chỉ vào khi giá vượt ${trig.toLocaleString('vi-VN')} (trên EMA20). Mục tiêu là các mức hồi Fibonacci của sóng giảm.` });
   }
   // 2) Xu hướng giảm: đứng ngoài
   if (downtrend && hz !== 'long') return { setup: 'none', label: 'Đứng ngoài — xu hướng giảm', note: `Giá dưới MA50 đang dốc xuống. Chờ tạo nền và lấy lại MA50 (${Math.round(f.ma50).toLocaleString('vi-VN')}).`, valid: false };
@@ -98,7 +101,7 @@ function plan(f, hz, bottom, M = { extra: 0, warn: null }) {
       const inZone = p <= s0 + 1.2 * A;
       const fibExt = f.fib && f.fib.up ? f.fib.ext[0].p : null;
       return finish({ setup: 'pullback', label: inZone ? 'Mua khi điều chỉnh — giá đang trong vùng hỗ trợ' : 'Chờ điều chỉnh về hỗ trợ', entry: dn(s0), entryHi: up(s0 + 0.5 * A), trigger: 'zone',
-        stop: dn(Math.min(s0 - C.stopAtr * A, lastLow - 0.3 * A)), t1: up(Math.max(swingHigh, p + A)), t2: fibExt ? up(fibExt) : null,
+        stop: structStop(s0), t1: up(Math.max(swingHigh, p + A)), t2: fibExt ? up(fibExt) : null,
         note: inZone ? 'Giá đang nằm sát vùng hỗ trợ của xu hướng tăng — vùng mua có rủi ro thấp.' : `Giá đang cách vùng hỗ trợ ${((p / s0 - 1) * 100).toFixed(1)}%. Mua đuổi lúc này làm R:R xấu đi.` });
     }
   }

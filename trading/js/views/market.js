@@ -1,5 +1,5 @@
 // Trang Thị trường: câu nhận định, điểm sức khỏe, VN-Index, độ rộng, ngày phân phối, ngành, dòng tiền.
-import * as store from '../data/store.js?v=a29f6ded';
+import * as store from '../data/store.js?v=b827dab1';
 import { computeAll } from '../engine/indicators.js?v=8e6ac8b1';
 import { priceChart, areaChart } from '../ui/chart.js?v=a75cd100';
 import { $, $$, esc, ico, fmtP, fmtIdx, fmtChg, fmtPct, fmtTy, fmtN, cls, avatar, scoreCell, dateVN } from '../ui/util.js?v=70d78725';

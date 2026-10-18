@@ -3,7 +3,7 @@ import { features, rsRaw, score } from './analyze.js?v=31ff57ca';
 import { marketHealth, sectorStats, median } from './market.js?v=8023da8a';
 import { bottomScore } from './bottom.js?v=78a2248a';
 import { scenarios } from './scenario.js?v=b8ada897';
-import { tradePlans } from './plan.js?v=887fce06';
+import { tradePlans } from './plan.js?v=39f2d4a7';
 
 const ok = (x) => x !== undefined && x !== null && !Number.isNaN(x) && Number.isFinite(x);
 

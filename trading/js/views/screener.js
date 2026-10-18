@@ -1,5 +1,5 @@
 // Trang Cơ hội: xếp hạng toàn bộ mã HOSE theo khung thời gian, lọc theo ngành, thanh khoản, tín hiệu.
-import * as store from '../data/store.js?v=a29f6ded';
+import * as store from '../data/store.js?v=b827dab1';
 import { $, $$, esc, fmtP, fmtPct, fmtTy, cls, scoreCell, spark, avatar, HZ, HZ_SUB } from '../ui/util.js?v=70d78725';
 
 const LS = 'dct_screener';

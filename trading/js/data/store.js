@@ -33,7 +33,7 @@ export function sessionInfo(now = new Date()) {
 // ---------- worker ----------
 let worker = null;
 function startWorker() {
-  worker = new Worker(new URL('../engine/worker.js?v=6442f105', import.meta.url), { type: 'module' });
+  worker = new Worker(new URL('../engine/worker.js?v=e51b4ebb', import.meta.url), { type: 'module' });
   worker.onmessage = (ev) => {
     if (ev.data.type === 'result') { state.result = ev.data.data; emit('result'); }
     else if (ev.data.type === 'error') { console.error('worker', ev.data.error); state.errors.push(ev.data.error); emit('error'); }
