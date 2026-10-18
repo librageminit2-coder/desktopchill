@@ -17,7 +17,7 @@ function dial(score, tone) {
     <path d="M${x0} ${y0} A${r} ${r} 0 0 1 ${xs} ${ys}" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round"/>
     ${ticks}
     <circle cx="${xs}" cy="${ys}" r="7" fill="var(--bg)" stroke="${col}" stroke-width="3"/>
-    <text x="100" y="86" text-anchor="middle" font-family="Instrument Serif, serif" font-size="46" fill="var(--text)">${score}</text>
+    <text x="100" y="86" text-anchor="middle" font-family="Newsreader, Noto Serif, Georgia, serif" font-size="46" fill="var(--text)">${score}</text>
     <text x="100" y="108" text-anchor="middle" font-size="10" fill="var(--text-faint)" font-family="Plus Jakarta Sans">trên 100</text></svg>`;
 }
 
@@ -28,7 +28,7 @@ function render(main) {
     <div id="notice"></div>
     <div class="grid g-main">
       <section class="glass panel">
-        <div class="panel-h"><h2>VN-Index</h2>
+        <div class="panel-h"><h2>VN-Index <span class="sub" style="font-weight:500">· chấm đỏ là ngày phân phối</span></h2>
           <div class="chart-tools"><div class="legend"><span><i style="background:var(--ma20)"></i>MA20</span><span><i style="background:var(--ma50)"></i>MA50</span><span><i style="background:var(--ma200)"></i>MA200</span></div>
           <div class="seg sm" id="rng">${[[65, '3T'], [130, '6T'], [250, '1N'], [520, '2N']].map(([v, l]) => `<button data-v="${v}" class="${v === range ? 'on' : ''}">${l}</button>`).join('')}</div></div></div>
         <div class="chart-box" id="idxChart"><div class="chart-tip" id="idxTip"></div></div>
@@ -97,7 +97,7 @@ function drawIndex(force) {
   if (!chart) return;
   const ind = computeAll(idx); const m = S.result?.market;
   const markers = [];
-  if (m) for (const d of m.dist) { const b = idx[idx.length - 1 - d.ago]; if (b) markers.push({ time: b.t, position: 'aboveBar', color: getComputedStyle(document.documentElement).getPropertyValue('--down').trim(), shape: 'circle', text: 'PP' }); }
+  if (m) for (const d of m.dist) { const b = idx[idx.length - 1 - d.ago]; if (b) markers.push({ time: b.t, position: 'aboveBar', color: getComputedStyle(document.documentElement).getPropertyValue('--down').trim(), shape: 'circle', size: 0.6 }); }
   chart.set(idx, ind, { range, markers });
   lastIdxLen = idx.length; lastIdxClose = lastC;
 }
@@ -152,7 +152,7 @@ function sectorsHTML(secs) {
       <td class="r"><span class="score ${x.score >= 65 ? 's-vpos' : x.score >= 55 ? 's-pos' : x.score > 45 ? 's-neu' : x.score > 35 ? 's-neg' : 's-vneg'}"><span class="bar"><i style="width:${x.score}%"></i></span><b class="num">${Math.round(x.score)}</b></span></td>
       <td class="r num ${cls(x.chg)}">${fmtPct(x.chg)}</td><td class="r num ${cls(x.chg5)}">${fmtPct(x.chg5, 1)}</td><td class="r num ${cls(x.chg20)}">${fmtPct(x.chg20, 1)}</td>
       <td class="r">${flowBar(x.flow)}</td><td class="r num">${Number.isFinite(x.above50) ? x.above50.toFixed(0) + '%' : '—'}</td>
-      <td><div class="tags">${x.leaders.map((s) => `<button class="pill ghost" data-sym="${s}">${s}</button>`).join('')}</div></td></tr>`).join('')}
+      <td><div class="tags" style="flex-wrap:nowrap">${x.leaders.map((s) => `<button class="pill ghost" data-sym="${s}">${s}</button>`).join('')}</div></td></tr>`).join('')}
     </tbody></table>`;
 }
 

@@ -87,7 +87,7 @@ export function fibonacci(ind, look = 160) {
 
 // ---------- Phân kỳ giữa giá và một dao động (RSI/MACD hist) ----------
 // trả các phân kỳ có điểm thứ hai trong `recent` phiên gần nhất
-export function divergences(price, osc, { look = 70, recent = 8, w = 3, name = 'RSI', lowZone = 42, highZone = 58 } = {}) {
+export function divergences(price, osc, { look = 70, recent = 6, w = 3, name = 'RSI', lowZone = 40, highZone = 60, minDiff = 3, macd = false, hidden = true } = {}) {
   const n = price.length; const out = [];
   const start = Math.max(0, n - look);
   const sub = (arr) => arr.slice(start);
@@ -109,16 +109,18 @@ export function divergences(price, osc, { look = 70, recent = 8, w = 3, name = '
   const pL = pair(L), pH = pair(H);
   if (pL) {
     const [a, b] = pL;
-    if (n - 1 - b <= recent && b - a >= 5 && !Number.isNaN(osc[a]) && !Number.isNaN(osc[b])) {
-      if (lows[b] < lows[a] && osc[b] > osc[a] + 1e-9 && osc[a] < lowZone) out.push({ kind: 'bull', hidden: false, a, b, name, text: `Phân kỳ dương ${name}: giá tạo đáy thấp hơn nhưng ${name} tạo đáy cao hơn` });
-      else if (lows[b] > lows[a] && osc[b] < osc[a] - 1e-9 && osc[b] < lowZone + 5) out.push({ kind: 'bull', hidden: true, a, b, name, text: `Phân kỳ ẩn tăng ${name}: giá giữ đáy cao hơn, ${name} hạ nhiệt — xu hướng tăng có thể tiếp diễn` });
+    if (n - 1 - b <= recent && b - a >= 8 && b - a <= 55 && !Number.isNaN(osc[a]) && !Number.isNaN(osc[b])) {
+      const dOk = (x, y) => (macd ? Math.abs(y - x) >= Math.abs(x) * 0.3 : Math.abs(y - x) >= minDiff);
+      if (lows[b] < lows[a] && osc[b] > osc[a] && dOk(osc[a], osc[b]) && osc[a] < lowZone && (!macd || osc[b] < 0)) out.push({ kind: 'bull', hidden: false, a, b, name, text: `Phân kỳ dương ${name}: giá tạo đáy thấp hơn nhưng ${name} tạo đáy cao hơn` });
+      else if (hidden && lows[b] > lows[a] && osc[b] < osc[a] && dOk(osc[a], osc[b]) && osc[b] < lowZone + 5) out.push({ kind: 'bull', hidden: true, a, b, name, text: `Phân kỳ ẩn tăng ${name}: giá giữ đáy cao hơn, ${name} hạ nhiệt — xu hướng tăng có thể tiếp diễn` });
     }
   }
   if (pH) {
     const [a, b] = pH;
-    if (n - 1 - b <= recent && b - a >= 5 && !Number.isNaN(osc[a]) && !Number.isNaN(osc[b])) {
-      if (highs[b] > highs[a] && osc[b] < osc[a] - 1e-9 && osc[a] > highZone) out.push({ kind: 'bear', hidden: false, a, b, name, text: `Phân kỳ âm ${name}: giá tạo đỉnh cao hơn nhưng ${name} yếu đi` });
-      else if (highs[b] < highs[a] && osc[b] > osc[a] + 1e-9 && osc[b] > highZone - 5) out.push({ kind: 'bear', hidden: true, a, b, name, text: `Phân kỳ ẩn giảm ${name}: giá đỉnh thấp hơn trong khi ${name} hồi — áp lực giảm có thể tiếp diễn` });
+    if (n - 1 - b <= recent && b - a >= 8 && b - a <= 55 && !Number.isNaN(osc[a]) && !Number.isNaN(osc[b])) {
+      const dOk = (x, y) => (macd ? Math.abs(y - x) >= Math.abs(x) * 0.3 : Math.abs(y - x) >= minDiff);
+      if (highs[b] > highs[a] && osc[b] < osc[a] && dOk(osc[a], osc[b]) && osc[a] > highZone && (!macd || osc[b] > 0)) out.push({ kind: 'bear', hidden: false, a, b, name, text: `Phân kỳ âm ${name}: giá tạo đỉnh cao hơn nhưng ${name} yếu đi` });
+      else if (hidden && highs[b] < highs[a] && osc[b] > osc[a] && dOk(osc[a], osc[b]) && osc[b] > highZone - 5) out.push({ kind: 'bear', hidden: true, a, b, name, text: `Phân kỳ ẩn giảm ${name}: giá đỉnh thấp hơn trong khi ${name} hồi — áp lực giảm có thể tiếp diễn` });
     }
   }
   return out;
@@ -158,7 +160,7 @@ export function chartPatterns(ind) {
   if (lows.length >= 2) {
     const L2 = lows[lows.length - 1], L1 = lows[lows.length - 2];
     const mid = highs.filter((p) => p.i > L1.i && p.i < L2.i).sort((x, y) => y.p - x.p)[0];
-    if (mid && near(L1.p, L2.p) && mid.p / Math.max(L1.p, L2.p) - 1 > 0.06 && L2.i > n - 45 && L2.i - L1.i >= 10) {
+    if (mid && near(L1.p, L2.p) && mid.p / Math.max(L1.p, L2.p) - 1 > 0.08 && L2.i > n - 25 && L2.i - L1.i >= 10 && (price > mid.p || price / L2.p - 1 < 0.08 || price / L2.p - 1 > 0.04)) {
       const broke = price > mid.p;
       out.push({ kind: 'bull', key: 'double-bottom', name: 'Hai đáy (W)', neckline: mid.p, a: L1.i, b: L2.i, confirmed: broke,
         text: broke ? `Mô hình hai đáy đã vượt đường viền cổ ${fmtP(mid.p)}${volUp ? ' kèm khối lượng lớn' : ''}` : `Đang hình thành hai đáy quanh ${fmtP((L1.p + L2.p) / 2)}, cần vượt ${fmtP(mid.p)} để xác nhận`,
@@ -169,7 +171,7 @@ export function chartPatterns(ind) {
   if (highs.length >= 2) {
     const H2 = highs[highs.length - 1], H1 = highs[highs.length - 2];
     const mid = lows.filter((p) => p.i > H1.i && p.i < H2.i).sort((x, y) => x.p - y.p)[0];
-    if (mid && near(H1.p, H2.p) && Math.min(H1.p, H2.p) / mid.p - 1 > 0.06 && H2.i > n - 45 && H2.i - H1.i >= 10) {
+    if (mid && near(H1.p, H2.p) && Math.min(H1.p, H2.p) / mid.p - 1 > 0.08 && H2.i > n - 25 && H2.i - H1.i >= 10) {
       const broke = price < mid.p;
       out.push({ kind: 'bear', key: 'double-top', name: 'Hai đỉnh (M)', neckline: mid.p, a: H1.i, b: H2.i, confirmed: broke,
         text: broke ? `Mô hình hai đỉnh đã thủng đường viền cổ ${fmtP(mid.p)}` : `Có dấu hiệu hai đỉnh quanh ${fmtP((H1.p + H2.p) / 2)}, mốc cần giữ là ${fmtP(mid.p)}` });

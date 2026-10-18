@@ -65,7 +65,7 @@ export function marketHealth(idxBars, feats, { advDec = null, sessionFrac = 1 } 
   const parts = [];
   const P = (k, w, s, text) => { if (ok(s)) parts.push({ k, w, s: clamp(s), text }); };
   P('trend', 22, (c > m.ma20 ? 0.3 : -0.3) + (c > m.ma50 ? 0.35 : -0.35) + (m.ma20 > m.ma50 ? 0.35 : -0.35), `VN-Index ${c > m.ma20 ? 'trên' : 'dưới'} MA20, ${c > m.ma50 ? 'trên' : 'dưới'} MA50`);
-  P('long', 10, (c > m.ma200 ? 0.5 : -0.5) + clamp(m.s200 * 8, -0.5, 0.5), `${c > m.ma200 ? 'Trên' : 'Dưới'} MA200 — xu hướng dài hạn ${m.s200 > 0 ? 'đi lên' : 'đi xuống'}`);
+  P('long', 10, (c > m.ma200 ? 0.5 : -0.5) + clamp(m.s200 * 8, -0.5, 0.5), `VN-Index ${c > m.ma200 ? 'trên' : 'dưới'} MA200, MA200 ${m.s200 > 0.01 ? 'vẫn dốc lên' : m.s200 < -0.01 ? 'dốc xuống' : 'đi ngang'}`);
   P('struct', 8, m.struct.score, `Cấu trúc sóng chỉ số: ${m.struct.label}`);
   P('breadth', 18, (m.above50 - 50) / 30, `${m.above50.toFixed(0)}% cổ phiếu HOSE nằm trên MA50`);
   P('breadth200', 6, (m.above200 - 50) / 30, `${m.above200.toFixed(0)}% cổ phiếu nằm trên MA200`);
@@ -91,7 +91,7 @@ export function marketHealth(idxBars, feats, { advDec = null, sessionFrac = 1 } 
 }
 
 function headline(m) {
-  const breadth = m.above50 >= 60 ? 'dòng tiền lan tỏa rộng' : m.above50 >= 40 ? 'dòng tiền phân hóa' : 'phần lớn cổ phiếu còn yếu';
+  const breadth = m.above50 >= 60 ? 'dòng tiền lan tỏa rộng' : m.above50 >= 40 ? 'dòng tiền phân hóa' : 'đa số cổ phiếu nằm dưới MA50';
   const liq = ok(m.valueRatio) ? (m.valueRatio >= 1.15 ? ', thanh khoản sôi động' : m.valueRatio <= 0.75 ? ', thanh khoản thấp' : '') : '';
   const map = {
     'Xu hướng tăng xác nhận': `Thị trường khỏe, ${breadth}${liq}.`,
@@ -128,7 +128,7 @@ export function sectorStats(feats, secOf, secNames, scores = {}) {
   // điểm ngành: RS + độ rộng + hiệu suất 20 phiên + dòng tiền
   const rk = (key) => { const s = out.map((x) => x[key]).filter(ok).sort((a, b) => a - b); return (v) => (ok(v) && s.length ? (100 * s.filter((x) => x <= v).length) / s.length : 50); };
   const rRS = rk('rs'), rB = rk('above50'), r20 = rk('chg20'), rF = rk('flow');
-  for (const x of out) x.score = 0.35 * rRS(x.rs) + 0.25 * rB(x.above50) + 0.25 * r20(x.chg20) + 0.15 * rF(x.flow);
+  for (const x of out) { const raw = 0.35 * rRS(x.rs) + 0.25 * rB(x.above50) + 0.25 * r20(x.chg20) + 0.15 * rF(x.flow); x.score = 50 + (raw - 50) * Math.min(1, x.count / 5); }
   out.sort((a, b) => b.score - a.score); out.forEach((x, k) => { x.rank = k + 1; });
   return out;
 }

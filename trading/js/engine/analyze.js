@@ -62,7 +62,7 @@ export function features(bars, { foreignNet = null, sessionFrac = 1 } = {}) {
   const priceHL = Object.assign(c.slice(), { highs: h, lows: l });
   f.div = [
     ...divergences(priceHL, ind.rsi, { name: 'RSI' }),
-    ...divergences(priceHL, ind.macd.hist, { name: 'MACD', lowZone: 0, highZone: 0 }),
+    ...divergences(priceHL, ind.macd.hist, { name: 'MACD', lowZone: 0, highZone: 0, macd: true, hidden: false }),
   ];
   f.candles = candles(ind);
   f.patterns = chartPatterns(ind);

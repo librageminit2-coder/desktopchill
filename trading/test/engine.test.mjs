@@ -24,8 +24,8 @@ const piv = zigzag(zz, zz, 0.1); assert.ok(piv.length >= 3, 'zigzag pivots');
   for (let i = 0; i < 60; i++) { p.push(100 - i * 0.2); o.push(50); }
   // đáy 1 sâu RSI 20, đáy 2 giá thấp hơn nhưng RSI 35
   const set = (i, pr, os) => { for (let k = -3; k <= 3; k++) { p[i + k] = pr + Math.abs(k) * 1.5; o[i + k] = os + Math.abs(k) * 3; } };
-  set(35, 80, 20); set(52, 78, 35);
-  for (let i = 56; i < 60; i++) { p[i] = 80 + (i - 55); o[i] = 45; }
+  set(35, 80, 20); set(53, 78, 35);
+  for (let i = 57; i < 60; i++) { p[i] = 80 + (i - 56); o[i] = 45; }
   const d = divergences(Object.assign(p.slice(), { highs: p, lows: p }), o, { name: 'RSI' });
   assert.ok(d.some((x) => x.kind === 'bull' && !x.hidden), 'bull divergence ' + JSON.stringify(d));
 }

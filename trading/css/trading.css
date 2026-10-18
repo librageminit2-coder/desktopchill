@@ -1,4 +1,4 @@
-/* desktopchill · Trading — cùng ngôn ngữ thiết kế với /admin: kính mờ, Plus Jakarta Sans + Instrument Serif, cam san hô */
+/* desktopchill · Trading — cùng ngôn ngữ thiết kế với /admin: kính mờ, Plus Jakarta Sans + Newsreader (có đủ dấu tiếng Việt), cam san hô */
 :root, :root[data-theme="dark"] {
   color-scheme: dark;
   --bg: #070b12; --bg-2: #0e131c;
@@ -17,7 +17,7 @@
   --scrim: linear-gradient(180deg, rgba(5,8,14,.55) 0%, rgba(5,8,14,.72) 40%, rgba(5,8,14,.86) 100%);
   --radius: 18px; --radius-sm: 12px;
   --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --display: "Newsreader", "Noto Serif", Georgia, "Times New Roman", serif;
 }
 :root[data-theme="light"] {
   color-scheme: light;
@@ -38,6 +38,7 @@
 @media (prefers-color-scheme: light) { :root:not([data-theme]) { color-scheme: light; } }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.55; min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden; font-feature-settings: "tnum" 1, "lnum" 1; }
 a { color: inherit; text-decoration: none; }
@@ -180,6 +181,7 @@ button.pill:hover { border-color: var(--border-strong); color: var(--text); }
 .pill.neutral { background: var(--ref-bg); color: var(--ref); }
 .pill.ghost { border-color: var(--border); color: var(--text-dim); }
 .tags { display: flex; gap: 5px; flex-wrap: wrap; max-width: 330px; white-space: normal; }
+#tbl .tags { flex-wrap: nowrap; max-width: none; }
 
 /* điểm số */
 .score { display: inline-flex; align-items: center; gap: 8px; min-width: 92px; }
