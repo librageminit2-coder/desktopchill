@@ -24,6 +24,9 @@ export function scenarios({ bars, index, secOf, secNames, feats, scores, sectors
   // biên độ cả nhịp (đến pivot kế tiếp)
   const allPiv = zigzag(index.map((b) => b.h), index.map((b) => b.l), 0.06);
   for (const e of eps) { const nx = allPiv.find((p) => p.i > e.i); if (nx) e.move = (nx.p / index[e.i].c - 1) * 100; e.endT = nx ? index[Math.min(nx.i, index.length - 1)].t : null; }
+  // bỏ nhịp trùng ngày hoặc ngược chiều (thường là điểm đầu chuỗi của zigzag)
+  const seen = new Set();
+  for (let k = eps.length - 1; k >= 0; k--) { const e = eps[k]; if (seen.has(e.i) || (ok(e.move) && (e.type === 'up' ? e.move <= 0 : e.move >= 0))) eps.splice(k, 1); else seen.add(e.i); }
 
   const per = {}; const closeOf = {};
   for (const [sym, b] of Object.entries(bars)) {
@@ -120,7 +123,9 @@ export function scenarios({ bars, index, secOf, secNames, feats, scores, sectors
   const last = index[index.length - 1].c;
   const hs = allPiv.filter((p) => p.t === 'H' && p.p > last).map((p) => p.p), ls = allPiv.filter((p) => p.t === 'L' && p.p < last).map((p) => p.p);
   const recentLow = Math.min(...index.slice(-20).map((b) => b.l));
+  const uniq = (arr) => arr.filter((x, k) => arr.findIndex((y) => Math.abs(y.p / x.p - 1) < 0.003) === k);
   const triggers = { up: [market?.ma20 > last ? { label: 'MA20', p: market.ma20 } : null, market?.ma50 > last ? { label: 'MA50', p: market.ma50 } : null, hs.length ? { label: 'đỉnh gần nhất', p: Math.min(...hs) } : null].filter(Boolean).sort((a, b) => a.p - b.p),
     down: [{ label: 'đáy 20 phiên', p: recentLow }, ls.length ? { label: 'đáy sóng trước', p: Math.max(...ls) } : null, market?.ma200 < last ? { label: 'MA200', p: market.ma200 } : null].filter(Boolean).sort((a, b) => b.p - a.p) };
+  triggers.up = uniq(triggers.up); triggers.down = uniq(triggers.down);
   return { stockUp: stockUp.slice(0, 15), stockDown: stockDown.slice(0, 15), secUp: secUp.slice(0, 8), secDown: secDown.slice(0, 8), history, triggers, nEp: { up: eps.filter((e) => e.type === 'up').length, down: eps.filter((e) => e.type === 'down').length }, H };
 }
