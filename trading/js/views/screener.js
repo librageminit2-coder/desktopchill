@@ -1,5 +1,5 @@
 // Trang Cơ hội: xếp hạng toàn bộ mã HOSE theo khung thời gian, lọc theo ngành, thanh khoản, tín hiệu.
-import * as store from '../data/store.js?v=569ff4be';
+import * as store from '../data/store.js?v=a69908ee';
 import { $, $$, esc, fmtP, fmtPct, fmtTy, cls, scoreCell, spark, avatar, HZ, HZ_SUB } from '../ui/util.js?v=70d78725';
 
 const LS = 'dct_screener';
@@ -7,7 +7,10 @@ let st = { hz: 'mid', list: 'top', sec: '', liq: 1e9, chips: [], q: '', sort: nu
 try { Object.assign(st, JSON.parse(localStorage.getItem(LS) || '{}'), { limit: 60, q: '' }); } catch (e) {}
 const save = () => { try { localStorage.setItem(LS, JSON.stringify({ hz: st.hz, list: st.list, sec: st.sec, liq: st.liq, chips: st.chips })); } catch (e) {} };
 
+const phz = () => (st.hz === 'bottom' ? 'mid' : st.hz);
 const CHIPS = [
+  { k: 'plan', label: 'Có điểm vào đạt chuẩn R:R', test: (r) => r.plan?.[phz()]?.valid },
+  { k: 'notop', label: 'Ẩn mã rủi ro vùng đỉnh', test: (r) => !(r.top && r.top.score >= 40) },
   { k: 'breakout', label: 'Breakout', test: (r) => r.tags.some((t) => ['base-breakout', 'asc-tri', 'flag'].includes(t.k) && t.kind === 'bull' && t.confirmed) },
   { k: 'reversal', label: 'Mô hình đảo chiều tăng', test: (r) => r.tags.some((t) => ['double-bottom', 'ihs'].includes(t.k)) },
   { k: 'div', label: 'Phân kỳ dương', test: (r) => r.tags.some((t) => t.k === 'div' && t.kind === 'bull') },
@@ -81,7 +84,7 @@ function rowsFiltered() {
     if (st.list === 'bottom') rows = rows.filter((r) => r[st.hz].score <= 45);
   }
   const key = st.sort || (st.hz === 'bottom' ? 'bscore' : st.hz); const dir = st.sort ? st.dir : st.list === 'bottom' && st.hz !== 'bottom' ? 1 : -1;
-  const val = (r) => (['short', 'mid', 'long'].includes(key) ? r[key].score : key === 'bscore' ? r.bottom?.score ?? -1 : key === 'dd' ? -(r.bottom?.drawdown ?? 0) : key === 'up382' ? r.bottom?.upside382 ?? -1 : key === 'fromLow' ? -(r.bottom?.fromLow ?? 0) : key === 'sym' ? r.sym : r[key] ?? -Infinity);
+  const val = (r) => (['short', 'mid', 'long'].includes(key) ? r[key].score : key === 'bscore' ? r.bottom?.score ?? -1 : key === 'dd' ? -(r.bottom?.drawdown ?? 0) : key === 'up382' ? r.bottom?.upside382 ?? -1 : key === 'fromLow' ? -(r.bottom?.fromLow ?? 0) : key === 'rr' ? (r.plan?.[phz()]?.stop ? r.plan[phz()].rr1 + (r.plan[phz()].valid ? 100 : 0) : -1) : key === 'toprisk' ? r.top?.score ?? 0 : key === 'sym' ? r.sym : r[key] ?? -Infinity);
   rows.sort((a, b) => { const x = val(a), y = val(b); return (typeof x === 'string' ? x.localeCompare(y) : x - y) * dir; });
   return rows;
 }
@@ -95,28 +98,30 @@ function draw() {
   if (!R) { $('#tbl').innerHTML = '<div class="skeleton" style="height:420px;margin:14px"></div>'; return; }
   const rows = rowsFiltered(); const shown = rows.slice(0, st.limit);
   const th = (k, l, r = true, title = '') => `<th class="sort ${r ? 'r' : ''} ${(st.sort || st.hz) === k ? 'sorted' : ''}" data-k="${k}" ${title ? `title="${title}"` : ''}>${l}</th>`;
-  const tagHTML = (r) => r.tags.filter((t) => t.kind !== 'neutral').slice(0, 3).map((t) => `<span class="pill ${t.kind}">${esc(t.label)}</span>`).join('');
+  const tagHTML = (r) => r.tags.filter((t) => t.kind !== 'neutral' || t.k === 'top').slice(0, 3).map((t) => `<span class="pill ${t.kind}">${esc(t.label)}</span>`).join('');
+  const planTd = (r) => { const P = r.plan?.[phz()]; if (!P || !P.stop) return `<td class="faint" style="font-size:.78rem">${esc(P?.setup === 'none' && /giảm/.test(P.label) ? 'Đứng ngoài' : 'Chờ')}</td>`;
+    return `<td title="${esc(P.label)} · vào ${fmtP(P.entryHi || P.entry)} · dừng lỗ ${fmtP(P.stop)} (−${P.riskPct.toFixed(1)}%) · mục tiêu ${fmtP(P.t1)}"><div style="display:flex;align-items:center;gap:6px;white-space:nowrap"><span class="pill ${P.valid ? 'bull' : P.setup === 'wait' ? 'bear' : 'ghost'}">${P.rr1.toFixed(1)}R</span><span class="faint" style="font-size:.74rem">${esc({ breakout: 'Breakout', pullback: 'Điều chỉnh', reversal: 'Đảo chiều', wait: 'Chờ về TB' }[P.setup] || '')}</span></div></td>`; };
   const symCell = (r) => `<td><div class="sym">${avatar(r.sym)}<div style="min-width:0"><div class="tk">${r.sym}</div><div class="nm">${esc(S.names[r.sym] || S.secNames[S.secOf[r.sym]] || '')}</div></div></div></td>`;
   if (st.hz === 'bottom') {
     const stageCls = { falling: 'bear', basing: 'neutral', turning: 'bull' };
     const bcell = (b) => scoreCell({ score: b.score, verdict: { key: b.score >= 75 ? 'vpos' : b.score >= 60 ? 'pos' : b.score > 45 ? 'neu' : b.score > 30 ? 'neg' : 'vneg', label: '' } });
-    $('#tbl').innerHTML = rows.length ? `<table><thead><tr><th class="r">#</th>${th('sym', 'Mã', false)}${th('price', 'Giá')}${th('chg', '% hôm nay')}<th>60 phiên</th>${th('bscore', 'Điểm vùng đáy')}<th>Giai đoạn</th>${th('dd', 'Từ đỉnh 52T')}${th('fromLow', 'Từ đáy 52T')}${th('up382', 'Dư địa hồi', true, 'Tới mức Fibonacci 38,2% của con sóng giảm')}${th('mid', 'Trung hạn')}${th('avgVal20', 'GTGD TB20')}<th>Lý do chính</th></tr></thead>
+    $('#tbl').innerHTML = rows.length ? `<table><thead><tr><th class="r">#</th>${th('sym', 'Mã', false)}${th('price', 'Giá')}${th('chg', '% hôm nay')}<th>60 phiên</th>${th('bscore', 'Điểm vùng đáy')}<th>Giai đoạn</th>${th('dd', 'Từ đỉnh 52T')}${th('fromLow', 'Từ đáy 52T')}${th('up382', 'Dư địa hồi', true, 'Tới mức Fibonacci 38,2% của con sóng giảm')}${th('mid', 'Trung hạn')}${th('rr', 'Kế hoạch', false, 'R:R tới mục tiêu 1 của kế hoạch trung hạn')}${th('avgVal20', 'GTGD TB20')}<th>Lý do chính</th></tr></thead>
       <tbody>${shown.map((r, i) => `<tr class="click" data-sym="${r.sym}" tabindex="0"><td class="r faint num">${i + 1}</td>${symCell(r)}
         <td class="r num"><b>${fmtP(r.price)}</b></td><td class="r num ${cls(r.chg)}">${fmtPct(r.chg)}</td><td>${spark(r.spark)}</td>
         <td class="r">${bcell(r.bottom)}</td><td><span class="pill ${stageCls[r.bottom.stage.key]}">${esc(r.bottom.stage.label)}</span></td>
         <td class="r num down">${fmtPct(r.bottom.drawdown, 0)}</td><td class="r num">+${Math.round(r.bottom.fromLow)}%</td><td class="r num up">${r.bottom.upside382 > 0 ? '+' + Math.round(r.bottom.upside382) + '%' : '—'}</td>
-        <td class="r">${scoreCell(r.mid, true)}</td><td class="r num dim">${fmtTy(r.avgVal20)}</td>
+        <td class="r">${scoreCell(r.mid, true)}</td>${planTd(r)}<td class="r num dim">${fmtTy(r.avgVal20)}</td>
         <td style="white-space:normal;min-width:220px;max-width:300px;font-size:.8rem" class="dim">${esc(r.bottom.top.filter((x) => x.impact > 0)[0]?.text || r.bottom.top[0]?.text || '')}</td></tr>`).join('')}</tbody></table>`
       : `<div class="empty"><h3>Không có mã nào khớp bộ lọc</h3><p>Thử chọn “Tất cả”, bỏ bớt tín hiệu hoặc hạ ngưỡng thanh khoản.</p></div>`;
     $('#more').innerHTML = rows.length > st.limit ? `<button class="btn ghost">Xem thêm ${Math.min(60, rows.length - st.limit)} mã (còn ${rows.length - st.limit})</button>` : rows.length ? `<span class="faint" style="font-size:.8rem">${rows.length} mã trong vùng đáy</span>` : '';
     return;
   }
-  $('#tbl').innerHTML = rows.length ? `<table><thead><tr><th class="r">#</th>${th('sym', 'Mã', false)}${th('price', 'Giá')}${th('chg', '% hôm nay')}<th>60 phiên</th>${th('short', 'Ngắn hạn')}${th('mid', 'Trung hạn')}${th('long', 'Dài hạn')}${th('rs', 'RS', true, 'Sức mạnh giá so với toàn sàn, 1–99')}${th('avgVal20', 'GTGD TB20')}<th>Tín hiệu</th></tr></thead>
+  $('#tbl').innerHTML = rows.length ? `<table><thead><tr><th class="r">#</th>${th('sym', 'Mã', false)}${th('price', 'Giá')}${th('chg', '% hôm nay')}<th>60 phiên</th>${th('short', 'Ngắn hạn')}${th('mid', 'Trung hạn')}${th('long', 'Dài hạn')}${th('rs', 'RS', true, 'Sức mạnh giá so với toàn sàn, 1–99')}${th('rr', 'Kế hoạch', false, 'R:R tới mục tiêu 1 của kế hoạch theo khung đang chọn · xanh = đạt chuẩn')}${th('avgVal20', 'GTGD TB20')}<th>Tín hiệu</th></tr></thead>
     <tbody>${shown.map((r, i) => `<tr class="click" data-sym="${r.sym}" tabindex="0"><td class="r faint num">${i + 1}</td>
       <td><div class="sym">${avatar(r.sym)}<div style="min-width:0"><div class="tk">${r.sym}</div><div class="nm">${esc(S.names[r.sym] || S.secNames[S.secOf[r.sym]] || '')}</div></div></div></td>
       <td class="r num"><b>${fmtP(r.price)}</b></td><td class="r num ${cls(r.chg)}">${fmtPct(r.chg)}</td><td>${spark(r.spark)}</td>
       <td class="r">${scoreCell(r.short, st.hz !== 'short')}</td><td class="r">${scoreCell(r.mid, st.hz !== 'mid')}</td><td class="r">${scoreCell(r.long, st.hz !== 'long')}</td>
-      <td class="r num">${Math.round(r.rs)}</td><td class="r num dim">${fmtTy(r.avgVal20)}</td><td><div class="tags">${tagHTML(r)}</div></td></tr>`).join('')}</tbody></table>`
+      <td class="r num">${Math.round(r.rs)}</td>${planTd(r)}<td class="r num dim">${fmtTy(r.avgVal20)}</td><td><div class="tags">${tagHTML(r)}</div></td></tr>`).join('')}</tbody></table>`
     : `<div class="empty"><h3>Không có mã nào khớp bộ lọc</h3><p>Thử bỏ bớt tín hiệu đã chọn, hạ ngưỡng thanh khoản hoặc chọn “Tất cả”.</p></div>`;
   $('#more').innerHTML = rows.length > st.limit ? `<button class="btn ghost">Xem thêm ${Math.min(60, rows.length - st.limit)} mã (còn ${rows.length - st.limit})</button>` : rows.length ? `<span class="faint" style="font-size:.8rem">${rows.length} mã · cập nhật ${new Date(R.at).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit' })}</span>` : '';
 }

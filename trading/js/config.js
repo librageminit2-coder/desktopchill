@@ -6,7 +6,8 @@ export const ADMIN_EMAIL = 'librageminit2@gmail.com';
 export const NOTIFY_URL = 'https://formsubmit.co/ajax/' + ADMIN_EMAIL;
 export const SITE_URL = 'https://desktopchill.com/trading/';
 // Nhịp cập nhật (ms)
-export const POLL_LIVE = 15000;      // trong giờ giao dịch
+export const POLL_LIVE = 4000;       // trong giờ giao dịch (3–5 giây)
+export const POLL_HIDDEN = 15000;    // trong giờ nhưng tab đang ẩn
 export const POLL_IDLE = 5 * 60000;  // ngoài giờ
 export const HISTORY_DAYS = 860;     // ~2,3 năm lịch sử ngày (đủ MA200 + 1 năm khung tuần)
 export const FUND_TTL = 3 * 86400000;

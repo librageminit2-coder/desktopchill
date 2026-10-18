@@ -26,6 +26,25 @@ export default {
       <h3>Trừ điểm mã tăng nóng</h3>
       <p>Ở ba khung thời gian thường, mã đã cách EMA20 quá 10%, MA50 quá 18% hoặc MA200 quá 60% bị trừ điểm vì dư địa còn ít và dễ điều chỉnh về trung bình.</p>
 
+      <h2>Rủi ro vùng đỉnh · tránh đu đỉnh</h2>
+      <p>Mã đã tăng rất mạnh thường có chỉ báo xu hướng “đẹp” nhất (giá trên mọi đường MA, RSI cao, RS cao) đúng lúc tổ chức lớn đang chốt lời. Vì vậy hệ thống chấm thêm một <b>điểm rủi ro đỉnh</b> (0–100) dựa trên các lý thuyết đã được kiểm chứng, và dùng nó để <b>giới hạn điểm</b> thay vì để chỉ báo động lượng kéo điểm lên mãi:</p>
+      ${W([['Climax top (William O\'Neil)', 'Tăng tốc ≥ 25% trong 1–3 tuần sau đợt tăng dài, phiên tăng mạnh nhất cả đợt, gap kiệt sức, nhiều phiên tăng liên tiếp', '10–20'], ['Buying Climax · Upthrust (Wyckoff)', 'Khối lượng lớn nhất 6 tháng nhưng nến rút chân/đóng cửa yếu; vượt đỉnh cũ trong phiên rồi đóng cửa thấp lại', '14–18'], ['Churning & ngày phân phối', 'Khối lượng lớn nhưng giá đứng yên ở đỉnh; nhiều phiên giảm kèm khối lượng lớn trong 25 phiên', '6–20'], ['Hồi quy về trung bình', 'Khoảng cách tới MA50 cao hơn 90–95% lịch sử 2 năm của chính mã; cách MA200 trên 50–80%; tăng trên 100% từ đáy 52 tuần', '10–20'], ['Giai đoạn 3 (Stan Weinstein)', 'MA30 tuần đi ngang sau đợt tăng, giá cắt qua lại nhiều lần', 12], ['Nền giai đoạn muộn (O\'Neil)', 'Đã bứt khỏi nền giá thứ 3–4 kể từ đáy — tỷ lệ thất bại cao hơn hẳn nền đầu tiên', '6–12'], ['Phân kỳ âm, OBV đi xuống khi giá tăng, RSI tuần ≥ 80', '', '6–12']])}
+      <p>Mức <b>Tăng nóng</b> (20–39) trừ nhẹ điểm. <b>Dấu hiệu phân phối</b> (40–59): điểm ngắn và trung hạn tối đa 59 (không thể “Tích cực”). <b>Rủi ro đỉnh cao</b> (≥ 60): điểm tối đa 52 và kế hoạch giao dịch chuyển sang “đứng ngoài”.</p>
+
+      <h2>Kế hoạch giao dịch · điểm vào, dừng lỗ, R:R</h2>
+      <p>Mỗi mã có kế hoạch riêng cho từng khung thời gian, chọn theo cấu trúc thị trường hiện tại:</p>
+      <ul style="margin:0 0 12px 18px;display:grid;gap:6px" class="dim">
+        <li><b>Breakout</b> — giá sát kháng cự/đỉnh nền trong xu hướng tăng (hoặc nền giá trên MA50): lệnh chờ mua khi vượt kháng cự một bước giá, cần khối lượng ≥ 1,5× trung bình. Mục tiêu theo chiều cao nền (measured move) hoặc kháng cự kế tiếp.</li>
+        <li><b>Mua khi điều chỉnh</b> — xu hướng tăng: vùng mua tại EMA20 (ngắn), MA50 (trung), MA200/MA50 (dài) hoặc hỗ trợ gần nhất. Mục tiêu là đỉnh sóng gần nhất và mở rộng Fibonacci 127,2%.</li>
+        <li><b>Đảo chiều từ đáy</b> — chỉ khi điểm vùng đáy ≥ 55 và đã qua giai đoạn “đang rơi”. Mục tiêu là các mức hồi Fibonacci 38,2% / 61,8%.</li>
+        <li><b>Chờ về trung bình</b> — mã có dấu hiệu phân phối: không mua đuổi, chỉ cân nhắc khi giá về EMA20/MA50.</li>
+        <li><b>Đứng ngoài</b> — giá dưới MA50 đang dốc xuống, hoặc rủi ro đỉnh cao.</li>
+      </ul>
+      ${W([['Dừng lỗ theo cấu trúc', 'Dưới đáy sóng gần nhất / đáy nền trừ thêm một phần ATR — nơi luận điểm mua bị phá vỡ', '—'], ['Sàn ATR', 'Không đặt dừng lỗ gần hơn 1 / 1,5 / 2 ATR (ngắn/trung/dài) để tránh bị quét bởi nhiễu, nhất là khi T+2,5 không bán ngay được', '—'], ['Trần rủi ro', 'Dừng lỗ không xa quá 8% (ngắn, theo quy tắc cắt lỗ 7–8% của O\'Neil), 12% (trung), 20% (dài). Xa hơn → kế hoạch không đạt chuẩn', '—'], ['R:R tối thiểu', 'Mục tiêu 1 phải ≥ 2R (ngắn), 2,5R (trung), 3R (dài). Thị trường chung yếu → nâng chuẩn thêm 0,5–1R', '—'], ['Quản lý lệnh', 'Giá đi được +1R → dời dừng lỗ về hòa vốn; chốt phần lớn ở mục tiêu 1; phần còn lại dùng dừng lỗ động Chandelier (đỉnh 22 phiên − 3×ATR)', '—'], ['Khối lượng', 'Mỗi lệnh chỉ rủi ro 1–2% tổng vốn: số cổ phiếu = vốn × 1% ÷ (giá vào − dừng lỗ)', '—']])}
+      <p>Cách tính này tham khảo các bot giao dịch mã nguồn mở uy tín, chủ yếu là <b>freqtrade</b> (dừng lỗ theo ATR qua <code>stoploss_from_absolute</code>, dừng lỗ theo bậc khi có lãi, thoát lệnh theo tỷ lệ rủi ro/lợi nhuận), cùng phương pháp Chandelier Exit của Chuck LeBeau. Giá được làm tròn theo bước giá HOSE (10 / 50 / 100 đồng).</p>
+      <p>Khi bạn lưu nhận định, kế hoạch của khung được chọn được lưu lại. Trang “Đã lưu” theo dõi từng phiên: chờ khớp → đang mở → chạm mục tiêu 1/2 hoặc dính dừng lỗ, tính kết quả bằng bội số R, tỷ lệ thắng và kỳ vọng mỗi lệnh. Quy ước chấm thận trọng: một phiên chạm cả dừng lỗ và mục tiêu thì tính dừng lỗ; mở cửa giảm sâu qua điểm dừng thì tính theo giá mở cửa.</p>
+      <p class="faint" style="font-size:.8rem">Tham khảo: <a href="https://www.freqtrade.io/en/stable/strategy-callbacks/" target="_blank" rel="noopener">freqtrade — custom stoploss</a> · <a href="https://github.com/freqtrade/freqtrade-strategies" target="_blank" rel="noopener">freqtrade-strategies</a> · <a href="https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-overlays/chandelier-exit" target="_blank" rel="noopener">Chandelier Exit (StockCharts)</a> · <a href="https://www.tradingview.com/chart/BTCUSDT/j44JqkKD-The-Wyckoff-Method-A-Tutorial/" target="_blank" rel="noopener">The Wyckoff Method — A Tutorial</a> · <a href="https://stageanalysis.net/" target="_blank" rel="noopener">Stage Analysis — Weinstein</a> · W. O'Neil, <i>How to Make Money in Stocks</i> (climax top, quy tắc cắt lỗ 7–8%).</p>
+
       <h2>Kịch bản thị trường</h2>
       <p>Hệ thống tự nhận diện các nhịp hồi và nhịp giảm của VN-Index (đảo chiều từ 6% trở lên) trong khoảng 2 năm, đo xem mỗi mã và mỗi ngành tăng/giảm hơn chỉ số bao nhiêu trong 10 phiên đầu của các nhịp đó, cùng độ nhạy khi thị trường tăng/giảm (up/down-capture 250 phiên). Kết hợp với tín hiệu kỹ thuật hiện tại để chọn ra mã có khả năng đi trước trong từng kịch bản, kèm mốc chỉ số xác nhận kịch bản.</p>
 
@@ -37,7 +56,7 @@ export default {
       <h2>Dữ liệu & tần suất</h2>
       <ul>
         <li>Bảng giá, lịch sử giá đã điều chỉnh (chia cổ tức, phát hành), ngành, nến trong phiên: KBS. Chỉ số realtime: VPS. Khối ngoại theo ngày: VNDirect. Chỉ số cơ bản: Simplize.</li>
-        <li>Trong giờ giao dịch (9:00–11:30, 13:00–15:00), bảng giá tự làm mới mỗi 15 giây và toàn bộ điểm số được tính lại. Ngoài giờ, làm mới mỗi 5 phút.</li>
+        <li>Trong giờ giao dịch (9:00–11:30, 13:00–15:00), bảng giá tự làm mới mỗi 4 giây (15 giây khi bạn chuyển sang tab khác) và toàn bộ điểm số được tính lại. Ngoài giờ, làm mới mỗi 5 phút.</li>
         <li>Lịch sử giá được lưu trong trình duyệt của bạn; lần đầu mở mất khoảng một phút để tải ~400 mã, các lần sau chỉ tải phần mới. Khi có điều chỉnh giá do cổ tức/chia tách, hệ thống tự phát hiện và tải lại mã đó.</li>
         <li>Thanh khoản trong phiên được quy đổi theo thời gian đã trôi qua để so sánh công bằng với trung bình cả phiên.</li>
       </ul>

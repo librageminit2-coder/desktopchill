@@ -1,6 +1,7 @@
 // Phân tích một mã: tính đặc trưng (features) rồi chấm điểm 3 khung thời gian.
 import { computeAll, toWeekly, rsi, macd, sma, ema, slopePct, highest, lowest, roc } from './indicators.js?v=8e6ac8b1';
 import { levels, fibonacci, divergences, candles, chartPatterns, trendStructure, fmtP } from './structure.js?v=c3bd6cc0';
+import { topRisk } from './toprisk.js?v=9f73eb9f';
 
 const clamp = (x, a = -1, b = 1) => Math.max(a, Math.min(b, x));
 const pct = (a, b) => (a / b - 1) * 100;
@@ -75,6 +76,7 @@ export function features(bars, { foreignNet = null, sessionFrac = 1 } = {}) {
       struct: trendStructure(wk.map((b) => b.h), wk.map((b) => b.l), 0.1),
       div: divergences(Object.assign(wc.slice(), { highs: wk.map((b) => b.h), lows: wk.map((b) => b.l) }), wr, { name: 'RSI tuần', look: 60, recent: 4, w: 2 }) };
   }
+  try { f.top = topRisk(f); } catch (e) { f.top = { score: 0, level: { key: 'ok', label: 'Bình thường' }, signals: [] }; }
   return f;
 }
 
@@ -199,12 +201,22 @@ export function score(f, ctx = {}) {
     if (ctx.market) add('long', 'market', 5, (ctx.market.longScore - 50) / 40, `VN-Index ${ctx.market.idxAbove200 ? 'trên' : 'dưới'} MA200`);
   }
 
+  if (f.top && f.top.score >= 20) {
+    const t = f.top; const txt = `${t.level.label}: ${t.signals.slice(0, 2).map((x) => x.text.split(' — ')[0]).join('; ')}`;
+    add('short', 'top', 14, -Math.min(1, t.score / 60), txt);
+    add('mid', 'top', 16, -Math.min(1, t.score / 60), txt);
+    add('long', 'top', 10, -Math.min(1, t.score / 70), txt);
+  }
+
   const out = {};
   for (const hz of ['short', 'mid', 'long']) {
     const arr = S[hz]; const W = arr.reduce((s, x) => s + x.w, 0) || 1;
     let sc = 50 + (50 * arr.reduce((s, x) => s + x.w * x.s, 0)) / W;
     // mã thanh khoản rất thấp: kéo về trung tính — tín hiệu kỹ thuật kém tin cậy
     if (ok(f.avgVal20) && f.avgVal20 < 1e9) sc = 50 + (sc - 50) * 0.6;
+    // vùng đỉnh: không cho lên mức "tích cực" dù chỉ báo xu hướng đẹp — tránh đu đỉnh
+    if (f.top && hz !== 'long') { if (f.top.score >= 60) sc = Math.min(sc, 52); else if (f.top.score >= 40) sc = Math.min(sc, 59); }
+    if (f.top && hz === 'long' && f.top.score >= 60) sc = Math.min(sc, 60);
     sc = Math.round(clamp(sc, 0, 100) * 10) / 10;
     const reasons = arr.map((x) => ({ ...x, impact: (x.w * x.s * 50) / W })).sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
     out[hz] = { score: sc, verdict: verdict(sc), reasons };

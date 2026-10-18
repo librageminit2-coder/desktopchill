@@ -1,5 +1,5 @@
 // Trang Duyệt (chỉ quản trị viên): chấp thuận / từ chối / khóa tài khoản.
-import * as auth from '../auth.js?v=ef52e68e';
+import * as auth from '../auth.js?v=5f446a77';
 import { $, esc, ico, toast, modal } from '../ui/util.js?v=70d78725';
 
 let root = null, users = null, err = null, filter = 'pending';

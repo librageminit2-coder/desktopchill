@@ -1,14 +1,14 @@
 // Khung ứng dụng: đăng nhập, thanh điều hướng, định tuyến, trạng thái realtime.
-import * as auth from './auth.js?v=ef52e68e';
-import * as store from './data/store.js?v=569ff4be';
+import * as auth from './auth.js?v=5f446a77';
+import * as store from './data/store.js?v=a69908ee';
 import { $, $$, esc, ico, LOGO, toast, modal, timeVN } from './ui/util.js?v=70d78725';
-import marketView from './views/market.js?v=fc1159b4';
-import screenerView from './views/screener.js?v=c0c31727';
-import stockView from './views/stock.js?v=26532d09';
-import journalView from './views/journal.js?v=448a70c7';
-import methodView from './views/method.js?v=20df83e5';
-import scenarioView from './views/scenario.js?v=7ef25863';
-import adminView from './views/admin.js?v=72d202b4';
+import marketView from './views/market.js?v=e952e692';
+import screenerView from './views/screener.js?v=48dfa71e';
+import stockView from './views/stock.js?v=55978793';
+import journalView from './views/journal.js?v=129676d1';
+import methodView from './views/method.js?v=2165a2b8';
+import scenarioView from './views/scenario.js?v=599257fc';
+import adminView from './views/admin.js?v=57398de0';
 
 const app = $('#app');
 export const ctx = { user: null, notesCount: 0, pendingCount: 0 };
@@ -161,8 +161,8 @@ function setupSearch() {
 function liveStatus() {
   const el = $('#live'); if (!el) return; const S = store.state; const ss = S.session || store.sessionInfo();
   el.classList.toggle('on', !!ss.live && !S.boardError); el.classList.toggle('warn', !!S.boardError);
-  const t = S.boardError ? 'Mất kết nối dữ liệu' : `${ss.label}${S.lastTick ? ' · ' + timeVN(S.lastTick).slice(0, 5) : ''}`;
-  el.querySelector('.t').textContent = t; el.title = S.boardError || `Bảng giá cập nhật lúc ${S.lastTick ? timeVN(S.lastTick) : '—'}${ss.live ? ' · tự làm mới mỗi 15 giây' : ''}`;
+  const t = S.boardError ? 'Mất kết nối dữ liệu' : `${ss.label}${S.lastTick ? ' · ' + timeVN(S.lastTick) : ''}`;
+  el.querySelector('.t').textContent = t; el.title = S.boardError || `Bảng giá cập nhật lúc ${S.lastTick ? timeVN(S.lastTick) : '—'}${ss.live ? ' · tự làm mới mỗi 4 giây' : ''}`;
 }
 
 function route() {

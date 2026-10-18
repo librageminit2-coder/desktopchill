@@ -61,3 +61,31 @@ console.log('scenario eps', JSON.stringify(res.scenario.nEp), 'secUp', res.scena
 console.log('stockUp', res.scenario.stockUp.slice(0, 3).map((s) => s.sym + ' ' + s.score.toFixed(0) + ' [' + s.why.join('; ') + ']').join(' || '));
 console.log('triggers', JSON.stringify(res.scenario.triggers));
 console.log('BOTTOM+SCENARIO OK');
+// rủi ro đỉnh + kế hoạch giao dịch
+import { evalPlan } from '../js/engine/plan.js';
+const tops = Object.entries(res.feats).filter(([, f]) => f && f.top).map(([s, f]) => [s, f.top]);
+console.log('top levels', JSON.stringify(tops.reduce((m, [, t]) => ((m[t.level.key] = (m[t.level.key] || 0) + 1), m), {})));
+for (const [s, t] of tops.sort((a, b) => b[1].score - a[1].score).slice(0, 3)) console.log('TOP', s, t.score, t.level.label, 'mid', res.scores[s].mid.score, '|', t.signals.slice(0, 3).map((x) => x.text).join(' / '));
+const setups = { short: {}, mid: {}, long: {} }; let valid = 0, nplan = 0;
+for (const [s, x] of Object.entries(res.scores)) for (const hz of ['short', 'mid', 'long']) {
+  const P = x.plans?.[hz]; assert.ok(P, s + hz + ' plan'); setups[hz][P.setup] = (setups[hz][P.setup] || 0) + 1;
+  if (P.setup !== 'none' && P.stop) {
+    nplan++; if (P.valid) valid++;
+    const e = P.entryHi ?? P.entry; assert.ok(P.stop < e && P.t1 > e && P.t2 >= P.t1, `${s} ${hz} order ${P.stop} ${e} ${P.t1} ${P.t2}`);
+    assert.ok(Number.isFinite(P.rr1) && P.riskPct > 0, s + hz + ' rr');
+    if (P.valid) assert.ok(P.rr1 >= P.minRR - 1e-9 && P.riskPct <= { short: 8, mid: 12, long: 20 }[hz] + 1e-9);
+  }
+}
+console.log('setups', JSON.stringify(setups), 'plans', nplan, 'valid', valid);
+const ex = Object.entries(res.scores).find(([, x]) => x.plans.mid.valid);
+if (ex) { const P = ex[1].plans.mid; console.log('PLAN', ex[0], P.label, P.entry, P.entryHi, P.stop, P.t1, P.t2, P.rr1.toFixed(2), P.riskPct.toFixed(1) + '%'); }
+// evalPlan trên dữ liệu giả lập
+const B = (t, o, h, l, c) => ({ t, o, h, l, c, v: 1 });
+const pl = { setup: 'pullback', entry: 100, entryHi: 102, trigger: 'zone', stop: 95, t1: 115, t2: 125, expiry: 10 };
+assert.equal(evalPlan(pl, [B(1, 105, 106, 104, 105)], 0).status, 'waiting');
+assert.equal(evalPlan(pl, [B(1, 105, 106, 101, 103), B(2, 103, 116, 102, 114)], 0).status, 'win1');
+assert.equal(evalPlan(pl, [B(1, 105, 106, 101, 103), B(2, 100, 101, 94, 95)], 0).status, 'loss');
+assert.ok(Math.abs(evalPlan(pl, [B(1, 105, 106, 101, 103), B(2, 90, 91, 88, 89)], 0).R + 12 / 7) < 1e-9, 'gap loss');
+assert.equal(evalPlan(pl, [B(1, 105, 106, 101, 103), B(2, 103, 116, 102, 114), B(3, 114, 126, 113, 124)], 0).status, 'win2');
+assert.equal(evalPlan(pl, Array.from({ length: 10 }, (_, k) => B(k + 1, 110, 112, 108, 110)), 0).status, 'expired');
+console.log('TOP+PLAN OK');

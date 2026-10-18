@@ -1,6 +1,7 @@
 // Trang Đã lưu: nhận định đã lưu, so với diễn biến giá thực tế và VN-Index cùng kỳ.
-import * as store from '../data/store.js?v=569ff4be';
-import * as auth from '../auth.js?v=ef52e68e';
+import * as store from '../data/store.js?v=a69908ee';
+import * as auth from '../auth.js?v=5f446a77';
+import { evalPlan } from '../engine/plan.js?v=887fce06';
 import { $, esc, ico, fmtP, fmtPct, cls, avatar, toast, modal, HZ, HZ_SUB } from '../ui/util.js?v=70d78725';
 
 const WIN = { short: 10, mid: 60, long: 250 };
@@ -8,7 +9,7 @@ let root = null, notes = null, err = null, open = {};
 
 function render(main) {
   root = main; notes = null; err = null;
-  main.innerHTML = `<div class="page-title"><div><h1>Nhận định đã lưu</h1><p>Mỗi nhận định được chấm đúng/sai khi đủ thời gian của khung: ngắn hạn 10 phiên, trung hạn 60 phiên, dài hạn 250 phiên. Nhận định tích cực được tính là đúng khi mã tăng và vượt VN-Index cùng kỳ; tiêu cực là đúng khi mã giảm và kém VN-Index.</p></div></div>
+  main.innerHTML = `<div class="page-title"><div><h1>Nhận định đã lưu</h1><p>Mỗi nhận định được chấm đúng/sai khi đủ thời gian của khung: ngắn hạn 10 phiên, trung hạn 60 phiên, dài hạn 250 phiên. Nhận định tích cực được tính là đúng khi mã tăng và vượt VN-Index cùng kỳ; tiêu cực là đúng khi mã giảm và kém VN-Index. Kế hoạch giao dịch được theo dõi từng phiên: đã khớp điểm vào chưa, chạm mục tiêu hay dính dừng lỗ, và kết quả tính bằng bội số R (1R = khoảng cách từ điểm vào tới dừng lỗ).</p></div></div>
     <div id="sum"></div><div id="list"><div class="glass loading"><span class="spin"></span>Đang tải nhận định của bạn…</div></div>`;
   main.addEventListener('click', onClick);
   load();
@@ -40,7 +41,18 @@ function evalNote(n) {
       out.hz[hz] = { done: true, r, ri, res };
     } else out.hz[hz] = { done: false, k: after.length, w };
   }
+  const pl = n.data?.plan;
+  if (pl && bars?.length) { try { out.plan = evalPlan(pl, bars, savedDay); } catch (e2) { out.plan = null; } }
   return out;
+}
+
+const PST = { waiting: 'ghost', expired: 'ghost', open: 'neutral', loss: 'bear', win1: 'bull', win2: 'bull' };
+const fmtR = (r) => (Number.isFinite(r) ? `${r >= 0 ? '+' : '−'}${Math.abs(r).toFixed(1)}R` : '');
+function planCell(n, e) {
+  const pl = n.data?.plan; if (!pl) return '<span class="faint">—</span>';
+  const ev = e.plan; const head = `<div style="font-size:.74rem" class="faint">${HZ[pl.hz]} · ${pl.rr1.toFixed(1)}R</div>`;
+  if (!ev) return head + '<span class="faint">Đang tải…</span>';
+  return `${head}<span class="pill ${PST[ev.status] || 'ghost'}" title="${esc(ev.label)}${ev.filled ? ' · khớp ' + fmtP(ev.filled) : ''}">${esc(ev.status === 'waiting' ? ev.label : ev.status === 'expired' ? 'Hết hiệu lực' : ev.status === 'open' ? 'Đang mở' : ev.status === 'loss' ? 'Dừng lỗ' : ev.status === 'win2' ? 'Mục tiêu 2' : 'Mục tiêu 1')} ${fmtR(ev.R)}</span>`;
 }
 
 function draw() {
@@ -51,7 +63,13 @@ function draw() {
   const E = notes.map((n) => ({ n, e: evalNote(n) }));
   // tổng kết
   const sum = {}; for (const hz of ['short', 'mid', 'long']) { const d = E.map((x) => x.e.hz[hz]).filter((x) => x?.done && x.res !== 'neutral'); sum[hz] = { n: d.length, ok: d.filter((x) => x.res === 'right').length, open: E.filter((x) => x.e.hz[hz] && !x.e.hz[hz].done).length }; }
-  $('#sum').innerHTML = `<div class="kpis" style="margin-bottom:16px">${['short', 'mid', 'long'].map((hz) => `<div class="glass kpi"><div class="l">${HZ[hz]} · ${HZ_SUB[hz]}</div><div class="v num">${sum[hz].n ? Math.round((100 * sum[hz].ok) / sum[hz].n) + '%' : '—'}</div><div class="s">${sum[hz].n ? `${sum[hz].ok}/${sum[hz].n} nhận định đúng` : 'Chưa có nhận định đủ thời gian'} · ${sum[hz].open} đang theo dõi</div></div>`).join('')}<div class="glass kpi"><div class="l">Tổng số đã lưu</div><div class="v num">${notes.length}</div><div class="s">${new Set(notes.map((x) => x.symbol)).size} mã khác nhau</div></div></div>`;
+  $('#sum').innerHTML = `<div class="kpis" style="margin-bottom:16px">${['short', 'mid', 'long'].map((hz) => `<div class="glass kpi"><div class="l">${HZ[hz]} · ${HZ_SUB[hz]}</div><div class="v num">${sum[hz].n ? Math.round((100 * sum[hz].ok) / sum[hz].n) + '%' : '—'}</div><div class="s">${sum[hz].n ? `${sum[hz].ok}/${sum[hz].n} nhận định đúng` : 'Chưa có nhận định đủ thời gian'} · ${sum[hz].open} đang theo dõi</div></div>`).join('')}${planKpi(E)}</div>`;
+  function planKpi(E) {
+    const P = E.map((x) => x.e.plan).filter(Boolean); const closed = P.filter((x) => ['loss', 'win1', 'win2'].includes(x.status));
+    const wins = closed.filter((x) => x.status !== 'loss'); const exp = closed.length ? closed.reduce((s, x) => s + x.R, 0) / closed.length : NaN;
+    const opn = P.filter((x) => x.status === 'open').length, wait = P.filter((x) => x.status === 'waiting').length;
+    return `<div class="glass kpi"><div class="l">Kế hoạch giao dịch</div><div class="v num ${cls(exp)}">${closed.length ? fmtR(exp) : '—'}</div><div class="s">${closed.length ? `Kỳ vọng mỗi lệnh · thắng ${wins.length}/${closed.length} (${Math.round((100 * wins.length) / closed.length)}%)` : 'Chưa có kế hoạch đóng'} · ${opn} đang mở · ${wait} chờ khớp</div></div>`;
+  }
   const badge = (h, d) => {
     if (!d) return '<span class="faint">—</span>';
     const sc = `<span class="score s-${d.key}" style="min-width:0"><b class="num">${Math.round(d.score)}</b></span>`;
@@ -64,15 +82,15 @@ function draw() {
     return `${sc} <span class="pill ${h.res === 'right' ? 'bull' : 'bear'}" title="Mã ${fmtPct(h.r, 1)} · VN-Index ${fmtPct(h.ri, 1)}">${h.res === 'right' ? 'Đúng' : 'Sai'} ${fmtPct(h.r, 1)}</span>`;
     }
   };
-  $('#list').innerHTML = `<div class="table-wrap glass"><table><thead><tr><th>Mã</th><th>Ngày lưu</th><th class="r">Giá lúc lưu</th><th class="r">Giá nay</th><th class="r">Thay đổi</th><th class="r">VN-Index cùng kỳ</th><th>Ngắn hạn</th><th>Trung hạn</th><th>Dài hạn</th><th>Ghi chú</th><th></th></tr></thead><tbody>
+  $('#list').innerHTML = `<div class="table-wrap glass"><table><thead><tr><th>Mã</th><th>Ngày lưu</th><th class="r">Giá lúc lưu</th><th class="r">Giá nay</th><th class="r">Thay đổi</th><th class="r">VN-Index cùng kỳ</th><th>Ngắn hạn</th><th>Trung hạn</th><th>Dài hạn</th><th>Kế hoạch</th><th>Ghi chú</th><th></th></tr></thead><tbody>
     ${E.map(({ n, e }) => `<tr data-id="${n.id}" class="click" data-open="${n.id}">
       <td><div class="sym">${avatar(n.symbol)}<div><div class="tk">${n.symbol}</div><div class="nm">${esc(n.data?.name || store.state.names[n.symbol] || '')}</div></div></div></td>
       <td class="num dim">${new Date(n.created_at).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}<br><span class="faint" style="font-size:.74rem">${e.elapsed} phiên trước</span></td>
       <td class="r num">${fmtP(+n.price)}</td><td class="r num"><b>${fmtP(e.now)}</b></td><td class="r num ${cls(e.ret)}"><b>${fmtPct(e.ret, 1)}</b></td><td class="r num ${cls(e.idxRet)}">${fmtPct(e.idxRet, 1)}</td>
-      <td>${badge(e.hz.short, n.data?.short)}</td><td>${badge(e.hz.mid, n.data?.mid)}</td><td>${badge(e.hz.long, n.data?.long)}</td>
+      <td>${badge(e.hz.short, n.data?.short)}</td><td>${badge(e.hz.mid, n.data?.mid)}</td><td>${badge(e.hz.long, n.data?.long)}</td><td>${planCell(n, e)}</td>
       <td style="white-space:normal;min-width:180px;max-width:260px;font-size:.82rem" class="dim">${esc(n.note || '')}</td>
       <td class="r"><button class="icon-btn" data-edit="${n.id}" aria-label="Sửa ghi chú">${ico('edit')}</button> <button class="icon-btn" data-del="${n.id}" aria-label="Xóa nhận định">${ico('trash')}</button></td></tr>
-      ${open[n.id] ? `<tr><td colspan="11" style="white-space:normal;background:color-mix(in srgb,var(--surface-solid) 30%,transparent)">${detail(n)}</td></tr>` : ''}`).join('')}
+      ${open[n.id] ? `<tr><td colspan="12" style="white-space:normal;background:color-mix(in srgb,var(--surface-solid) 30%,transparent)">${detail(n)}</td></tr>` : ''}`).join('')}
   </tbody></table></div>`;
 }
 function detail(n) {
@@ -80,7 +98,11 @@ function detail(n) {
   const col = (hz) => { const d = n.data?.[hz]; if (!d) return ''; const c = cur?.[hz];
     return `<div><div style="font-weight:800;margin-bottom:6px">${HZ[hz]}: <span class="s-${d.key}" style="color:var(--sc)">${esc(d.verdict)} (${Math.round(d.score)})</span>${c ? ` → nay <span class="${'s-' + c.verdict.key}" style="color:var(--sc)">${esc(c.verdict.label)} (${Math.round(c.score)})</span>` : ''}</div>
       <ul style="list-style:none;display:grid;gap:4px;font-size:.82rem" class="dim">${(d.reasons || []).map((r) => `<li><span class="${r.i > 0 ? 'up' : r.i < 0 ? 'down' : 'faint'}" style="font-weight:800">${r.i > 0 ? '+' : ''}${r.i}</span> ${esc(r.t)}</li>`).join('')}</ul></div>`; };
-  return `<div class="grid g-3" style="padding:8px 4px">${col('short')}${col('mid')}${col('long')}</div>
+  const pl = n.data?.plan; const ev = pl ? evalNote(n).plan : null;
+  const planBox = pl ? `<div class="glass" style="padding:12px 14px;margin:8px 4px;border-radius:14px"><div style="font-weight:800;margin-bottom:6px">Kế hoạch ${HZ[pl.hz].toLowerCase()}: ${esc(pl.label)} ${ev ? `<span class="pill ${PST[ev.status] || 'ghost'}" style="margin-left:6px">${esc(ev.label)} ${fmtR(ev.R)}</span>` : ''}</div>
+    <div class="dim num" style="font-size:.84rem;display:flex;gap:18px;flex-wrap:wrap"><span>Vào <b style="color:var(--entry)">${pl.entryHi ? fmtP(pl.entry) + ' – ' + fmtP(pl.entryHi) : fmtP(pl.entry)}</b>${pl.trigger === 'stop' ? ' (lệnh chờ khi vượt)' : ''}</span><span>Dừng lỗ <b class="down">${fmtP(pl.stop)}</b> (−${(+pl.riskPct).toFixed(1)}%)</span><span>Mục tiêu 1 <b class="up">${fmtP(pl.t1)}</b> · ${pl.rr1.toFixed(1)}R</span><span>Mục tiêu 2 <b class="up">${fmtP(pl.t2)}</b> · ${pl.rr2.toFixed(1)}R</span><span>Hiệu lực ${pl.expiry} phiên</span>${ev?.filled ? `<span>Đã khớp ${fmtP(ev.filled)}${ev.days ? ` · ${ev.days} phiên nắm giữ` : ''}</span>` : ''}</div>
+    <p class="faint" style="font-size:.76rem;margin-top:6px">${esc(pl.verdict || '')}. Quy ước chấm: khớp khi giá chạm vùng vào trong thời gian hiệu lực; nếu cùng phiên chạm cả dừng lỗ và mục tiêu thì tính dừng lỗ (thận trọng); mở cửa giảm sâu qua dừng lỗ tính theo giá mở cửa.</p></div>` : '';
+  return `${planBox}<div class="grid g-3" style="padding:8px 4px">${col('short')}${col('mid')}${col('long')}</div>
     <p class="faint" style="font-size:.78rem;padding:0 4px 6px">Lúc lưu: thị trường ${esc(n.data?.market?.phase || '—')}${n.data?.sup ? ` · hỗ trợ ${fmtP(n.data.sup)}` : ''}${n.data?.res ? ` · kháng cự ${fmtP(n.data.res)}` : ''}${n.data?.patterns?.length ? ` · mô hình: ${esc(n.data.patterns.join(', '))}` : ''} · <a href="#/ma/${n.symbol}" style="color:var(--accent);font-weight:700">Mở trang ${n.symbol}</a></p>`;
 }
 

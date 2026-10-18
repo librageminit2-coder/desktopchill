@@ -1,5 +1,5 @@
 // Tài khoản: gọi các hàm RPC trên Supabase (không dùng Supabase Auth để không phụ thuộc giới hạn email của Supabase).
-import { SB_URL, SB_ANON, NOTIFY_URL, SITE_URL } from './config.js?v=c96eccdd';
+import { SB_URL, SB_ANON, NOTIFY_URL, SITE_URL } from './config.js?v=1704ec5b';
 
 const KEY = 'dct_session';
 let session = null;

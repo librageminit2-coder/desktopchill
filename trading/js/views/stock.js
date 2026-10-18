@@ -1,15 +1,17 @@
 // Trang chi tiết mã: nhận định 3 khung thời gian, biểu đồ có Fibo/hỗ trợ/kháng cự/tín hiệu, chỉ báo, cơ bản, khối ngoại, lưu nhận định.
-import * as store from '../data/store.js?v=569ff4be';
-import * as auth from '../auth.js?v=ef52e68e';
-import { features, score, keyZones } from '../engine/analyze.js?v=a4454146';
+import * as store from '../data/store.js?v=a69908ee';
+import * as auth from '../auth.js?v=5f446a77';
+import { features, score, keyZones } from '../engine/analyze.js?v=3c86c1df';
+import { tradePlans } from '../engine/plan.js?v=887fce06';
 import { bottomScore } from '../engine/bottom.js?v=78a2248a';
 import { computeAll, toWeekly } from '../engine/indicators.js?v=8e6ac8b1';
 import { priceChart, oscChart } from '../ui/chart.js?v=a75cd100';
 import { $, $$, esc, ico, fmtP, fmtChg, fmtPct, fmtTy, fmtN, cls, priceCls, vClass, ring, toast, modal, HZ, HZ_SUB } from '../ui/util.js?v=70d78725';
 
+let planHz = 'mid';
 let root = null, sym = null, chart = null, osc = null, A = null, opts = null, fundData = null, foreignData = null, expanded = {}, lastBarKey = '';
 const LS = 'dct_chart_opts';
-const defOpts = { tf: 'D', range: 130, ma: true, bb: false, fib: true, lv: true, sig: true, osc: 'rsi' };
+const defOpts = { tf: 'D', range: 130, ma: true, bb: false, fib: false, lv: true, sig: true, osc: 'rsi', plan: true };
 try { opts = { ...defOpts, ...JSON.parse(localStorage.getItem(LS) || '{}') }; } catch (e) { opts = { ...defOpts }; }
 const saveOpts = () => { try { localStorage.setItem(LS, JSON.stringify(opts)); } catch (e) {} };
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -20,6 +22,8 @@ function render(main, { arg }) {
   main.innerHTML = `
     <a href="#/co-hoi" class="btn ghost sm" style="margin-top:6px" onclick="if(history.length>1){history.back();return false}">${ico('back')}Quay lại</a>
     <section class="stock-head" id="head"></section>
+    <div id="topPanel"></div>
+    <section class="glass panel" id="planPanel" style="margin-bottom:16px"><div class="skeleton" style="height:180px"></div></section>
     <div id="bottomPanel"></div>
     <div class="verdicts" id="verdicts">${[0, 1, 2].map(() => '<div class="glass vcard"><div class="skeleton" style="height:180px"></div></div>').join('')}</div>
     <div class="grid g-main mt">
@@ -30,7 +34,7 @@ function render(main, { arg }) {
             <div class="seg sm" id="rg">${[[65, '3T'], [130, '6T'], [250, '1N'], [520, '2N']].map(([v, l]) => `<button data-v="${v}" class="${opts.range === v ? 'on' : ''}">${l}</button>`).join('')}</div>
           </div></div>
         <div class="toolbar" id="ov" style="margin-bottom:10px">
-          ${[['ma', 'MA20/50/200'], ['bb', 'Bollinger'], ['fib', 'Fibonacci'], ['lv', 'Hỗ trợ / kháng cự'], ['sig', 'Tín hiệu']].map(([k, l]) => `<button class="chip ${opts[k] ? 'on' : ''}" data-k="${k}" aria-pressed="${!!opts[k]}">${l}</button>`).join('')}
+          ${[['plan', 'Kế hoạch'], ['ma', 'MA20/50/200'], ['bb', 'Bollinger'], ['fib', 'Fibonacci'], ['lv', 'Hỗ trợ / kháng cự'], ['sig', 'Tín hiệu']].map(([k, l]) => `<button class="chip ${opts[k] ? 'on' : ''}" data-k="${k}" aria-pressed="${!!opts[k]}">${l}</button>`).join('')}
         </div>
         <div class="chart-box" id="pc"><div class="chart-tip" id="tip"></div></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 4px"><div class="seg sm" id="os">${[['rsi', 'RSI 14'], ['macd', 'MACD 12-26-9']].map(([v, l]) => `<button data-v="${v}" class="${opts.osc === v ? 'on' : ''}">${l}</button>`).join('')}</div><div class="legend" id="sigLegend"></div></div>
@@ -61,7 +65,7 @@ async function load() {
   try {
     await store.barsOf(sym);
     if (my !== sym) return;
-    analyze(); const b = store.state.bars[sym]; lastBarKey = b.length + ':' + b[b.length - 1].t + ':' + b[b.length - 1].c; drawAll(true);
+    analyze(); if (A?.plans) planHz = ['mid', 'short', 'long'].find((k) => A.plans[k]?.valid) || 'mid'; const b = store.state.bars[sym]; lastBarKey = b.length + ':' + b[b.length - 1].t + ':' + b[b.length - 1].c; drawAll(true);
   } catch (e) {
     if (my !== sym) return;
     $('#verdicts').innerHTML = `<div class="glass panel" style="grid-column:1/-1"><div class="empty"><h3>Không tải được dữ liệu ${esc(sym)}</h3><p>${esc(e.message)} — kiểm tra lại mã hoặc thử tải lại trang.</p></div></div>`;
@@ -82,7 +86,8 @@ function analyze() {
   const f = features(bars, { foreignNet: S.board[sym]?.fNet ?? null, sessionFrac: ss.frac });
   const ctx = ctxFor(); const sc = score(f, ctx);
   let bt = null; try { bt = bottomScore(f, ctx); } catch (e) { bt = null; }
-  A = { f, sc, zones: keyZones(f), bars, bt };
+  let plans = null; try { plans = tradePlans(f, { bottom: bt, market: ctx.market }); } catch (e) { plans = null; }
+  A = { f, sc, zones: keyZones(f), bars, bt, plans };
 }
 
 function head() {
@@ -97,6 +102,60 @@ function head() {
       ${b ? `<div class="meta"><span>Tham chiếu <b class="ref">${fmtP(b.ref)}</b></span><span>Trần <b class="ceil">${fmtP(b.ceil)}</b></span><span>Sàn <b class="floor">${fmtP(b.floor)}</b></span><span>Mở / cao / thấp <b>${fmtP(b.open)} / ${fmtP(b.high)} / ${fmtP(b.low)}</b></span><span>KL <b>${fmtN(b.vol)}</b></span><span>GTGD <b>${fmtTy(b.val)}</b></span>${A ? `<span>TB20 <b>${fmtTy(A.f.avgVal20)}</b></span>` : ''}</div>` : ''}
     </div>
     <div class="stock-actions"><button class="btn primary" id="saveBtn" ${A ? '' : 'disabled'}>${ico('bookmark')}Lưu nhận định</button></div>`;
+}
+
+function drawTop() {
+  const el = $('#topPanel'); if (!el) return; const t = A?.f?.top;
+  if (!t || t.score < 20) { el.innerHTML = ''; return; }
+  const c = t.score >= 60 ? 'down' : t.score >= 40 ? 'down' : 'ref';
+  el.innerHTML = `<section class="glass panel" style="margin-bottom:16px;border-color:color-mix(in srgb,var(--${c}) 45%,transparent)">
+    <div class="panel-h"><h2>${ico('alert', `style="display:inline;width:18px;height:18px;vertical-align:-3px;color:var(--${c})"`)} Cảnh báo vùng đỉnh: <span class="${c}">${esc(t.level.label)}</span></h2><span class="sub">Điểm rủi ro ${t.score}/100</span></div>
+    <p class="dim" style="font-size:.88rem;margin-bottom:10px">${t.score >= 60 ? 'Chỉ báo xu hướng có thể vẫn đẹp, nhưng nhiều dấu hiệu cho thấy tổ chức lớn đang chốt lời cho người mua sau. Điểm ngắn/trung hạn bị giới hạn tối đa 52 và kế hoạch chuyển sang đứng ngoài.' : t.score >= 40 ? 'Đã xuất hiện dấu hiệu phân phối ở vùng giá cao. Điểm ngắn/trung hạn bị giới hạn tối đa 59 (không xếp “Tích cực”), kế hoạch chuyển sang chờ điều chỉnh về trung bình thay vì mua đuổi.' : 'Mã đang tăng nóng — chưa phải tín hiệu bán, nhưng mua lúc này dễ bị rung lắc. Điểm đã bị trừ nhẹ; ưu tiên chờ nhịp điều chỉnh hoặc điểm breakout mới có R:R tốt hơn.'}</p>
+    <div class="list">${t.signals.map((x) => `<div class="li"><div class="t" style="font-weight:600;font-size:.88rem">${esc(x.text)}</div><div class="v num down">+${x.pts}</div></div>`).join('')}</div></section>`;
+}
+
+const SETUP_ICON = { breakout: 'trend', pullback: 'arrowDown', reversal: 'refresh', wait: 'clock', none: 'minus' };
+function ladder(P, price) {
+  const pts = [['Mục tiêu 2', P.t2, 'up'], ['Mục tiêu 1', P.t1, 'up'], [P.entryHi ? 'Vùng vào trên' : 'Điểm vào', P.entryHi || P.entry, 'entry'], ...(P.entryHi ? [['Vùng vào dưới', P.entry, 'entry']] : []), ['Dừng lỗ', P.stop, 'down'], ['Giá hiện tại', price, 'text']].sort((a, b) => b[1] - a[1]);
+  const lo = Math.min(...pts.map((x) => x[1])), hi = Math.max(...pts.map((x) => x[1])); const H = 230, y = (v) => 14 + (1 - (v - lo) / (hi - lo || 1)) * (H - 28);
+  // giãn nhãn để không chồng nhau (tối thiểu 15px)
+  const ly = pts.map((x) => y(x[1])); for (let k = 1; k < ly.length; k++) if (ly[k] - ly[k - 1] < 15) ly[k] = ly[k - 1] + 15;
+  const over = ly[ly.length - 1] - (H - 6); if (over > 0) for (let k = ly.length - 1; k >= 0; k--) { ly[k] -= over; if (k && ly[k] - ly[k - 1] >= 15) break; }
+  const base = P.entryHi || P.entry; const C = (col) => `var(--${col === 'text' ? 'text' : col})`; const FF = 'font-family="Plus Jakarta Sans, system-ui, sans-serif"';
+  return `<svg viewBox="0 0 300 ${H}" style="width:100%;max-width:360px;height:auto" role="img" aria-label="Thang giá kế hoạch">
+    <rect x="96" y="${y(P.t2)}" width="10" height="${Math.max(2, y(base) - y(P.t2))}" rx="3" fill="var(--up)" opacity=".35"/>
+    <rect x="96" y="${y(base)}" width="10" height="${Math.max(2, y(P.stop) - y(base))}" rx="3" fill="var(--down)" opacity=".35"/>
+    ${pts.map(([lb, v, col], k) => `<line x1="88" x2="114" y1="${y(v)}" y2="${y(v)}" stroke="${C(col)}" stroke-width="${col === 'text' ? 1.2 : 2}" ${col === 'text' ? 'stroke-dasharray="3 3"' : ''}/>
+      <path d="M84 ${ly[k]} L88 ${y(v)} M114 ${y(v)} L118 ${ly[k]}" stroke="var(--border-strong)" fill="none"/>
+      <text x="122" y="${ly[k] + 4}" font-size="11.5" fill="var(--text-dim)" ${FF}>${lb}</text>
+      <text x="80" y="${ly[k] + 4}" font-size="11.5" text-anchor="end" fill="${C(col)}" font-weight="700" ${FF}>${fmtP(v)}</text>`).join('')}
+  </svg>`;
+}
+function drawPlan() {
+  const el = $('#planPanel'); if (!el || !A) return; const plans = A.plans;
+  if (!plans) { el.innerHTML = ''; return; }
+  const P = plans[planHz]; const price = A.f.price;
+  const pct = (v) => ((v / (P.entryHi || P.entry) - 1) * 100);
+  const hasPlan = P && P.setup !== 'none' && P.stop;
+  el.innerHTML = `<div class="panel-h"><h2>Kế hoạch giao dịch</h2>
+      <div class="seg sm" id="phz">${['short', 'mid', 'long'].map((k) => `<button data-v="${k}" class="${planHz === k ? 'on' : ''}">${HZ[k]} ${plans[k]?.valid ? '✓' : ''}</button>`).join('')}</div></div>
+    ${hasPlan ? `<div class="grid g-main" style="gap:24px;align-items:center">
+      <div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span class="pill ${P.valid ? 'bull' : P.blocked ? 'bear' : 'neutral'}">${esc(P.verdict)}</span><b style="font-size:1.05rem">${ico(SETUP_ICON[P.setup] || 'minus', 'style="display:inline;width:16px;height:16px;vertical-align:-2px"')} ${esc(P.label)}</b></div>
+        <p class="dim" style="font-size:.88rem;margin-bottom:12px">${esc(P.note || '')}</p>
+        <div class="ind-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+          <div class="ind"><div class="l">${P.entryHi ? 'Vùng vào' : P.trigger === 'stop' ? 'Lệnh chờ mua trên' : 'Điểm vào'}</div><div class="v num" style="color:var(--entry)">${P.entryHi ? fmtP(P.entry) + ' – ' + fmtP(P.entryHi) : fmtP(P.entry)}</div><div class="s">${price ? `Cách giá hiện tại ${((P.entry / price - 1) * 100).toFixed(1)}%` : ''}</div></div>
+          <div class="ind"><div class="l">Dừng lỗ</div><div class="v num down">${fmtP(P.stop)}</div><div class="s">−${P.riskPct.toFixed(1)}% = 1R</div></div>
+          <div class="ind"><div class="l">Mục tiêu 1</div><div class="v num up">${fmtP(P.t1)}</div><div class="s">+${pct(P.t1).toFixed(1)}% · ${P.rr1.toFixed(1)}R</div></div>
+          <div class="ind"><div class="l">Mục tiêu 2</div><div class="v num up">${fmtP(P.t2)}</div><div class="s">+${pct(P.t2).toFixed(1)}% · ${P.rr2.toFixed(1)}R</div></div>
+          <div class="ind"><div class="l">Dời dừng lỗ về hòa vốn khi</div><div class="v num">${fmtP(P.breakeven)}</div><div class="s">Giá đi được +1R</div></div>
+          <div class="ind"><div class="l">Dừng lỗ động (Chandelier)</div><div class="v num">${fmtP(P.chandelier)}</div><div class="s">Đỉnh 22 phiên − 3×ATR</div></div>
+        </div>
+        <p class="faint" style="font-size:.78rem;margin-top:10px">Quản trị vốn: mỗi lệnh chỉ nên rủi ro 1–2% tổng vốn. Khối lượng tối đa = (vốn × 1%) ÷ (giá vào − dừng lỗ). Ví dụ vốn 100 triệu, rủi ro 1 triệu → tối đa ${Math.floor(1e6 / Math.max(1, (P.entryHi || P.entry) - P.stop) / 100) * 100 > 0 ? (Math.floor(1e6 / ((P.entryHi || P.entry) - P.stop) / 100) * 100).toLocaleString('vi-VN') : '—'} cổ phiếu. Kế hoạch hết hiệu lực nếu sau ${P.expiry} phiên chưa khớp điểm vào.</p>
+      </div>
+      <div style="display:flex;justify-content:center">${ladder(P, price)}</div>
+    </div>` : `<div class="empty" style="padding:24px"><h3>${esc(P?.label || 'Chưa có kế hoạch')}</h3><p>${esc(P?.note || '')}</p></div>`}`;
+  $('#phz').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; planHz = b.dataset.v; drawPlan(); drawChart(true); });
 }
 
 function drawBottom() {
@@ -122,7 +181,7 @@ function drawBottom() {
 
 function drawVerdicts() {
   const el = $('#verdicts'); if (!el || !A) return;
-  drawBottom();
+  drawTop(); drawPlan(); drawBottom();
   el.innerHTML = ['short', 'mid', 'long'].map((hz) => {
     const x = A.sc[hz]; const list = expanded[hz] ? x.reasons : x.reasons.slice(0, 5);
     return `<article class="glass vcard ${vClass(x.verdict)}">
@@ -168,14 +227,25 @@ async function drawChart(force) {
   chart.set(bars, ind, { ma: opts.ma, bb: opts.bb, range: weekly ? Math.round(opts.range / 5) + 10 : opts.range, levels: levelLines(), markers });
   osc?.set(bars, ind, opts.osc);
   const lg = [];
+  if (opts.plan && A.plans?.[planHz]?.stop) lg.push('<span><i style="background:var(--entry)"></i>Điểm vào</span><span><i style="background:var(--down)"></i>Dừng lỗ</span><span><i style="background:var(--up)"></i>Mục tiêu</span>');
   if (opts.ma) lg.push('<span><i style="background:var(--ma20)"></i>MA20</span><span><i style="background:var(--ma50)"></i>MA50</span><span><i style="background:var(--ma200)"></i>MA200</span>');
-  if (opts.fib && A.f.fib) lg.push('<span><i style="background:var(--text-faint)"></i>Fibonacci</span>');
-  if (opts.lv) lg.push('<span><i style="background:var(--up)"></i>Hỗ trợ</span><span><i style="background:var(--down)"></i>Kháng cự</span>');
+  const planOn = opts.plan && A.plans?.[planHz]?.stop;
+  if (!planOn && opts.fib && A.f.fib) lg.push('<span><i style="background:var(--text-faint)"></i>Fibonacci</span>');
+  if (!planOn && opts.lv) lg.push('<span><i style="background:var(--up)"></i>Hỗ trợ</span><span><i style="background:var(--down)"></i>Kháng cự</span>');
   $('#sigLegend').innerHTML = lg.join('');
   void force;
 }
 function levelLines() {
   const out = []; if (!A) return out; const f = A.f;
+  const P = A.plans?.[planHz];
+  if (opts.plan && P && P.setup !== 'none' && P.stop) {
+    out.push({ p: P.entry, color: css('--entry'), title: 'Vào', w: 2, style: 0 });
+    if (P.entryHi) out.push({ p: P.entryHi, color: css('--entry'), title: 'Vùng vào', w: 1, style: 2 });
+    out.push({ p: P.stop, color: css('--down'), title: 'Dừng lỗ', w: 2, style: 0 });
+    out.push({ p: P.t1, color: css('--up'), title: 'Mục tiêu 1', w: 2, style: 0 });
+    out.push({ p: P.t2, color: css('--up'), title: 'Mục tiêu 2', w: 1, style: 2 });
+    return out;
+  }
   if (opts.lv) { f.lv.support.slice(0, 2).forEach((s, i) => out.push({ p: s.p, color: css('--up'), title: i ? 'HT' : 'Hỗ trợ', w: i ? 1 : 2, style: i ? 2 : 0 })); f.lv.resistance.slice(0, 2).forEach((s, i) => out.push({ p: s.p, color: css('--down'), title: i ? 'KC' : 'Kháng cự', w: i ? 1 : 2, style: i ? 2 : 0 })); }
   if (opts.fib && f.fib) { f.fib.levels.filter((x) => [0.382, 0.5, 0.618].includes(x.r)).forEach((x) => out.push({ p: x.p, color: css('--text-faint'), title: (x.r * 100).toFixed(1) + '%', style: 1 })); }
   return out;
@@ -269,13 +339,19 @@ async function saveNote() {
   const idxPrice = S.idxLive?.price || S.index[S.index.length - 1]?.c || null;
   const data = { short: pick('short'), mid: pick('mid'), long: pick('long'), t: f.ind && S.bars[sym][S.bars[sym].length - 1].t,
     sup: f.sup?.p ?? null, res: f.res?.p ?? null, inval: A.zones.invalidation, rs: S.result?.rows?.[sym]?.rs ?? null,
-    market: m ? { score: m.score, phase: m.phase } : null, sector: S.secNames[S.secOf[sym]] || null, patterns: f.patterns.map((p) => p.name), bottom: A.bt?.inZone && A.bt.score !== null ? { score: A.bt.score, stage: A.bt.stage.label } : null, name: S.names[sym] || fundData?.name || '' };
+    market: m ? { score: m.score, phase: m.phase } : null, top: f.top ? { score: f.top.score, level: f.top.level.label } : null, sector: S.secNames[S.secOf[sym]] || null, patterns: f.patterns.map((p) => p.name), bottom: A.bt?.inZone && A.bt.score !== null ? { score: A.bt.score, stage: A.bt.stage.label } : null, name: S.names[sym] || fundData?.name || '' };
+  const planOpt = (hz) => { const P = A.plans?.[hz]; if (!P || P.setup === 'none' || !P.stop) return `<label class="ind" style="opacity:.55"><input type="radio" name="phz" value="${hz}" disabled> <b>${HZ[hz]}</b><div class="s">${esc(P?.label || 'Chưa có kế hoạch')}</div></label>`;
+    return `<label class="ind" style="cursor:pointer"><input type="radio" name="phz" value="${hz}" ${hz === planHz ? 'checked' : ''}> <b>${HZ[hz]}</b> <span class="pill ${P.valid ? 'bull' : 'neutral'}" style="margin-left:4px">${P.rr1.toFixed(1)}R</span>
+      <div class="s" style="margin-top:4px">${esc(P.label)}<br>Vào ${P.entryHi ? fmtP(P.entry) + '–' + fmtP(P.entryHi) : fmtP(P.entry)} · Dừng ${fmtP(P.stop)} · MT1 ${fmtP(P.t1)}</div></label>`; };
   const res = await modal({
     title: `Lưu nhận định ${sym}`,
-    body: `<p class="dim" style="font-size:.9rem">Lưu lại giá <b>${fmtP(f.price)}</b> cùng điểm và lý do của cả ba khung thời gian tại thời điểm này. Trang “Đã lưu” sẽ đối chiếu với diễn biến giá thực tế về sau.</p>
+    body: `<p class="dim" style="font-size:.9rem">Lưu lại giá <b>${fmtP(f.price)}</b>, điểm và lý do của ba khung thời gian, cùng một kế hoạch giao dịch (vào – dừng lỗ – mục tiêu). Trang “Đã lưu” sẽ theo dõi xem kế hoạch có khớp lệnh, chạm mục tiêu hay dính dừng lỗ.</p>
       <div class="kpis" style="grid-template-columns:repeat(3,1fr)">${['short', 'mid', 'long'].map((hz) => `<div class="ind ${vClass(A.sc[hz].verdict)}"><div class="l">${HZ[hz]}</div><div class="v" style="color:var(--sc)">${Math.round(A.sc[hz].score)}</div><div class="s">${A.sc[hz].verdict.label}</div></div>`).join('')}</div>
+      <div class="field"><label>Kế hoạch giao dịch sẽ được theo dõi</label><div class="kpis" style="grid-template-columns:repeat(3,1fr)">${['short', 'mid', 'long'].map(planOpt).join('')}</div></div>
       <div class="field"><label for="nt">Ghi chú của bạn (không bắt buộc)</label><textarea class="input" id="nt" maxlength="1000" placeholder="Vì sao bạn quan tâm mã này, kế hoạch theo dõi…"></textarea></div>`,
-    actions: [{ label: 'Hủy' }, { label: 'Lưu nhận định', kind: 'primary', run: async (el) => { await auth.notes.save({ symbol: sym, price: f.price, idxPrice, data, note: $('#nt', el).value.trim() }); return true; } }],
+    actions: [{ label: 'Hủy' }, { label: 'Lưu nhận định', kind: 'primary', run: async (el) => { const hz = el.querySelector('input[name=phz]:checked')?.value; const P = hz ? A.plans[hz] : null;
+      if (P) data.plan = { hz, setup: P.setup, label: P.label, entry: P.entry, entryHi: P.entryHi, trigger: P.trigger || (P.entryHi ? 'zone' : 'stop'), stop: P.stop, t1: P.t1, t2: P.t2, rr1: P.rr1, rr2: P.rr2, riskPct: P.riskPct, expiry: P.expiry, valid: P.valid, verdict: P.verdict };
+      await auth.notes.save({ symbol: sym, price: f.price, idxPrice, data, note: $('#nt', el).value.trim() }); return true; } }],
   });
   if (res) toast(`Đã lưu nhận định ${sym}`);
 }
