@@ -1,7 +1,7 @@
 // Điều phối dữ liệu: tải danh mục, lịch sử (có cache), bảng giá realtime, chỉ số cơ bản; đẩy sang worker để phân tích.
-import * as src from './sources.js';
-import * as cache from './cache.js';
-import { POLL_LIVE, POLL_IDLE, HISTORY_DAYS, FUND_TTL } from '../config.js';
+import * as src from './sources.js?v=b3442460';
+import * as cache from './cache.js?v=0c2b413d';
+import { POLL_LIVE, POLL_IDLE, HISTORY_DAYS, FUND_TTL } from '../config.js?v=c96eccdd';
 
 const listeners = new Set();
 export const on = (fn) => (listeners.add(fn), () => listeners.delete(fn));
@@ -33,7 +33,7 @@ export function sessionInfo(now = new Date()) {
 // ---------- worker ----------
 let worker = null;
 function startWorker() {
-  worker = new Worker(new URL('../engine/worker.js', import.meta.url), { type: 'module' });
+  worker = new Worker(new URL('../engine/worker.js?v=114474cf', import.meta.url), { type: 'module' });
   worker.onmessage = (ev) => {
     if (ev.data.type === 'result') { state.result = ev.data.data; emit('result'); }
     else if (ev.data.type === 'error') { console.error('worker', ev.data.error); state.errors.push(ev.data.error); emit('error'); }

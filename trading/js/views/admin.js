@@ -1,14 +1,13 @@
 // Trang Duyệt (chỉ quản trị viên): chấp thuận / từ chối / khóa tài khoản.
-import * as auth from '../auth.js';
-import { refreshPending } from '../app.js';
-import { $, esc, ico, toast, modal } from '../ui/util.js';
+import * as auth from '../auth.js?v=ef52e68e';
+import { $, esc, ico, toast, modal } from '../ui/util.js?v=70d78725';
 
 let root = null, users = null, err = null, filter = 'pending';
 const ST = { pending: ['Chờ duyệt', 'neutral'], approved: ['Đã duyệt', 'bull'], rejected: ['Từ chối', 'bear'], blocked: ['Đã khóa', 'bear'] };
 
 async function load() {
   try { users = await auth.admin.users(); err = null; } catch (e) { err = e.message; }
-  draw(); refreshPending();
+  draw(); window.dispatchEvent(new Event('pending-changed'));
 }
 function draw() {
   if (!root) return;

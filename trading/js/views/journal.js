@@ -1,7 +1,7 @@
 // Trang Đã lưu: nhận định đã lưu, so với diễn biến giá thực tế và VN-Index cùng kỳ.
-import * as store from '../data/store.js';
-import * as auth from '../auth.js';
-import { $, esc, ico, fmtP, fmtPct, cls, avatar, toast, modal, HZ, HZ_SUB } from '../ui/util.js';
+import * as store from '../data/store.js?v=569ff4be';
+import * as auth from '../auth.js?v=ef52e68e';
+import { $, esc, ico, fmtP, fmtPct, cls, avatar, toast, modal, HZ, HZ_SUB } from '../ui/util.js?v=70d78725';
 
 const WIN = { short: 10, mid: 60, long: 250 };
 let root = null, notes = null, err = null, open = {};

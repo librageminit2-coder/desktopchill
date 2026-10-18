@@ -1,8 +1,8 @@
 // Trang Thị trường: câu nhận định, điểm sức khỏe, VN-Index, độ rộng, ngày phân phối, ngành, dòng tiền.
-import * as store from '../data/store.js';
-import { computeAll } from '../engine/indicators.js';
-import { priceChart, areaChart } from '../ui/chart.js';
-import { $, $$, esc, ico, fmtP, fmtIdx, fmtChg, fmtPct, fmtTy, fmtN, cls, avatar, scoreCell, dateVN } from '../ui/util.js';
+import * as store from '../data/store.js?v=569ff4be';
+import { computeAll } from '../engine/indicators.js?v=8e6ac8b1';
+import { priceChart, areaChart } from '../ui/chart.js?v=a75cd100';
+import { $, $$, esc, ico, fmtP, fmtIdx, fmtChg, fmtPct, fmtTy, fmtN, cls, avatar, scoreCell, dateVN } from '../ui/util.js?v=70d78725';
 
 let root = null, chart = null, bchart = null, range = 130, lastIdxLen = 0, lastIdxClose = 0;
 

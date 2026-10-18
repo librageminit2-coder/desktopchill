@@ -1,14 +1,14 @@
 // Khung ứng dụng: đăng nhập, thanh điều hướng, định tuyến, trạng thái realtime.
-import * as auth from './auth.js';
-import * as store from './data/store.js';
-import { $, $$, esc, ico, LOGO, toast, modal, timeVN } from './ui/util.js';
-import marketView from './views/market.js';
-import screenerView from './views/screener.js';
-import stockView from './views/stock.js';
-import journalView from './views/journal.js';
-import methodView from './views/method.js';
-import scenarioView from './views/scenario.js';
-import adminView from './views/admin.js';
+import * as auth from './auth.js?v=ef52e68e';
+import * as store from './data/store.js?v=569ff4be';
+import { $, $$, esc, ico, LOGO, toast, modal, timeVN } from './ui/util.js?v=70d78725';
+import marketView from './views/market.js?v=fc1159b4';
+import screenerView from './views/screener.js?v=c0c31727';
+import stockView from './views/stock.js?v=26532d09';
+import journalView from './views/journal.js?v=448a70c7';
+import methodView from './views/method.js?v=20df83e5';
+import scenarioView from './views/scenario.js?v=7ef25863';
+import adminView from './views/admin.js?v=72d202b4';
 
 const app = $('#app');
 export const ctx = { user: null, notesCount: 0, pendingCount: 0 };
@@ -186,7 +186,7 @@ async function startApp(user) {
   route(); liveStatus();
   setInterval(liveStatus, 30000);
   store.init().catch((e) => { console.error(e); store.state.errors.push(e.message); current?.update?.('error'); toast(e.message, 'err'); });
-  if (user.role === 'admin') refreshPending();
+  if (user.role === 'admin') { refreshPending(); window.addEventListener('pending-changed', refreshPending); }
 }
 export async function refreshPending() {
   try { const u = await auth.admin.users(); const n = u.filter((x) => x.status === 'pending').length; const el = $('#pendN'); if (el) { el.hidden = !n; el.textContent = n; } return u; } catch (e) { return null; }

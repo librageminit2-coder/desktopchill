@@ -1,8 +1,8 @@
 // Chạy toàn bộ phân tích cho cả sàn: đặc trưng → xếp hạng RS → thị trường → ngành → điểm từng mã.
-import { features, rsRaw, score } from './analyze.js';
-import { marketHealth, sectorStats, median } from './market.js';
-import { bottomScore } from './bottom.js';
-import { scenarios } from './scenario.js';
+import { features, rsRaw, score } from './analyze.js?v=a4454146';
+import { marketHealth, sectorStats, median } from './market.js?v=8023da8a';
+import { bottomScore } from './bottom.js?v=78a2248a';
+import { scenarios } from './scenario.js?v=b8ada897';
 
 const ok = (x) => x !== undefined && x !== null && !Number.isNaN(x) && Number.isFinite(x);
 

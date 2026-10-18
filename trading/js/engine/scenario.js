@@ -1,8 +1,8 @@
 // Kịch bản thị trường: dựa trên chính các nhịp tăng/giảm của VN-Index trong ~2 năm qua để biết
 // mã/ngành nào thường tăng trước khi thị trường hồi và giảm trước khi thị trường điều chỉnh,
 // rồi kết hợp với tín hiệu kỹ thuật hiện tại để chọn ứng viên.
-import { zigzag } from './structure.js';
-import { median } from './market.js';
+import { zigzag } from './structure.js?v=c3bd6cc0';
+import { median } from './market.js?v=8023da8a';
 
 const ok = (x) => x !== undefined && x !== null && !Number.isNaN(x) && Number.isFinite(x);
 const mean = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN);

@@ -1,11 +1,11 @@
 // Trang chi tiết mã: nhận định 3 khung thời gian, biểu đồ có Fibo/hỗ trợ/kháng cự/tín hiệu, chỉ báo, cơ bản, khối ngoại, lưu nhận định.
-import * as store from '../data/store.js';
-import * as auth from '../auth.js';
-import { features, score, keyZones } from '../engine/analyze.js';
-import { bottomScore } from '../engine/bottom.js';
-import { computeAll, toWeekly } from '../engine/indicators.js';
-import { priceChart, oscChart } from '../ui/chart.js';
-import { $, $$, esc, ico, fmtP, fmtChg, fmtPct, fmtTy, fmtN, cls, priceCls, vClass, ring, toast, modal, HZ, HZ_SUB } from '../ui/util.js';
+import * as store from '../data/store.js?v=569ff4be';
+import * as auth from '../auth.js?v=ef52e68e';
+import { features, score, keyZones } from '../engine/analyze.js?v=a4454146';
+import { bottomScore } from '../engine/bottom.js?v=78a2248a';
+import { computeAll, toWeekly } from '../engine/indicators.js?v=8e6ac8b1';
+import { priceChart, oscChart } from '../ui/chart.js?v=a75cd100';
+import { $, $$, esc, ico, fmtP, fmtChg, fmtPct, fmtTy, fmtN, cls, priceCls, vClass, ring, toast, modal, HZ, HZ_SUB } from '../ui/util.js?v=70d78725';
 
 let root = null, sym = null, chart = null, osc = null, A = null, opts = null, fundData = null, foreignData = null, expanded = {}, lastBarKey = '';
 const LS = 'dct_chart_opts';

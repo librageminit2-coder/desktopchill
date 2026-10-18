@@ -1,7 +1,7 @@
 // Vùng đáy tiềm năng: tìm mã đã giảm sâu nhưng đang có dấu hiệu ngừng rơi, bên bán kiệt sức,
 // dòng tiền bắt đầu gom, định giá rẻ và doanh nghiệp vẫn ổn — tức "giá thấp nhưng chưa chắc xấu".
-import { highest, lowest, slopePct } from './indicators.js';
-import { zigzag, fmtP } from './structure.js';
+import { highest, lowest, slopePct } from './indicators.js?v=8e6ac8b1';
+import { zigzag, fmtP } from './structure.js?v=c3bd6cc0';
 
 const ok = (x) => x !== undefined && x !== null && !Number.isNaN(x) && Number.isFinite(x);
 const clamp = (x, a = -1, b = 1) => Math.max(a, Math.min(b, x));

@@ -1,5 +1,5 @@
 // Web Worker: giữ toàn bộ lịch sử giá và chạy phân tích cả sàn, trả về bản tóm tắt gọn cho giao diện.
-import { runAll } from './pipeline.js';
+import { runAll } from './pipeline.js?v=bd2f3953';
 
 let S = { bars: {}, index: [], secOf: {}, secNames: {}, board: {}, fund: {}, advDec: null, sessionFrac: 1 };
 

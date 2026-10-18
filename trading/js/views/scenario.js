@@ -1,7 +1,7 @@
 // Trang Kịch bản: nếu thị trường tăng/giảm thì ngành & mã nào phản ứng trước — rút ra từ chính các nhịp của VN-Index
 // trong ~2 năm qua, kết hợp tín hiệu kỹ thuật hiện tại và kinh nghiệm luân chuyển ngành ở Mỹ, Trung Quốc.
-import * as store from '../data/store.js';
-import { $, esc, ico, fmtIdx, fmtPct, avatar, dateVN, cls } from '../ui/util.js';
+import * as store from '../data/store.js?v=569ff4be';
+import { $, esc, ico, fmtIdx, fmtPct, avatar, dateVN, cls } from '../ui/util.js?v=70d78725';
 
 let root = null, lastAt = 0;
 

@@ -1,6 +1,6 @@
 // Sức khỏe thị trường, độ rộng, ngày phân phối, luân chuyển ngành.
-import { computeAll, slopePct } from './indicators.js';
-import { trendStructure } from './structure.js';
+import { computeAll, slopePct } from './indicators.js?v=8e6ac8b1';
+import { trendStructure } from './structure.js?v=c3bd6cc0';
 
 const ok = (x) => x !== undefined && x !== null && !Number.isNaN(x) && Number.isFinite(x);
 const clamp = (x, a = -1, b = 1) => Math.max(a, Math.min(b, x));

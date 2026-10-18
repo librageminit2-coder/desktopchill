@@ -32,5 +32,6 @@ Khi có người đăng ký, trang gửi email tới librageminit2@gmail.com qua
 
 - Mã nguồn: `trading/js/engine` (phân tích, chạy trong Web Worker), `trading/js/data` (nguồn dữ liệu + bộ nhớ đệm IndexedDB), `trading/js/views` (các trang).
 - Kiểm thử bộ phân tích: `node trading/test/engine.test.mjs`.
+- Sau khi sửa code, chạy `node trading/tools/stamp.mjs` trước khi commit: lệnh này gắn mã phiên bản vào đường dẫn các file JS để trình duyệt và Cloudflare không dùng bản cũ.
 - Mật khẩu được băm bcrypt trong Postgres; phiên đăng nhập là token ngẫu nhiên 30 ngày (chỉ lưu bản băm SHA-256).
 - Vì repo công khai, mã phân tích ai cũng đọc được; đăng nhập bảo vệ trải nghiệm và dữ liệu nhận định riêng của từng người.
