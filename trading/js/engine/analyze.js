@@ -98,6 +98,7 @@ export function score(f, ctx = {}) {
     const aE20 = pct(p, f.ema20), sE = f.ema10 > f.ema20;
     add('short', 'trend', 14, (aE20 > 0 ? 0.5 : -0.5) + (sE ? 0.5 : -0.5),
       aE20 > 0 && sE ? `Giá trên EMA20 (${aE20 > 0 ? '+' : ''}${aE20.toFixed(1)}%), EMA10 nằm trên EMA20` : aE20 < 0 && !sE ? `Giá dưới EMA20 (${aE20.toFixed(1)}%), xu hướng ngắn đang yếu` : `Giá giằng co quanh EMA10/EMA20`);
+    if (aE20 > 10) add('short', 'ext', 7, -clamp((aE20 - 10) / 12, 0, 1), `Giá cách EMA20 ${aE20.toFixed(0)}% — đã chạy xa, rủi ro mua đuổi`);
     // RSI
     let rs = 0, rt = '';
     if (f.rsi >= 78) { rs = -0.6; rt = `RSI ${f.rsi.toFixed(0)} — quá mua, dễ rung lắc ngắn hạn`; }
@@ -144,6 +145,7 @@ export function score(f, ctx = {}) {
     if (ok(f.ma50)) add('mid', 'ma50', 16, (a50 > 0 ? 0.5 : -0.5) + clamp(f.ma50Slope * 2, -0.5, 0.5),
       `Giá ${a50 >= 0 ? 'trên' : 'dưới'} MA50 ${Math.abs(a50).toFixed(1)}%, MA50 ${f.ma50Slope > 0.05 ? 'đang dốc lên' : f.ma50Slope < -0.05 ? 'đang dốc xuống' : 'đi ngang'}`);
     add('mid', 'struct', 10, f.struct.score, `Cấu trúc sóng: ${f.struct.label}`);
+    if (ok(f.ma50) && a50 > 18) add('mid', 'ext', 9, -clamp((a50 - 18) / 22, 0, 1), `Giá đã cách MA50 ${a50.toFixed(0)}% — tăng nóng, dư địa ngắn còn ít, dễ điều chỉnh về trung bình`);
     if (ok(f.adx)) {
       const dirn = f.pdi > f.mdi ? 1 : -1;
       add('mid', 'adx', 8, f.adx >= 22 ? dirn * Math.min(1, (f.adx - 15) / 20) : 0, f.adx >= 22 ? `ADX ${f.adx.toFixed(0)}: xu hướng ${dirn > 0 ? 'tăng' : 'giảm'} có lực (+DI ${dirn > 0 ? '>' : '<'} −DI)` : `ADX ${f.adx.toFixed(0)}: chưa có xu hướng rõ`);
@@ -172,6 +174,7 @@ export function score(f, ctx = {}) {
   {
     if (ok(f.ma200)) {
       const a200 = pct(p, f.ma200);
+      if (a200 > 60) add('long', 'ext', 7, -clamp((a200 - 60) / 60, 0, 1), `Giá đã cao hơn MA200 ${a200.toFixed(0)}% — phần lớn tiềm năng đã được phản ánh vào giá`);
       add('long', 'ma200', 16, (a200 > 0 ? 0.5 : -0.5) + clamp(f.ma200Slope * 5, -0.5, 0.5), `Giá ${a200 >= 0 ? 'trên' : 'dưới'} MA200 ${Math.abs(a200).toFixed(1)}%, MA200 ${f.ma200Slope > 0.02 ? 'dốc lên' : f.ma200Slope < -0.02 ? 'dốc xuống' : 'đi ngang'}`);
     } else add('long', 'ma200', 6, 0, 'Lịch sử giao dịch chưa đủ 200 phiên');
     if (f.cross) add('long', 'cross', 8, f.cross.kind === 'golden' ? 0.9 : -0.9, f.cross.kind === 'golden' ? `Giao cắt vàng MA50/MA200 cách đây ${f.cross.ago} phiên` : `Giao cắt tử thần MA50/MA200 cách đây ${f.cross.ago} phiên`);

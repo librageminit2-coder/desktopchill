@@ -7,6 +7,7 @@ import screenerView from './views/screener.js';
 import stockView from './views/stock.js';
 import journalView from './views/journal.js';
 import methodView from './views/method.js';
+import scenarioView from './views/scenario.js';
 import adminView from './views/admin.js';
 
 const app = $('#app');
@@ -89,6 +90,7 @@ function showAuth(mode = 'login', notice = '') {
 const ROUTES = [
   { key: 'thi-truong', label: 'Thị trường', icon: 'market', view: marketView },
   { key: 'co-hoi', label: 'Cơ hội', icon: 'spark', view: screenerView },
+  { key: 'kich-ban', label: 'Kịch bản', icon: 'trend', view: scenarioView },
   { key: 'da-luu', label: 'Đã lưu', icon: 'bookmark', view: journalView },
   { key: 'phuong-phap', label: 'Phương pháp', icon: 'book', view: methodView },
 ];

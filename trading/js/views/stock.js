@@ -2,6 +2,7 @@
 import * as store from '../data/store.js';
 import * as auth from '../auth.js';
 import { features, score, keyZones } from '../engine/analyze.js';
+import { bottomScore } from '../engine/bottom.js';
 import { computeAll, toWeekly } from '../engine/indicators.js';
 import { priceChart, oscChart } from '../ui/chart.js';
 import { $, $$, esc, ico, fmtP, fmtChg, fmtPct, fmtTy, fmtN, cls, priceCls, vClass, ring, toast, modal, HZ, HZ_SUB } from '../ui/util.js';
@@ -19,6 +20,7 @@ function render(main, { arg }) {
   main.innerHTML = `
     <a href="#/co-hoi" class="btn ghost sm" style="margin-top:6px" onclick="if(history.length>1){history.back();return false}">${ico('back')}Quay lại</a>
     <section class="stock-head" id="head"></section>
+    <div id="bottomPanel"></div>
     <div class="verdicts" id="verdicts">${[0, 1, 2].map(() => '<div class="glass vcard"><div class="skeleton" style="height:180px"></div></div>').join('')}</div>
     <div class="grid g-main mt">
       <section class="glass panel">
@@ -78,8 +80,9 @@ function analyze() {
   const S = store.state; const bars = S.bars[sym]; if (!bars || bars.length < 30) { A = null; return; }
   const ss = S.session || store.sessionInfo();
   const f = features(bars, { foreignNet: S.board[sym]?.fNet ?? null, sessionFrac: ss.frac });
-  const sc = score(f, ctxFor());
-  A = { f, sc, zones: keyZones(f), bars };
+  const ctx = ctxFor(); const sc = score(f, ctx);
+  let bt = null; try { bt = bottomScore(f, ctx); } catch (e) { bt = null; }
+  A = { f, sc, zones: keyZones(f), bars, bt };
 }
 
 function head() {
@@ -96,8 +99,30 @@ function head() {
     <div class="stock-actions"><button class="btn primary" id="saveBtn" ${A ? '' : 'disabled'}>${ico('bookmark')}Lưu nhận định</button></div>`;
 }
 
+function drawBottom() {
+  const el = $('#bottomPanel'); if (!el) return; const b = A?.bt;
+  if (!b || !b.inZone || b.score === null) { el.innerHTML = ''; return; }
+  const key = b.score >= 75 ? 'vpos' : b.score >= 60 ? 'pos' : b.score > 45 ? 'neu' : b.score > 30 ? 'neg' : 'vneg';
+  const stageCls = { falling: 'bear', basing: 'neutral', turning: 'bull' }[b.stage.key];
+  const list = b.reasons.slice(0, 8);
+  el.innerHTML = `<section class="glass panel s-${key}" style="margin-bottom:16px">
+    <div class="panel-h"><h2>Vùng đáy — tiềm năng hồi phục</h2><span class="sub">Mã đã giảm ${Math.abs(b.drawdown).toFixed(0)}% từ đỉnh 52 tuần</span></div>
+    <div class="grid g-main" style="gap:24px">
+      <div><div class="vcard" style="padding:0"><div class="top">${ring(b.score)}<div><div class="hz">Điểm vùng đáy</div><div class="vd">${esc(key === 'vpos' || key === 'pos' ? 'Đáng chú ý' : key === 'neu' ? 'Chờ thêm tín hiệu' : 'Chưa nên bắt đáy')}</div><span class="pill ${stageCls}" style="margin-top:6px">${esc(b.stage.label)}</span></div></div>
+        <ul>${list.map((r) => `<li>${ico(r.s >= 0.15 ? 'arrowUp' : r.s <= -0.15 ? 'arrowDown' : 'minus', `style="color:var(--${r.s >= 0.15 ? 'up' : r.s <= -0.15 ? 'down' : 'ref'})"`)}<span>${esc(r.text)}</span><span class="im num ${r.impact > 0.2 ? 'up' : r.impact < -0.2 ? 'down' : 'faint'}">${r.impact > 0 ? '+' : ''}${r.impact.toFixed(1)}</span></li>`).join('')}</ul></div></div>
+      <div class="list">
+        <div class="li"><div class="t">Hồi về Fibo 38,2% của sóng giảm</div><div class="v num">${fmtP(b.target382)} <small class="up">${b.upside382 > 0 ? '+' + b.upside382.toFixed(1) + '%' : 'đã vượt'}</small></div></div>
+        <div class="li"><div class="t">Hồi về Fibo 61,8%</div><div class="v num">${fmtP(b.target618)} <small class="up">${b.upside618 > 0 ? '+' + b.upside618.toFixed(1) + '%' : 'đã vượt'}</small></div></div>
+        <div class="li"><div class="t">Đỉnh 52 tuần</div><div class="v num">${fmtP(A.f.hi52)} <small class="up">+${(A.f.hi52 / A.f.price * 100 - 100).toFixed(0)}%</small></div></div>
+        <div class="li"><div class="t">Mốc sai nếu thủng</div><div class="v num down">${fmtP(b.stopRef)} <small class="down">${(b.stopRef / A.f.price * 100 - 100).toFixed(1)}%</small></div></div>
+        <p class="faint" style="font-size:.78rem;margin-top:10px">“Đang rơi”: chưa có điểm dừng, rủi ro bắt dao rơi. “Đang tạo đáy”: giá ngừng giảm, chờ tín hiệu xác nhận. “Xác nhận đảo chiều”: giá lấy lại EMA20 kèm đáy sau cao hơn hoặc MACD cắt lên.</p>
+      </div>
+    </div></section>`;
+}
+
 function drawVerdicts() {
   const el = $('#verdicts'); if (!el || !A) return;
+  drawBottom();
   el.innerHTML = ['short', 'mid', 'long'].map((hz) => {
     const x = A.sc[hz]; const list = expanded[hz] ? x.reasons : x.reasons.slice(0, 5);
     return `<article class="glass vcard ${vClass(x.verdict)}">
@@ -244,7 +269,7 @@ async function saveNote() {
   const idxPrice = S.idxLive?.price || S.index[S.index.length - 1]?.c || null;
   const data = { short: pick('short'), mid: pick('mid'), long: pick('long'), t: f.ind && S.bars[sym][S.bars[sym].length - 1].t,
     sup: f.sup?.p ?? null, res: f.res?.p ?? null, inval: A.zones.invalidation, rs: S.result?.rows?.[sym]?.rs ?? null,
-    market: m ? { score: m.score, phase: m.phase } : null, sector: S.secNames[S.secOf[sym]] || null, patterns: f.patterns.map((p) => p.name), name: S.names[sym] || fundData?.name || '' };
+    market: m ? { score: m.score, phase: m.phase } : null, sector: S.secNames[S.secOf[sym]] || null, patterns: f.patterns.map((p) => p.name), bottom: A.bt?.inZone && A.bt.score !== null ? { score: A.bt.score, stage: A.bt.stage.label } : null, name: S.names[sym] || fundData?.name || '' };
   const res = await modal({
     title: `Lưu nhận định ${sym}`,
     body: `<p class="dim" style="font-size:.9rem">Lưu lại giá <b>${fmtP(f.price)}</b> cùng điểm và lý do của cả ba khung thời gian tại thời điểm này. Trang “Đã lưu” sẽ đối chiếu với diễn biến giá thực tế về sau.</p>

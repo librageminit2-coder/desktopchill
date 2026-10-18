@@ -26,11 +26,12 @@ function summarize(res) {
     const c = f.ind.c; const spark = c.slice(-60).map((x) => Math.round(x * 100) / 100);
     rows[sym] = { sym, price: f.price, chg: f.chg, chg5: f.chg5, chg20: f.chg20, rvol: f.rvol, avgVal20: f.avgVal20, valToday: f.ind.va[f.n - 1], rsi: f.rsi, adx: f.adx,
       fromHi: f.fromHi, foreignNet: f.foreignNet, rs: sc.rs, rsShort: sc.rsShort, above50: f.price > f.ma50, above200: f.price > f.ma200, ma50: f.ma50, ma200: f.ma200,
-      short: pick('short'), mid: pick('mid'), long: pick('long'), tags, spark, sup: f.sup?.p ?? null, res: f.res?.p ?? null, lastT: f.ind && S.bars[sym] ? S.bars[sym][S.bars[sym].length - 1].t : null };
+      short: pick('short'), mid: pick('mid'), long: pick('long'), tags,
+      bottom: sc.bottom && sc.bottom.inZone ? { score: sc.bottom.score, stage: sc.bottom.stage, drawdown: sc.bottom.drawdown, fromLow: sc.bottom.fromLow, upside382: sc.bottom.upside382, target382: sc.bottom.target382, top: sc.bottom.reasons.filter((r) => Math.abs(r.impact) > 0.5).slice(0, 4).map((r) => ({ text: r.text, impact: r.impact })) } : null, spark, sup: f.sup?.p ?? null, res: f.res?.p ?? null, lastT: f.ind && S.bars[sym] ? S.bars[sym][S.bars[sym].length - 1].t : null };
   }
   const m = res.market;
   const market = m ? { ...m, ind: undefined, struct: { label: m.struct.label, score: m.struct.score }, dist: m.dist.map((d) => ({ ago: m.ind.c.length - 1 - d.i, ch: d.ch })), ftd: m.ftd } : null;
-  return { rows, market, sectors: res.sectors, secMed: res.secMed, at: Date.now() };
+  return { rows, market, sectors: res.sectors, secMed: res.secMed, scenario: res.scenario, at: Date.now() };
 }
 
 function run() {

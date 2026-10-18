@@ -1,6 +1,8 @@
 // Chạy toàn bộ phân tích cho cả sàn: đặc trưng → xếp hạng RS → thị trường → ngành → điểm từng mã.
 import { features, rsRaw, score } from './analyze.js';
 import { marketHealth, sectorStats, median } from './market.js';
+import { bottomScore } from './bottom.js';
+import { scenarios } from './scenario.js';
 
 const ok = (x) => x !== undefined && x !== null && !Number.isNaN(x) && Number.isFinite(x);
 
@@ -35,8 +37,11 @@ export function runAll(input) {
     if (!f) continue; if (only && !only.includes(sym)) continue;
     const sec = secByCode[secOf[sym]];
     const ctx = { rs: rsMap[sym], rsShort: rsShortMap[sym], market, sector: sec ? { score: sec.score, name: sec.name, rank: sec.rank, total: sectors.length } : null, fund: fund[sym] || null, sectorMed: secMed[secOf[sym]] };
-    try { scores[sym] = { ...score(f, ctx), rs: rsMap[sym], rsShort: rsShortMap[sym] }; } catch (e) { console.warn('score', sym, e); }
+    try { scores[sym] = { ...score(f, ctx), rs: rsMap[sym], rsShort: rsShortMap[sym] }; } catch (e) { console.warn('score', sym, e); continue; }
+    try { scores[sym].bottom = bottomScore(f, ctx); } catch (e) { console.warn('bottom', sym, e); }
   }
   sectors = sectorStats(feats, secOf, secNames, scores);
-  return { feats, scores, market, sectors, secMed };
+  let scenario = null;
+  try { scenario = scenarios({ bars, index, secOf, secNames, feats, scores, sectors, market }); } catch (e) { console.warn('scenario', e); }
+  return { feats, scores, market, sectors, secMed, scenario };
 }

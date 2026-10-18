@@ -51,3 +51,13 @@ console.log('patterns', JSON.stringify(pats), 'divergences', divs, 'candles', cd
 console.log('sectors', res.sectors.slice(0, 5).map((x) => `${x.rank}.${x.name} ${x.score.toFixed(0)} [${x.leaders.join(',')}]`).join(' | '));
 const f = res.feats.FPT; console.log('FPT fib', f.fib && f.fib.zone, 'sup', f.sup && f.sup.p, 'res', f.res && f.res.p);
 console.log('ALL OK');
+// vùng đáy + kịch bản
+const inZone = Object.values(res.scores).filter((x) => x.bottom?.inZone);
+console.log('bottom inZone', inZone.length, 'stages', JSON.stringify(inZone.reduce((m, x) => ((m[x.bottom.stage.key] = (m[x.bottom.stage.key] || 0) + 1), m), {})));
+const bt = Object.entries(res.scores).filter(([, x]) => x.bottom?.inZone).sort((a, b) => b[1].bottom.score - a[1].bottom.score).slice(0, 3);
+for (const [s, x] of bt) console.log('BOTTOM', s, x.bottom.score, x.bottom.stage.label, '|', x.bottom.reasons.slice(0, 3).map((r) => r.text).join(' / '));
+assert.ok(res.scenario, 'scenario');
+console.log('scenario eps', JSON.stringify(res.scenario.nEp), 'secUp', res.scenario.secUp.slice(0, 3).map((s) => s.name + ' ' + s.upScore.toFixed(0)).join(', '));
+console.log('stockUp', res.scenario.stockUp.slice(0, 3).map((s) => s.sym + ' ' + s.score.toFixed(0) + ' [' + s.why.join('; ') + ']').join(' || '));
+console.log('triggers', JSON.stringify(res.scenario.triggers));
+console.log('BOTTOM+SCENARIO OK');

@@ -19,6 +19,16 @@ export default {
       <h2>Dài hạn · 6–12 tháng</h2>
       ${W([['MA200', 'Giá trên/dưới MA200 và độ dốc', 16], ['Tăng trưởng lợi nhuận', 'Lợi nhuận 12 tháng gần nhất so với cùng kỳ', 12], ['Khung tuần', 'Cấu trúc đỉnh đáy tuần, MA10 tuần so với MA40 tuần', 10], ['RS, ROE', 'Sức mạnh giá dài hạn; hiệu quả sử dụng vốn (ROE ≥ 20% rất tốt)', 10], ['Định giá', 'P/E so với trung vị ngành (rẻ hơn ngành được cộng điểm), P/B', '4–8'], ['Giao cắt MA50/MA200', 'Giao cắt vàng/tử thần trong 25 phiên', 8], ['Phân kỳ RSI tuần, đỉnh 52 tuần, thanh khoản, sức khỏe tài chính, VN-Index so với MA200', '', '5–8']])}
 
+      <h2>Vùng đáy · tiềm năng hồi phục</h2>
+      <p>Chỉ xét mã đã giảm từ 20% trở lên so với đỉnh 52 tuần (hoặc nằm dưới MA200). Thay vì phạt mã vì giá yếu, hệ thống hỏi: bên bán đã cạn chưa, tiền đã bắt đầu gom chưa, doanh nghiệp có còn tốt và có đang bị định giá rẻ không.</p>
+      ${W([['Nền giá', 'Bao lâu không tạo đáy mới, biên độ 20 phiên co hẹp, đáy sau cao hơn đáy trước', 14], ['Định giá', 'P/E so với trung vị ngành, P/B dưới 1 (dưới giá trị sổ sách)', 13], ['Dòng tiền gom', 'OBV đi lên khi giá đi ngang, CMF dương, KL ngày tăng > ngày giảm, khối ngoại mua', 12], ['Phân kỳ dương', 'RSI/MACD ngày, đặc biệt RSI tuần', 12], ['Chất lượng doanh nghiệp', 'ROE, tăng trưởng lợi nhuận 12 tháng, sức khỏe tài chính', 12], ['Bắt dao rơi', 'ADX mạnh với −DI áp đảo và vừa tạo đáy mới → trừ điểm', '−12'], ['Động lượng hồi, kiệt sức bên bán, mô hình đảo chiều, RS cải thiện, vị trí giá', '', '6–10']])}
+      <p>Giai đoạn: <b>Đang rơi</b> (vừa tạo đáy mới) · <b>Đang tạo đáy</b> (ngừng giảm, chờ xác nhận) · <b>Xác nhận đảo chiều</b> (lấy lại EMA20 kèm đáy cao hơn hoặc MACD cắt lên). Dư địa hồi tính tới mức Fibonacci 38,2% và 61,8% của con sóng giảm từ đỉnh 52 tuần.</p>
+      <h3>Trừ điểm mã tăng nóng</h3>
+      <p>Ở ba khung thời gian thường, mã đã cách EMA20 quá 10%, MA50 quá 18% hoặc MA200 quá 60% bị trừ điểm vì dư địa còn ít và dễ điều chỉnh về trung bình.</p>
+
+      <h2>Kịch bản thị trường</h2>
+      <p>Hệ thống tự nhận diện các nhịp hồi và nhịp giảm của VN-Index (đảo chiều từ 6% trở lên) trong khoảng 2 năm, đo xem mỗi mã và mỗi ngành tăng/giảm hơn chỉ số bao nhiêu trong 10 phiên đầu của các nhịp đó, cùng độ nhạy khi thị trường tăng/giảm (up/down-capture 250 phiên). Kết hợp với tín hiệu kỹ thuật hiện tại để chọn ra mã có khả năng đi trước trong từng kịch bản, kèm mốc chỉ số xác nhận kịch bản.</p>
+
       <h2>Sức khỏe thị trường</h2>
       <p>Điểm 0–100 của VN-Index tổng hợp: vị trí so với MA20/50/200, cấu trúc sóng, <b>độ rộng</b> (bao nhiêu % cổ phiếu HOSE trên MA50, MA200), số <b>ngày phân phối</b> trong 25 phiên (phiên chỉ số giảm ≥ 0,2% với khối lượng cao hơn phiên trước — cách đếm của William O’Neil), động lượng RSI/MACD, thanh khoản so với trung bình, số mã lập đỉnh/đáy 52 tuần. Giai đoạn: ≥70 xu hướng tăng xác nhận · 57–70 xu hướng tăng (hoặc chịu áp lực nếu ≥ 5 ngày phân phối) · 44–57 đi ngang · 30–44 điều chỉnh · dưới 30 xu hướng giảm.</p>
       <h3>Ngành</h3>
