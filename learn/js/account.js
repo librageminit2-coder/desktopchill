@@ -1,5 +1,5 @@
 // Tài khoản đơn giản: tên + mã PIN. Tiến trình lưu lên máy chủ (Supabase) qua 3 hàm RPC.
-import { S, onSave, replace } from './store.js?v=8';
+import { S, onSave, replace } from './store.js?v=9';
 const URL = 'https://phcmbgaozkaibqsttonc.supabase.co/rest/v1/rpc/';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoY21iZ2FvemthaWJxc3R0b25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODk3NTgsImV4cCI6MjEwNDk2NTc1OH0.Hvs0Gxebog5gcKILnSdT3g6nz6-GI0CEepmMJM0gCxo';
 const AKEY = 'dcl_account';
@@ -13,8 +13,8 @@ const emit = () => listeners.forEach((f) => { try { f(sync); } catch (e) {} });
 async function rpc(fn, body) {
   const r = await fetch(URL + fn, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: ANON, Authorization: 'Bearer ' + ANON }, body: JSON.stringify(body) });
   let j = null; try { j = await r.json(); } catch (e) {}
-  if (r.status === 404) throw new Error('Máy chủ tài khoản chưa sẵn sàng. Tiến trình vẫn được lưu trên máy này.');
-  if (!r.ok) throw new Error('Máy chủ đang bận, thử lại sau nhé');
+  if (r.status === 404) throw new Error('The account server is not ready. Your progress is still saved on this device.');
+  if (!r.ok) throw new Error('The server is busy. Please try again later.');
   return j;
 }
 const clean = (n) => (n || '').trim().replace(/\s+/g, ' ');
@@ -26,15 +26,15 @@ function setAcct(a) { acct = a; try { if (a) localStorage.setItem(AKEY, JSON.str
 export async function register(name, pin) {
   name = clean(name);
   const j = await rpc('learn_register', { p_name: name, p_pin: pin, p_data: S });
-  if (!j || !j.ok) throw new Error(j && j.error === 'taken' ? 'Tên này đã có người dùng, chọn tên khác nhé' : (j && j.error) || 'Chưa tạo được tài khoản');
+  if (!j || !j.ok) throw new Error(j && j.error === 'taken' ? 'That name is taken. Please pick another.' : (j && j.error) || 'Could not create the account');
   setAcct({ name, pin }); sync.at = Date.now(); sync.state = 'ok'; emit();
 }
 export async function login(name, pin) {
   name = clean(name);
   const j = await rpc('learn_login', { p_name: name, p_pin: pin });
   if (!j || !j.ok) {
-    const m = { nouser: 'Không tìm thấy tên này', badpin: 'Mã PIN chưa đúng', locked: 'Nhập sai nhiều lần, thử lại sau 10 phút' };
-    throw new Error(m[j && j.error] || 'Chưa đăng nhập được');
+    const m = { nouser: 'Name not found', badpin: 'Wrong PIN', locked: 'Too many attempts. Try again in 10 minutes.' };
+    throw new Error(m[j && j.error] || 'Could not sign in');
   }
   setAcct({ name: j.name || name, pin });
   // lấy bản mới hơn giữa máy này và máy chủ

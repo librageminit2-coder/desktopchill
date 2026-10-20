@@ -6,7 +6,7 @@ const yesterday = () => today(new Date(Date.now() - DAY));
 
 function fresh() {
   return {
-    v: 2, updated: 0, lang: 'en', level: { en: 'a1', zh: 'hsk4' },
+    v: 3, updated: 0, lang: 'en', level: { en: 'a1', zh: 'hsk4', ielts: 'b4' },
     daily: { d: '', lessons: 0, speak: 0, review: 0 }, // đếm cho nhiệm vụ hằng ngày
     done: {},          // "en-a1-1": [1,0,0,0]  (4 bài trong mỗi chủ đề)
     xp: 0, goal: 20,
@@ -16,6 +16,13 @@ function fresh() {
     words: 0, minutes: 0,
     settings: { sound: true, rate: 0.95, pinyin: true, vi: false, voice: { en: '', zh: '' } },
     onboarded: false,
+    stars: {},         // "en-a1-1": [3,2,0,…] sao tốt nhất của từng bài
+    chests: {},        // rương cuối chủ đề đã mở
+    boss: {},          // thử thách cuối level đã vượt qua
+    badges: {},        // huy hiệu: id → ngày đạt
+    best: {},          // kỷ lục: "speed|en" → điểm
+    counts: { perfect: 0, combo: 0, speakOk: 0, reviewed: 0 },
+    dchest: '',        // ngày đã mở rương nhiệm vụ
   };
 }
 function merge(base, add) {
@@ -29,12 +36,13 @@ export let S = fresh();
 try { const raw = localStorage.getItem(KEY); if (raw) S = merge(fresh(), JSON.parse(raw)); } catch (e) {}
 // lộ trình tiếng Trung giờ bắt đầu từ HSK4
 const fixLevel = () => {
-  if (/^hsk[123]$/.test(S.level.zh || '')) S.level.zh = 'hsk4';
+  if (!S.level.ielts) S.level.ielts = 'b4';
   // v2: mỗi chủ đề có 8 bài (trước là 4: từ vựng, hội thoại, đọc, ngữ pháp)
   if ((S.v || 1) < 2) {
     Object.keys(S.done).forEach((k) => { const a = S.done[k]; if (Array.isArray(a) && a.length === 4) S.done[k] = [a[0], 0, a[1], 0, a[2], a[3], 0, 0]; });
     S.v = 2;
   }
+  if (S.v < 3) S.v = 3;
 };
 fixLevel();
 
@@ -65,13 +73,30 @@ export function streakNow() { return S.streak.last === today() || S.streak.last 
 export const todayXP = () => S.days[today()] || 0;
 /* ---------- đếm việc trong ngày (nhiệm vụ) ---------- */
 export function daily() { if (S.daily.d !== today()) S.daily = { d: today(), lessons: 0, speak: 0, review: 0 }; return S.daily; }
-export function bump(key, n = 1) { const d = daily(); d[key] = (d[key] || 0) + n; save(); }
+export function bump(key, n = 1) {
+  const d = daily(); d[key] = (d[key] || 0) + n;
+  if (!S.counts) S.counts = {};
+  if (key === 'speak') S.counts.speakOk = (S.counts.speakOk || 0) + n;
+  if (key === 'review') S.counts.reviewed = (S.counts.reviewed || 0) + n;
+  if (key === 'lessons') S.counts.lessons = (S.counts.lessons || 0) + n;
+  save();
+}
 
 /* ---------- tiến độ bài học ---------- */
 export function lessonDone(unitId, k) { return !!(S.done[unitId] && S.done[unitId][k]); }
 export const LN = 8; // số bài mỗi chủ đề
 export function markDone(unitId, k) { if (!S.done[unitId]) S.done[unitId] = new Array(LN).fill(0); S.done[unitId][k] = 1; save(); }
 export function unitProgress(unitId) { const a = S.done[unitId] || []; return a.filter(Boolean).length; }
+export function setStars(unitId, k, n) { if (!S.stars[unitId]) S.stars[unitId] = new Array(LN).fill(0); const prev = S.stars[unitId][k] || 0; if (n > prev) S.stars[unitId][k] = n; save(); return n > prev; }
+export const starsOf = (unitId, k) => (S.stars[unitId] && S.stars[unitId][k]) || (lessonDone(unitId, k) ? 1 : 0);
+export const unitStars = (unitId) => { let n = 0; for (let k = 0; k < LN; k++) n += starsOf(unitId, k); return n; };
+
+/* ---------- cấp độ người chơi: mỗi cấp cần nhiều XP hơn cấp trước ---------- */
+export function playerLevel(xp = S.xp) {
+  let lv = 1, need = 60, left = xp;
+  while (left >= need) { left -= need; lv++; need = 60 + (lv - 1) * 30; }
+  return { lv, cur: left, need };
+}
 
 /* ---------- ôn tập ngắt quãng (SM-2 rút gọn) ---------- */
 export const srsKey = (lang, w) => lang + '|' + w;

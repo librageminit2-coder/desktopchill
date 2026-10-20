@@ -48,6 +48,11 @@ export function sfx(name) {
       case 'build': [60, 67].forEach((m, i) => tone(N(m), i * 0.12, 0.25, { type: 'square', vol: 0.04 })); noise(0, 0.08, { vol: 0.1, freq: 900, q: 3 }); break;
       case 'open': tone(N(72), 0, 0.07, { type: 'sine', vol: 0.12, glide: 1.6 }); noise(0, 0.06, { vol: 0.05, freq: 2400, q: 1 }); break;
       case 'quest': [79, 84, 91].forEach((m, i) => tone(N(m), i * 0.08, 0.3, { type: 'triangle', vol: 0.15 })); break;
+      case 'star': tone(N(88), 0, 0.12, { type: 'triangle', vol: 0.2 }); tone(N(95), 0.05, 0.3, { type: 'sine', vol: 0.12 }); noise(0, 0.15, { vol: 0.05, freq: 8000, q: 0.6 }); break;
+      case 'chest': noise(0, 0.25, { vol: 0.14, freq: 600, q: 0.8 }); [72, 79, 84, 88, 91].forEach((m, i) => tone(N(m), 0.25 + i * 0.07, 0.5, { type: 'triangle', vol: 0.15 })); noise(0.3, 0.9, { vol: 0.06, freq: 9000, q: 0.4 }); break;
+      case 'levelup': [60, 64, 67, 72, 76, 79, 84].forEach((m, i) => tone(N(m), i * 0.07, 0.4, { type: 'square', vol: 0.05 })); [84, 88, 91].forEach((m, i) => tone(N(m), 0.55 + i * 0.12, 0.8, { type: 'triangle', vol: 0.16 })); break;
+      case 'badge': tone(N(84), 0, 0.2, { type: 'triangle', vol: 0.18 }); tone(N(91), 0.12, 0.5, { type: 'triangle', vol: 0.18 }); noise(0.1, 0.4, { vol: 0.05, freq: 7000, q: 0.5 }); break;
+      case 'tick': tone(N(96), 0, 0.03, { type: 'square', vol: 0.03 }); break;
       case 'rec': tone(N(88), 0, 0.08, { vol: 0.15 }); break;
       case 'stop': tone(N(81), 0, 0.08, { vol: 0.15 }); tone(N(76), 0.07, 0.1, { vol: 0.12 }); break;
     }

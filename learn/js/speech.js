@@ -1,5 +1,5 @@
 // Đọc (TTS) và nghe giọng nói (STT) bằng Web Speech API có sẵn trong trình duyệt
-const LANG = { en: 'en-US', zh: 'zh-CN' };
+const LANG = { en: 'en-US', zh: 'zh-CN', ielts: 'en-GB' };
 let voices = [];
 function loadVoices() { try { voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; } catch (e) { voices = []; } }
 loadVoices();
@@ -44,6 +44,15 @@ let rec = null, stream = null, mctx = null, raf = 0;
 export async function micState() {
   try { const p = await navigator.permissions.query({ name: 'microphone' }); return p.state; } catch (e) { return 'unknown'; }
 }
+// theo dõi quyền micro: báo ngay khi người dùng đổi trong cài đặt trình duyệt (không cần tải lại trang)
+export async function watchMic(cb) {
+  try { const p = await navigator.permissions.query({ name: 'microphone' }); cb(p.state); p.addEventListener('change', () => cb(p.state)); return p; } catch (e) { cb('unknown'); return null; }
+}
+// thử xin quyền trực tiếp (nếu trình duyệt còn cho hỏi thì sẽ hiện hộp thoại)
+export async function requestMic() {
+  try { const s = await navigator.mediaDevices.getUserMedia({ audio: true }); s.getTracks().forEach((t) => t.stop()); return 'granted'; }
+  catch (e) { return e.name === 'NotAllowedError' || e.name === 'SecurityError' ? 'denied' : e.name === 'NotFoundError' ? 'nodevice' : 'error'; }
+}
 async function openMic(onLevel) {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
   try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
@@ -81,20 +90,51 @@ export function listen(lang, { onPartial, onLevel } = {}) {
     try { rec.start(); } catch (e) { closeMic(); rej(e); }
   });
 }
+// nghe dài (Speaking Part 2): ghép các đoạn nhận dạng, tự khởi động lại nếu trình duyệt ngắt giữa chừng
+let longStop = false;
+export function listenLong(lang, { onText, onLevel, maxMs = 120000 } = {}) {
+  return new Promise(async (res, rej) => {
+    if (!SR) return rej(new Error('unsupported'));
+    try { await openMic(onLevel); } catch (e) { return rej(e); }
+    longStop = false; let finals = '', t0 = Date.now(), fatal = null;
+    const startOne = () => {
+      rec = new SR(); rec.lang = LANG[lang]; rec.interimResults = true; rec.continuous = true;
+      rec.onresult = (e) => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) finals += ' ' + r[0].transcript; else interim += r[0].transcript; } if (onText) onText((finals + ' ' + interim).trim()); };
+      rec.onerror = (e) => { if (['not-allowed', 'service-not-allowed', 'audio-capture', 'network'].includes(e.error)) fatal = e.error; };
+      rec.onend = () => { if (!fatal && !longStop && Date.now() - t0 < maxMs) { try { startOne(); return; } catch (e) {} } closeMic(); if (onLevel) onLevel(0); if (fatal && !finals) rej(new Error(fatal)); else res({ text: finals.trim(), ms: Date.now() - t0 }); };
+      try { rec.start(); } catch (e) { closeMic(); rej(e); }
+    };
+    startOne();
+    setTimeout(() => { longStop = true; try { rec.stop(); } catch (e) {} }, maxMs);
+  });
+}
+export function stopLong() { longStop = true; try { if (rec) rec.stop(); } catch (e) {} }
 export function stopListen() { try { if (rec) rec.stop(); } catch (e) {} }
 // Thông báo lỗi micro dễ hiểu
 export function micMsg(code) {
   switch (code) {
-    case 'not-allowed': case 'service-not-allowed': return 'Micro đang bị chặn cho trang này.';
-    case 'audio-capture': return 'Không tìm thấy micro. Kiểm tra micro hoặc tai nghe đã cắm chưa.';
-    case 'network': return 'Trình duyệt này không gửi được giọng nói để nhận dạng. Hãy dùng Chrome hoặc Edge bản mới và kiểm tra mạng.';
-    case 'no-speech': return 'Chưa nghe thấy gì. Bấm micro rồi nói to, rõ hơn nhé.';
-    case 'unsupported': return 'Trình duyệt này chưa hỗ trợ nhận giọng nói. Dùng Chrome hoặc Edge.';
-    default: return 'Chưa nghe được, bấm micro và thử lại nhé.';
+    case 'not-allowed': case 'service-not-allowed': return 'The microphone is blocked for this site.';
+    case 'audio-capture': return 'No microphone found. Check that your mic or headset is plugged in.';
+    case 'network': return 'This browser could not send your voice for recognition. Use an up-to-date Chrome or Edge and check your connection.';
+    case 'no-speech': return 'Nothing heard. Tap the mic and speak a little louder.';
+    case 'unsupported': return 'This browser does not support speech recognition. Use Chrome or Edge.';
+    default: return 'Didn\'t catch that. Tap the mic and try again.';
   }
 }
 export const micBlocked = (code) => code === 'not-allowed' || code === 'service-not-allowed';
-export const MIC_HELP = `<div class="mic-help"><b>Bật micro cho desktopchill.com</b><ol><li>Bấm biểu tượng ổ khoá hoặc cài đặt ở bên trái thanh địa chỉ.</li><li>Ở mục <b>Micrô</b>, chọn <b>Cho phép</b>.</li><li>Tải lại trang rồi bấm micro lần nữa.</li></ol><small>Trên điện thoại: Cài đặt trình duyệt › Cài đặt trang web › Micrô › cho phép desktopchill.com.</small></div>`;
+export const MIC_SETTINGS = 'chrome://settings/content/siteDetails?site=https%3A%2F%2Fdesktopchill.com';
+export const MIC_HELP = `<div class="mic-help"><b>Chrome is blocking the microphone for this site</b>
+<p>Allowing the mic in Windows is not enough: Chrome also keeps a separate block list for each website.</p>
+<ol><li>Copy this line, paste it into the address bar and press Enter:<div class="cp-row"><code>chrome://settings/content/siteDetails?site=https%3A%2F%2Fdesktopchill.com</code><button class="chip cp-mic" type="button">Copy</button></div></li>
+<li>Next to <b>Microphone</b>, choose <b>Allow</b> (or click <b>Reset permissions</b>).</li>
+<li>Come back to this tab: the site picks up the change without reloading.</li></ol>
+<small>Edge: use edge://settings/content/siteDetails?site=https%3A%2F%2Fdesktopchill.com instead. On a phone: browser settings › Site settings › Microphone.</small></div>`;
+// nút Copy trong hướng dẫn: bắt sự kiện chung cho cả trang (hướng dẫn có thể nằm trong bài học hoặc bảng nổi)
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest && e.target.closest('.cp-mic'); if (!b) return;
+  try { await navigator.clipboard.writeText(MIC_SETTINGS); b.textContent = 'Copied'; }
+  catch (er) { const code = b.previousElementSibling; const r = document.createRange(); r.selectNodeContents(code); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'Press Ctrl+C'; }
+});
 
 /* ---------- so khớp câu nói / câu gõ ---------- */
 export function norm(s, lang) {

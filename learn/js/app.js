@@ -1,35 +1,41 @@
-import { I, LOGO } from './icons.js?v=8';
-import { sound, sfx, unlockAudio } from './sound.js?v=8';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, micState } from './speech.js?v=8';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN } from './store.js?v=8';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push } from './account.js?v=8';
-import { runLesson, LESSONS } from './lesson.js?v=8';
-import { mascot } from './mascot.js?v=8';
+import { I, LOGO } from './icons.js?v=9';
+import { sound, sfx, unlockAudio } from './sound.js?v=9';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic } from './speech.js?v=9';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=9';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push } from './account.js?v=9';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=9';
+import { mascot } from './mascot.js?v=9';
 
 const app = document.getElementById('app');
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const strip = (s) => (s || '').replace(/\s+/g, '');
+const shuffleArr = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const COURSE = {}, WORDS = {};
 let justBuilt = null;
-const DATA_V = 5;
+const DATA_V = 6;
 
-/* ---------- dữ liệu khoá học ---------- */
+/* ---------- các khoá học ---------- */
+const COURSES = {
+  en: { id: 'en', name: 'English', short: 'EN', tag: 'A1 → C1', about: 'Work and everyday communication' },
+  zh: { id: 'zh', name: '中文', short: '中文', tag: 'HSK1 → HSK6', about: 'From first words to professional fluency' },
+  ielts: { id: 'ielts', name: 'IELTS', short: 'IELTS', tag: 'Band 4 → 8+', about: 'Four-skill path by band score' },
+};
+const AVAIL = ['en', 'zh', 'ielts'];
 async function course(lang) {
   if (COURSE[lang]) return COURSE[lang];
-  const r = await fetch(`data/${lang}.json?v=${DATA_V}`); const c = await r.json();
+  const r = await fetch(`data/${lang}.json?v=${DATA_V}`); if (!r.ok) throw new Error('no-course');
+  const c = await r.json();
   c.levels.forEach((L) => L.units.forEach((u) => { u.level = L.id; u.words.forEach((w) => { WORDS[lang + '|' + w.w] = { ...w, unit: u.id }; }); }));
   COURSE[lang] = c; return c;
 }
 const findUnit = (c, id) => { for (const L of c.levels) for (const u of L.units) if (u.id === id) return { L, u }; return null; };
 const curLevel = (c) => c.levels.find((x) => x.id === S.level[S.lang]) || c.levels[0];
 const textOf = (lang, x) => (lang === 'zh' ? strip(x.t) : x.t);
+const isZh = () => S.lang === 'zh';
 
-/* màu từng chủ đề — bảng màu kẹo ngọt, mỗi chủ đề một sắc */
-const UC = {
-  en: ['#10A39B', '#4C8DF6', '#9B6BEF', '#FF8A3D', '#2EB36A', '#F2588C', '#E9A800', '#1BAFD3', '#E8664E', '#6C77EE'],
-  zh: ['#EF5660', '#FF8A3D', '#9B6BEF', '#1BAFD3', '#2EB36A', '#E9A800', '#F2588C', '#4C8DF6', '#10A39B', '#E8664E'],
-};
-const ucol = (lang, i) => UC[lang][i % UC[lang].length];
+/* màu từng chủ đề */
+const UC = ['#14B8A6', '#3B82F6', '#8B5CF6', '#F97316', '#22C55E', '#EC4899', '#EAB308', '#06B6D4', '#EF4444', '#6366F1', '#10B981', '#F59E0B', '#A855F7', '#0EA5E9', '#E11D48'];
+const ucol = (lang, i) => UC[(i + (lang === 'zh' ? 8 : lang === 'ielts' ? 2 : 0)) % UC.length];
 
 /* ---------- tiện ích giao diện ---------- */
 function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2400); }
@@ -39,7 +45,7 @@ function applySettings() {
 }
 function sheet(html, onMount, cls = '') {
   const root = document.getElementById('sheet-root');
-  root.innerHTML = `<div class="sheet-bg"></div><div class="sheet ${cls}" role="dialog" aria-modal="true"><button class="icon-btn sheet-x" type="button" aria-label="Đóng">${I.x}</button>${html}</div>`;
+  root.innerHTML = `<div class="sheet-bg"></div><div class="sheet ${cls}" role="dialog" aria-modal="true"><button class="icon-btn sheet-x" type="button" aria-label="Close">${I.x}</button>${html}</div>`;
   const close = () => { root.innerHTML = ''; document.removeEventListener('keydown', onEsc); };
   const onEsc = (e) => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', onEsc);
@@ -48,46 +54,114 @@ function sheet(html, onMount, cls = '') {
   if (onMount) onMount(root.querySelector('.sheet'), close);
   return close;
 }
-const NAV = [['#/', 'Học', 'home'], ['#/roadmap', 'Lộ trình', 'list'], ['#/review', 'Ôn tập', 'cards'], ['#/practice', 'Luyện', 'target'], ['#/me', 'Tôi', 'user']];
-const initials = (n) => (n || '?').split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
-function langSwitch() { return `<div class="langsw" role="group" aria-label="Ngôn ngữ đang học"><button data-l="en" aria-pressed="${S.lang === 'en'}">EN</button><button data-l="zh" aria-pressed="${S.lang === 'zh'}">中文</button></div>`; }
+// chữ nổi "+10 XP" bay lên từ một phần tử
+function floatText(el, text, cls = '') {
+  if (!el) return; const r = el.getBoundingClientRect();
+  const f = document.createElement('div'); f.className = 'float-tx ' + cls; f.textContent = text;
+  f.style.left = r.left + r.width / 2 + 'px'; f.style.top = r.top + 'px'; document.body.appendChild(f); setTimeout(() => f.remove(), 1400);
+}
+// tia sáng + hạt bay khi mở rương, lên cấp
+function burst(x, y, n = 26) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = document.createElement('div'); box.className = 'burst-fx'; box.style.left = x + 'px'; box.style.top = y + 'px';
+  for (let i = 0; i < n; i++) { const p = document.createElement('i'); const a = (i / n) * Math.PI * 2 + Math.random() * 0.3, d = 70 + Math.random() * 90; p.style.setProperty('--x', Math.cos(a) * d + 'px'); p.style.setProperty('--y', Math.sin(a) * d + 'px'); p.style.setProperty('--d', Math.random() * 0.15 + 's'); p.style.background = ['#FFC53D', '#FF7A2F', '#35E0C8', '#FFFFFF', '#9D7BFF'][i % 5]; box.appendChild(p); }
+  document.body.appendChild(box); setTimeout(() => box.remove(), 1300);
+}
+function overlay(html, onClose, cls = '') {
+  const o = document.createElement('div'); o.className = 'ovl ' + cls; o.innerHTML = `<div class="ovl-in">${html}</div>`;
+  document.body.appendChild(o);
+  const close = () => { o.classList.add('out'); setTimeout(() => o.remove(), 250); if (onClose) onClose(); };
+  o.addEventListener('click', (e) => { if (e.target === o || e.target.closest('.ovl-ok')) close(); });
+  return { el: o, close };
+}
 
+/* ---------- huy hiệu ---------- */
+const unitsDone = () => Object.values(S.done).filter((a) => Array.isArray(a) && a.filter(Boolean).length >= LN).length;
+const BADGES = [
+  ['first', 'First step', 'Finish your first lesson', 'play', () => (S.counts.lessons || 0) >= 1 || Object.keys(S.done).length > 0],
+  ['streak3', 'Spark', 'Study 3 days in a row', 'flame', () => streakNow() >= 3],
+  ['streak7', 'One solid week', 'Study 7 days in a row', 'flame', () => streakNow() >= 7],
+  ['streak30', 'Month of fire', 'Study 30 days in a row', 'flame', () => streakNow() >= 30],
+  ['words100', '100 words', '100 words in your review deck', 'book', () => Object.keys(S.srs).length >= 100],
+  ['words500', '500 words', '500 words in your review deck', 'book', () => Object.keys(S.srs).length >= 500],
+  ['words1000', 'Word hoard', '1,000 words in your review deck', 'crown', () => Object.keys(S.srs).length >= 1000],
+  ['perfect5', 'Flawless', '5 lessons with zero mistakes', 'star', () => (S.counts.perfect || 0) >= 5],
+  ['perfect25', 'Perfectionist', '25 lessons with zero mistakes', 'star', () => (S.counts.perfect || 0) >= 25],
+  ['combo10', 'Combo 10', '10 correct answers in a row', 'bolt', () => (S.counts.combo || 0) >= 10],
+  ['combo25', 'Combo 25', '25 correct answers in a row', 'bolt', () => (S.counts.combo || 0) >= 25],
+  ['unit1', 'First unit', 'Finish all 8 lessons of a unit', 'shield', () => unitsDone() >= 1],
+  ['unit10', '10 units', 'Finish 10 units', 'shield', () => unitsDone() >= 10],
+  ['unit30', '30 units', 'Finish 30 units', 'medal', () => unitsDone() >= 30],
+  ['chest5', 'Chest hunter', 'Open 5 unit chests', 'gem', () => Object.keys(S.chests).length >= 5],
+  ['boss1', 'Boss slayer', 'Beat a level boss challenge', 'crown', () => Object.keys(S.boss).length >= 1],
+  ['speak50', 'Brave speaker', 'Say 50 sentences correctly', 'mic', () => (S.counts.speakOk || 0) >= 50],
+  ['speak300', 'Smooth talker', 'Say 300 sentences correctly', 'mic', () => (S.counts.speakOk || 0) >= 300],
+  ['review100', 'Steady reviewer', 'Review 100 cards', 'cards', () => (S.counts.reviewed || 0) >= 100],
+  ['speed20', 'Quick hands', 'Score 20 in the 60-second challenge', 'timer', () => Object.entries(S.best).some(([k, v]) => k.startsWith('speed') && v >= 20)],
+  ['poly', 'Polyglot', 'Study in two or more courses', 'globe', () => new Set(Object.keys(S.done).map((k) => k.split('-')[0])).size >= 2],
+];
+function checkBadges() {
+  const fresh = BADGES.filter(([id, , , , test]) => !S.badges[id] && test());
+  if (!fresh.length) return;
+  fresh.forEach(([id]) => { S.badges[id] = today(); }); save();
+  fresh.forEach(([, t, d, ic], i) => setTimeout(() => {
+    sfx('badge');
+    const b = document.createElement('div'); b.className = 'badge-toast';
+    b.innerHTML = `<span class="bt-ic">${I[ic]}</span><span><small>New badge</small><b>${esc(t)}</b><em>${esc(d)}</em></span>`;
+    document.body.appendChild(b); setTimeout(() => b.classList.add('out'), 3600); setTimeout(() => b.remove(), 4000);
+  }, 700 + i * 1200));
+}
+
+/* ---------- khung trang: thanh HUD, menu, cột phải ---------- */
+const NAV = [['#/', 'Journey', 'home'], ['#/roadmap', 'Roadmap', 'list'], ['#/review', 'Review', 'cards'], ['#/practice', 'Practice', 'target'], ['#/me', 'Profile', 'user']];
+const initials = (n) => (n || '?').split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
+function lvRing(size = 44) {
+  const p = playerLevel(), r = size / 2 - 4, C = 2 * Math.PI * r;
+  return `<span class="lvr" title="Level ${p.lv}: ${p.cur}/${p.need} XP to next level" style="width:${size}px;height:${size}px"><svg viewBox="0 0 ${size} ${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="bg"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="fg" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - p.cur / p.need)}"/></svg><b>${p.lv}</b></span>`;
+}
+function courseTabs() {
+  return `<div class="ctabs" role="group" aria-label="Course">${AVAIL.map((k) => `<button class="ctab" data-l="${k}" data-c="${k}" aria-pressed="${S.lang === k}"><span class="${k === 'zh' ? 'zh' : ''}">${esc(COURSES[k].short)}</span></button>`).join('')}</div>`;
+}
 function shell(route, inner, aside) {
   const dueN = due(S.lang).length;
   const navItems = (cls) => NAV.map(([href, label, ic]) => `<a class="${cls}" href="${href}" ${route === href ? 'aria-current="page"' : ''}><span class="ni">${I[ic]}</span><span class="nl">${label}</span>${href === '#/review' && dueN ? `<i class="badge">${dueN > 99 ? '99+' : dueN}</i>` : ''}</a>`).join('');
+  const st = streakNow(), lit = todayXP() > 0;
   app.innerHTML = `
-  <header class="top">
-    <a class="brand" href="#/" aria-label="Trang học">${LOGO}<span>learn<small>desktopchill</small></span></a>
-    <span class="pill streak" title="Chuỗi ngày học">${I.flame}${streakNow()}</span>
-    <span class="pill xp" title="Tổng XP">${I.bolt}${S.xp}</span>
-    ${langSwitch()}
+  <header class="hud">
+    <a class="brand" href="#/" aria-label="Home">${LOGO}<span>learn<small>desktopchill</small></span></a>
+    ${courseTabs()}
+    <div class="hud-r">
+      <span class="chipx fire ${lit ? 'lit' : ''}" title="Day streak">${I.flame}<b>${st}</b></span>
+      <span class="chipx gem" title="Total XP">${I.gem}<b class="xp-n">${S.xp}</b></span>
+      <a class="hud-me" href="#/me" title="Profile">${lvRing(42)}</a>
+    </div>
   </header>
   <div class="layout ${aside ? '' : 'noside'}">
-    <aside class="rail" aria-label="Điều hướng">
-      <a class="brand big" href="#/" aria-label="Trang học">${LOGO}<span>learn<small>desktopchill</small></span></a>
-      <nav class="rnav">${navItems('ritem')}</nav>
-      <div class="rail-foot">
-        ${langSwitch()}
-        <a class="me-mini" href="#/me"><span class="av">${acct ? esc(initials(acct.name)) : I.user}</span><span class="mm"><b>${acct ? esc(acct.name) : 'Khách'}</b><small>${acct ? 'Đã lưu tiến trình' : 'Chưa có tài khoản'}</small></span></a>
-      </div>
-    </aside>
+    <nav class="rail" aria-label="Navigation">${navItems('ritem')}
+      <div class="rail-foot"><a class="me-mini" href="#/me"><span class="av">${acct ? esc(initials(acct.name)) : I.user}</span><span class="mm"><b>${acct ? esc(acct.name) : 'Guest'}</b><small>${acct ? 'Progress saved' : 'No account yet'}</small></span></a></div>
+    </nav>
     <main class="main" id="main">${inner}</main>
-    ${aside ? `<aside class="side" aria-label="Tiến độ hôm nay">${aside}</aside>` : ''}
+    ${aside ? `<aside class="side" aria-label="Today">${aside}</aside>` : ''}
   </div>
   <nav class="tabbar">${navItems('titem')}</nav>`;
-  app.querySelectorAll('.langsw button').forEach((b) => b.addEventListener('click', () => { if (S.lang === b.dataset.l) return; sfx('tap'); S.lang = b.dataset.l; save(); applySettings(); render(); }));
+  app.querySelectorAll('.ctab').forEach((b) => b.addEventListener('click', () => switchCourse(b.dataset.l)));
   app.querySelectorAll('.ritem, .titem').forEach((a) => a.addEventListener('click', () => sfx('tap')));
   wireAside();
 }
+async function switchCourse(l) {
+  if (S.lang === l) return; sfx('tap');
+  try { await course(l); } catch (e) { toast('This course is still being written. Check back soon.'); return; }
+  S.lang = l; save(); applySettings(); render();
+}
 
-/* ---------- cột phải: mục tiêu, nhiệm vụ, câu hôm nay ---------- */
+/* ---------- cột phải: nhiệm vụ + rương ngày, huy hiệu, câu hôm nay ---------- */
 let phraseRef = null;
 function quests() {
   const d = daily(), tx = todayXP();
   return [
-    { ic: 'bolt', t: `Đạt ${S.goal} XP`, v: tx, n: S.goal },
-    { ic: 'book', t: 'Hoàn thành 2 bài học', v: d.lessons, n: 2 },
-    canListen() ? { ic: 'mic', t: 'Nói đúng 5 câu', v: d.speak, n: 5 } : { ic: 'cards', t: 'Ôn 10 thẻ từ', v: d.review, n: 10 },
+    { ic: 'bolt', t: `Earn ${S.goal} XP`, v: tx, n: S.goal },
+    { ic: 'book', t: 'Finish 2 lessons', v: d.lessons, n: 2 },
+    canListen() ? { ic: 'mic', t: 'Say 5 sentences right', v: d.speak, n: 5 } : { ic: 'cards', t: 'Review 10 cards', v: d.review, n: 10 },
   ];
 }
 function phraseOfDay(c) {
@@ -98,59 +172,86 @@ function phraseOfDay(c) {
   return pool[seed % pool.length];
 }
 function asideHTML(c) {
-  const tx = todayXP(), goal = S.goal, frac = Math.min(1, tx / goal), circ = 2 * Math.PI * 30;
-  const days = [...Array(7)].map((_, i) => { const d = new Date(Date.now() - (6 - i) * 86400000); return { k: today(d), lab: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()] }; });
-  const maxD = Math.max(goal, ...days.map((d) => S.days[d.k] || 0));
-  const qs = quests(), dueN = due(S.lang).length;
+  const qs = quests(), dueN = due(S.lang).length, allDone = qs.every((q) => q.v >= q.n), opened = S.dchest === today();
   const ph = phraseOfDay(c); phraseRef = ph;
-  const zh = S.lang === 'zh';
+  const zh = isZh(), p = playerLevel();
+  const got = BADGES.filter(([id]) => S.badges[id]), next = BADGES.filter(([id]) => !S.badges[id]).slice(0, 3);
   return `
-  <div class="stats3">
-    <div class="st fire" title="Chuỗi ngày học">${I.flame}<b>${streakNow()}</b><small>ngày</small></div>
-    <div class="st gold" title="Tổng XP">${I.bolt}<b>${S.xp}</b><small>XP</small></div>
-    <div class="st teal" title="Từ đã học">${I.book}<b>${Object.keys(S.srs).filter((k) => k.startsWith(S.lang + '|')).length}</b><small>từ</small></div>
-  </div>
-  <section class="card goal-card">
-    <div class="ring" data-frac="${frac}"><svg viewBox="0 0 72 72"><circle class="bgc" cx="36" cy="36" r="30" fill="none" stroke-width="8"/><circle class="fgc" cx="36" cy="36" r="30" fill="none" stroke-width="8" stroke-dasharray="${circ}" stroke-dashoffset="${circ}"/></svg><b>${tx}<small>/ ${goal}</small></b></div>
-    <div><h3>Mục tiêu hôm nay</h3><p class="muted">${tx >= goal ? 'Xong rồi! Giữ nhịp này nhé.' : `Còn ${goal - tx} XP nữa.`}</p>
-      <div class="week">${days.map((d) => { const v = S.days[d.k] || 0; return `<div class="${d.k === today() ? 'today' : ''}" title="${v} XP"><i class="${v >= goal ? 'on' : v ? 'part' : ''}" style="height:${Math.max(5, Math.round(v / maxD * 40))}px"></i>${d.lab}</div>`; }).join('')}</div></div>
+  <div class="mic-slot"></div>
+  <section class="panel lvcard">
+    ${lvRing(64)}
+    <div><small>Player level</small><b>Level ${p.lv}</b><span class="bar"><i style="width:${Math.round(p.cur / p.need * 100)}%"></i></span><em>${p.cur} / ${p.need} XP · today ${todayXP()} XP</em></div>
   </section>
-  <section class="card quests">
-    <h3>${I.list} Nhiệm vụ hôm nay</h3>
-    ${qs.map((q) => { const p = Math.min(1, q.v / q.n), ok = p >= 1; return `<div class="quest ${ok ? 'ok' : ''}"><span class="qi">${ok ? I.check : I[q.ic]}</span><div class="qb"><b>${q.t}<em>${Math.min(q.v, q.n)} / ${q.n}</em></b><span class="qbar"><i style="width:${Math.round(p * 100)}%"></i></span></div></div>`; }).join('')}
+  <section class="panel quests">
+    <h3>${I.target} Daily quests</h3>
+    ${qs.map((q) => { const pc = Math.min(1, q.v / q.n), ok = pc >= 1; return `<div class="quest ${ok ? 'ok' : ''}"><span class="qi">${ok ? I.check : I[q.ic]}</span><div class="qb"><b>${q.t}<em>${Math.min(q.v, q.n)}/${q.n}</em></b><span class="qbar"><i style="width:${Math.round(pc * 100)}%"></i></span></div></div>`; }).join('')}
+    <button class="dchest ${allDone && !opened ? 'ready' : ''} ${opened ? 'opened' : ''}" type="button" ${allDone && !opened ? '' : 'disabled'}>${chestSVG(opened)}<span>${opened ? 'Chest opened today' : allDone ? 'Open your reward chest!' : 'Finish 3 quests to open the chest'}</span></button>
   </section>
-  ${ph ? `<section class="card phrase">
-    <h3>Câu nói hôm nay</h3>
+  <section class="panel badges-mini">
+    <h3>${I.medal} Badges <em>${got.length}/${BADGES.length}</em></h3>
+    <div class="bm-row">${got.slice(-4).map(([, t, , ic]) => `<span class="bdg on" title="${esc(t)}">${I[ic]}</span>`).join('')}${next.map(([, t, d, ic]) => `<span class="bdg" title="${esc(t)}: ${esc(d)}">${I[ic]}</span>`).join('')}</div>
+    <a class="more" href="#/me">See all</a>
+  </section>
+  ${ph ? `<section class="panel phrase">
+    <h3>${I.chat} Phrase of the day</h3>
     <p class="ph-t ${zh ? 'zh' : ''}">${esc(textOf(S.lang, ph.l))}</p>
     ${zh && ph.l.py ? `<p class="py">${esc(ph.l.py.join(' '))}</p>` : ''}
     <p class="muted">${esc(ph.l.vi)}</p>
-    <div class="ph-act"><button class="chip ph-say" type="button">${I.speaker} Nghe</button><button class="chip ph-try" type="button">${I.mic} Nói thử</button></div>
+    <div class="ph-act"><button class="chip ph-say" type="button">${I.speaker} Listen</button><button class="chip ph-try" type="button">${I.mic} Say it</button></div>
   </section>` : ''}
-  <a class="card mini-link" href="#/review"><span class="ml-ic">${I.cards}</span><span><b>${dueN ? `${dueN} thẻ đến hạn ôn` : 'Thẻ ôn tập'}</b><small>${dueN ? 'Ôn ngay để nhớ lâu hơn' : Object.keys(S.srs).some((k) => k.startsWith(S.lang + '|')) ? 'Thẻ sẽ quay lại đúng lúc sắp quên' : 'Học bài Từ vựng để có thẻ mới'}</small></span>${I.chev}</a>
-  ${!acct ? `<a class="card mini-link save" href="#/me"><span class="ml-ic">${I.cloud}</span><span><b>Lưu tiến trình</b><small>Tên + mã PIN, học tiếp ở máy khác</small></span>${I.chev}</a>` : ''}`;
+  <a class="panel mini-link" href="#/review"><span class="ml-ic">${I.cards}</span><span><b>${dueN ? `${dueN} cards due` : 'Review cards'}</b><small>${dueN ? 'Review now to remember longer' : 'Cards come back right before you forget'}</small></span>${I.chev}</a>
+  ${!acct ? `<a class="panel mini-link save" href="#/me"><span class="ml-ic">${I.cloud}</span><span><b>Save your progress</b><small>Name + PIN, continue on any device</small></span>${I.chev}</a>` : ''}`;
 }
-function wireAside() {
-  const side = app.querySelector('.side, .main');
-  micState().then((st) => {
-    if (st !== 'denied' || !side || app.querySelector('.mic-warn')) return;
-    const c = document.createElement('button'); c.type = 'button'; c.className = 'card mini-link mic-warn';
-    c.innerHTML = `<span class="ml-ic">${I.mic}</span><span><b>Micro đang bị chặn</b><small>Bài nói cần micro. Bấm để xem cách bật.</small></span>${I.chev}`;
-    c.addEventListener('click', () => sheet(`<h2>Bật micro</h2><p class="sub">Trình duyệt đang chặn micro cho desktopchill.com nên phần nói không nhận được giọng.</p>${MIC_HELP}`));
-    const tgt = [app.querySelector('.side'), app.querySelector('.main')].find((x) => x && x.offsetParent !== null); if (!tgt) return; if (tgt.classList.contains('main')) c.style.marginBottom = '14px'; tgt.insertBefore(c, tgt.querySelector('.goal-card') || tgt.firstChild);
+function micHelpSheet() {
+  sheet(`<h2>Turn on the microphone</h2><p class="sub">Chrome is blocking the microphone for desktopchill.com, so speaking exercises can't hear you.</p>${MIC_HELP}<button class="btn acc wide mic-recheck" type="button" style="margin-top:14px">${I.redo} Check again</button><p class="muted mic-res" style="margin-top:8px;font-size:.88rem"></p>`, (el) => {
+    el.querySelector('.mic-recheck').addEventListener('click', async () => {
+      const r = await requestMic(), out = el.querySelector('.mic-res');
+      out.innerHTML = r === 'granted' ? '<b style="color:var(--ok)">The microphone works. You can close this panel.</b>' : r === 'nodevice' ? 'No microphone was found on this device.' : 'Still blocked. Follow steps 1–2 above, then try again.';
+      if (r === 'granted') { sfx('ok'); document.querySelectorAll('.mic-warn').forEach((x) => x.remove()); }
+    });
   });
-  const f = app.querySelector('.goal-card .fgc');
-  if (f) { const r = app.querySelector('.goal-card .ring'); const circ = 2 * Math.PI * 30; requestAnimationFrame(() => requestAnimationFrame(() => { f.style.strokeDashoffset = circ * (1 - +r.dataset.frac); })); }
+}
+let micWatch = false, micNow = 'unknown';
+function wireAside() {
+  const place = () => {
+    document.querySelectorAll('.mic-warn').forEach((x) => x.remove());
+    if (micNow !== 'denied') return;
+    const tgt = [app.querySelector('.side .mic-slot'), app.querySelector('.main')].find((x) => x && x.offsetParent !== null); if (!tgt) return;
+    const c = document.createElement('button'); c.type = 'button'; c.className = 'panel mini-link mic-warn';
+    c.innerHTML = `<span class="ml-ic">${I.mic}</span><span><b>Microphone blocked</b><small>Chrome is blocking the mic for this site. Tap to see how to fix it.</small></span>${I.chev}`;
+    c.addEventListener('click', micHelpSheet);
+    if (tgt.classList.contains('main')) tgt.insertBefore(c, tgt.firstChild); else tgt.appendChild(c);
+  };
+  if (!micWatch) { micWatch = true; watchMic((st) => { const was = micNow; micNow = st; place(); if (was === 'denied' && st === 'granted') { sfx('ok'); toast('Microphone is on. You can practise speaking now.'); } }); }
+  else place();
   const say = app.querySelector('.ph-say'); if (say && phraseRef) say.addEventListener('click', () => speak(textOf(S.lang, phraseRef.l), S.lang, { btn: say }));
   const tr = app.querySelector('.ph-try'); if (tr && phraseRef) tr.addEventListener('click', () => { unlockAudio(); runQueue(phraseRef.u, [{ type: 'speak', s: phraseRef.l }], S.lang); });
+  const dc = app.querySelector('.dchest.ready'); if (dc) dc.addEventListener('click', () => openDailyChest(dc));
+}
+function openDailyChest(btn) {
+  const reward = 15 + Math.floor(Math.random() * 11);
+  S.dchest = today(); addXP(reward); save(true);
+  btn.classList.add('popping'); sfx('chest');
+  const r = btn.getBoundingClientRect(); burst(r.left + 40, r.top + 30);
+  setTimeout(() => { overlay(`<div class="rw">${chestSVG(true)}<h2>Quest chest</h2><p class="rw-x">+${reward} XP</p><p class="muted">Come back tomorrow for a new chest.</p><button class="btn acc ovl-ok" type="button">Claim</button></div>`, () => render(), 'reward'); }, 500);
 }
 
-/* ---------- lộ trình: con đường uốn lượn, mỗi viên tròn là một bài, cuối chủ đề là rương quà ---------- */
-const JOINTS = LN + 1; // 8 bài + 1 rương ôn tập
+/* ---------- rương & hình minh hoạ ---------- */
+function chestSVG(open = false) {
+  return `<svg class="chest ${open ? 'open' : ''}" viewBox="0 0 80 70" aria-hidden="true">
+    <g class="rays"><path d="M40 34 34 -4h12zM40 34 78 18l4 12zM40 34 2 18l-4 12zM40 34l30-34 8 8zM40 34 10 0 2 8z"/></g>
+    <rect x="8" y="32" width="64" height="32" rx="5" class="cb"/><rect x="8" y="44" width="64" height="5" class="cband"/><rect x="34" y="32" width="12" height="32" class="cm"/>
+    <g class="lid"><path d="M8 34c0-14 10-22 32-22s32 8 32 22z" class="cl"/><rect x="34" y="12" width="12" height="22" class="cm"/></g>
+    <rect x="33" y="38" width="14" height="12" rx="3" class="lock"/><circle cx="40" cy="43" r="2.2" class="kh"/></svg>`;
+}
+
+/* ---------- bản đồ hành trình ---------- */
+const JOINTS = LN + 1;
 const WAVE = [0, .55, .92, .55, 0, -.55, -.92, -.55, 0];
 function unitGeom(W, flip) {
-  const A = Math.min(118, W * 0.25), cx = W / 2, gap = 98, top = 112;
+  const A = Math.min(120, W * 0.26), cx = W / 2, gap = 104, top = 96;
   const pts = WAVE.map((o, k) => { const oo = o * (flip ? -1 : 1); return { x: cx + oo * A, y: top + k * gap, o: oo }; });
-  return { pts, H: top + (JOINTS - 1) * gap + 84, A, cx };
+  return { pts, H: top + (JOINTS - 1) * gap + 96, A, cx };
 }
 function currentPos(c) {
   const L = curLevel(c);
@@ -159,7 +260,6 @@ function currentPos(c) {
   const d = S.done[u.id] || []; let k = LESSONS.map((x) => x.k).find((i) => !d[i]); if (k === undefined) k = 0;
   return { L, u, k };
 }
-// đường cong mềm đi qua các điểm (Catmull-Rom → Bézier bậc ba), trả về từng đoạn
 function curveSegs(Q) {
   const f = (n) => Math.round(n * 10) / 10, out = [];
   for (let i = 0; i < Q.length - 1; i++) {
@@ -168,6 +268,7 @@ function curveSegs(Q) {
   }
   return out;
 }
+const starRow = (n, max = 3) => `<span class="srow">${[1, 2, 3].slice(0, max).map((i) => `<i class="${i <= n ? 'on' : ''}">${I.star}</i>`).join('')}</span>`;
 function pathHTML(c, W) {
   const L = curLevel(c), lang = S.lang, cur = currentPos(c);
   return L.units.map((u, i) => {
@@ -180,46 +281,50 @@ function pathHTML(c, W) {
     const done = segs.map((sd, j) => {
       if (!isOn(j)) return '';
       const anim = justBuilt && justBuilt.unit === u.id && (j === justBuilt.k + 1 || (justBuilt.k === 0 && j === 0 && p === 1) || (p === LN && j === Q.length - 2));
-      return `<path class="seg ${anim ? 'anim' : ''}" d="${sd}"/><path class="seg-glow" d="${sd}"/>`;
+      return `<path class="seg ${anim ? 'anim' : ''}" d="${sd}"/>`;
     }).join('');
     const nodes = LESSONS.map((ls) => {
-      const pt = P[ls.k], dn = !!d[ls.k], isCur = cur.u === u && cur.k === ls.k;
+      const pt = P[ls.k], dn = !!d[ls.k], isCur = cur.u === u && cur.k === ls.k, stars = starsOf(u.id, ls.k);
       const pop = justBuilt && justBuilt.unit === u.id && justBuilt.k === ls.k;
-      return `<button class="node ${dn ? 'done' : isCur ? 'cur' : 'todo'} ${pop ? 'pop-in' : ''}" style="left:${pt.x}px;top:${pt.y}px" data-u="${u.id}" data-k="${ls.k}" aria-label="${esc(u.title)}: ${ls.name}${dn ? ', đã xong' : ''}">
-        ${isCur ? '<span class="tip">Bắt đầu</span>' : ''}<span class="face">${I[ls.icon]}</span>${dn ? `<span class="ok">${I.star}</span>` : ''}</button>`;
+      return `<button class="node ${dn ? 'done' : isCur ? 'cur' : 'todo'} ${pop ? 'pop-in' : ''} ${ls.k === 7 ? 'test' : ''}" style="left:${pt.x}px;top:${pt.y}px" data-u="${u.id}" data-k="${ls.k}" aria-label="${esc(u.title)}: ${esc(lessonName(lang, ls.k))}${dn ? `, ${stars} stars` : ''}">
+        ${isCur ? '<span class="tip">Start</span>' : ''}<span class="face">${I[ls.icon]}</span>${dn ? starRow(stars) : ''}</button>`;
     }).join('');
-    const cp = P[LN];
-    const cpBtn = `<button class="cp ${p === LN ? 'on' : ''}" style="left:${cp.x}px;top:${cp.y}px;--p:${(p / LN).toFixed(3)}" data-u="${u.id}" aria-label="Ôn tập tổng hợp chủ đề ${esc(u.title)}, ${p}/${LN} bài"><span class="cpi">${I.trophy}</span></button>`;
+    const cp = P[LN], opened = !!S.chests[u.id], ready = p === LN && !opened;
+    const cpBtn = `<button class="cp ${ready ? 'ready' : ''} ${opened ? 'opened' : ''}" style="left:${cp.x}px;top:${cp.y}px" data-u="${u.id}" aria-label="${ready ? 'Open reward chest' : 'Unit review'}: ${esc(u.title)}">${chestSVG(opened)}${ready ? '<span class="tip gold">Open me!</span>' : ''}</button>`;
+    const us = unitStars(u.id);
     return `<section class="unit" data-u="${u.id}" style="--uc:${ucol(lang, i)}">
       <header class="unit-head">
-        <span class="uh-n">${String(i + 1).padStart(2, '0')}</span>
-        <div class="uh-t"><span class="uh-k">${esc(L.name)} · Chủ đề ${i + 1}</span><h3>${esc(u.title)}</h3><p>${esc(u.goal || u.sub || '')}</p><span class="uh-bar"><i style="width:${Math.round(p / LN * 100)}%"></i></span></div>
-        <div class="uh-r"><span class="uh-p">${p}/${LN}</span><button class="guide" type="button" data-u="${u.id}">${I.read}<span>Sổ tay</span></button></div>
+        <span class="uh-shield"><svg viewBox="0 0 40 46" aria-hidden="true"><path d="M20 2 37 8v14c0 11-7.5 18.5-17 22C10.5 40.5 3 33 3 22V8z"/></svg><b>${i + 1}</b></span>
+        <div class="uh-t"><span class="uh-k">${esc(L.name)} · Unit ${i + 1}</span><h3>${esc(u.title)}</h3><p>${esc(u.goal || u.sub || '')}</p>
+          <span class="uh-meta"><span class="uh-bar"><i style="width:${Math.round(p / LN * 100)}%"></i></span><span class="uh-st">${I.star}${us}/${LN * 3}</span></span></div>
+        <button class="guide" type="button" data-u="${u.id}">${I.read}<span>Guide</span></button>
       </header>
-      <div class="span" style="height:${g.H}px"><svg class="road" width="${W}" height="${g.H}" viewBox="0 0 ${W} ${g.H}" aria-hidden="true"><path class="edge" d="${full}"/><path class="bed" d="${full}"/><path class="dots" d="${full}"/>${done}</svg>${nodes}${cpBtn}</div>
+      <div class="span" style="height:${g.H}px"><svg class="road" width="${W}" height="${g.H}" viewBox="0 0 ${W} ${g.H}" aria-hidden="true"><path class="edge" d="${full}"/><path class="bed" d="${full}"/>${done}</svg>${nodes}${cpBtn}</div>
     </section>`;
-  }).join('') + levelEnd(c, L);
+  }).join('') + bossHTML(c, L);
 }
-function levelEnd(c, L) {
-  const all = L.units.every((u) => unitProgress(u.id) === LN);
-  const idx = c.levels.indexOf(L), nx = c.levels[idx + 1];
-  return `<div class="lvl-end ${all ? 'on' : ''}">
-    <span class="le-ic">${I.trophy}</span>
-    <h3>${all ? `Bạn đã đi hết chặng ${esc(L.name)}!` : `Hết ${esc(L.name)} là tới ${nx ? esc(nx.name) : 'đích'}`}</h3>
-    <p class="muted">${all ? 'Đã hoàn thành mọi chủ đề. Sẵn sàng sang chặng tiếp theo.' : 'Hoàn thành mọi chủ đề để mở chặng tiếp theo.'}</p>
-    ${nx ? `<button class="btn ${all ? 'acc' : 'ghost'} next-lv" type="button" data-lv="${nx.id}">${all ? 'Lên ' : 'Xem trước '}${esc(nx.name)}</button>` : ''}
+function bossHTML(c, L) {
+  const all = L.units.every((u) => unitProgress(u.id) === LN), beat = !!S.boss[S.lang + '|' + L.id];
+  const idx = c.levels.indexOf(L), nx = c.levels[idx + 1], started = L.units.some((u) => unitProgress(u.id) > 0);
+  return `<div class="boss ${beat ? 'beat' : all ? 'ready' : ''}">
+    <span class="boss-ic">${beat ? I.crown : I.shield}</span>
+    <div><small>End of ${esc(L.name)}</small><h3>${beat ? `${esc(L.name)} boss defeated` : `${esc(L.name)} boss challenge`}</h3>
+    <p class="muted">${beat ? 'You passed the final test of this level.' : `20 mixed questions from every unit. Score 80% or more to win the crown${all ? '' : '. Best tried after finishing the units'}.`}</p></div>
+    <div class="boss-act"><button class="btn ${all && !beat ? 'gold' : 'ghost'} boss-go" type="button" ${started ? '' : 'disabled'}>${beat ? 'Try again' : 'Fight'}</button>
+    ${nx ? `<button class="btn ${beat ? 'acc' : 'ghost'} next-lv" type="button" data-lv="${nx.id}">${beat ? 'Go to ' : 'Preview '}${esc(nx.name)}</button>` : ''}</div>
   </div>`;
 }
 let popClose = null;
 function openPop(c, btn) {
   if (popClose) popClose();
-  const { L, u } = findUnit(c, btn.dataset.u), k = +btn.dataset.k, ls = LESSONS[k], d = S.done[u.id] || [];
+  const { L, u } = findUnit(c, btn.dataset.u), k = +btn.dataset.k, d = S.done[u.id] || [];
   const span = btn.closest('.span'), x = parseFloat(btn.style.left), y = parseFloat(btn.style.top), W = span.clientWidth;
   const pw = Math.min(300, W - 16), left = Math.max(8, Math.min(W - pw - 8, x - pw / 2));
-  const pop = document.createElement('div');
-  pop.className = 'pop'; pop.style.cssText = `left:${left}px;top:${y + 52}px;width:${pw}px;--ax:${x - left}px`;
-  pop.innerHTML = `<span class="pk">${esc(L.name)} · ${esc(u.title)}</span><b>${ls.name}</b><p>${ls.desc}</p>
-    <button class="btn pop-go" type="button">${d[k] ? `${I.redo} Học lại · +6 XP` : `${I.play} Bắt đầu · +10 XP`}</button>`;
+  const pop = document.createElement('div'), st = starsOf(u.id, k);
+  pop.className = 'pop'; pop.style.cssText = `left:${left}px;top:${y + 50}px;width:${pw}px;--ax:${x - left}px`;
+  pop.innerHTML = `<span class="pk">${esc(L.name)} · ${esc(u.title)}</span><b>${esc(lessonName(S.lang, k))}</b><p>${esc(lessonDesc(S.lang, k))}</p>
+    ${d[k] ? `<div class="pop-st">${starRow(st)}<small>${st < 3 ? 'Score 95% for 3 stars' : 'Max stars'}</small></div>` : ''}
+    <button class="btn pop-go" type="button">${d[k] ? `${I.redo} Replay` : `${I.play} Start · +10 XP`}</button>`;
   span.appendChild(pop); sfx('open');
   btn.classList.add('open');
   const off = (e) => { if (!pop.contains(e.target) && e.target !== btn && !btn.contains(e.target)) popClose(); };
@@ -229,24 +334,23 @@ function openPop(c, btn) {
   const r = pop.getBoundingClientRect(); if (r.bottom > innerHeight - 80) window.scrollBy({ top: r.bottom - innerHeight + 100, behavior: 'smooth' });
 }
 function guidebook(c, uid) {
-  const { L, u } = findUnit(c, uid), zh = S.lang === 'zh', g = u.gram;
-  sheet(`<span class="muted sk">${esc(L.name)} · Sổ tay chủ đề</span><h2>${esc(u.title)}</h2><p class="sub">${esc(u.goal || '')}</p>
-    <h3 class="gh">Từ vựng</h3>
+  const { L, u } = findUnit(c, uid), zh = isZh(), gs = [u.gram, u.gram2].filter(Boolean);
+  sheet(`<span class="muted sk">${esc(L.name)} · Unit guide</span><h2>${esc(u.title)}</h2><p class="sub">${esc(u.goal || '')}</p>
+    <h3 class="gh">Vocabulary (${u.words.length})</h3>
     <div class="gwords">${u.words.map((w, i) => `<button class="gw" type="button" data-i="${i}"><b class="${zh ? 'zh' : ''}">${esc(w.w)}</b><small>${esc(zh ? w.py : w.ipa || '')}</small><span>${esc(w.vi)}</span></button>`).join('')}</div>
-    <h3 class="gh">Ngữ pháp: ${esc(g.title)}</h3>
+    ${gs.map((g, gi) => `<h3 class="gh">Grammar ${gs.length > 1 ? gi + 1 : ''}: ${esc(g.title)}</h3>
     <p class="rule">${esc(g.rule)}</p><p class="gnote">${esc(g.note || '')}</p>
-    <ul class="gex">${g.ex.map((x, i) => `<li><button class="mini-say" type="button" data-e="${i}" aria-label="Nghe">${I.speaker}</button><span><span class="${zh ? 'zh' : ''}">${esc(textOf(S.lang, x))}</span><small>${esc(x.vi)}</small></span></li>`).join('')}</ul>
-    <h3 class="gh">Mẫu câu hội thoại</h3>
-    <ul class="gex">${u.dlg.lines.slice(0, 6).map((x, i) => `<li><button class="mini-say" type="button" data-l="${i}" aria-label="Nghe">${I.speaker}</button><span><span class="${zh ? 'zh' : ''}">${esc(textOf(S.lang, x))}</span><small>${esc(x.vi)}</small></span></li>`).join('')}</ul>`,
+    <ul class="gex">${g.ex.map((x, i) => `<li><button class="mini-say" type="button" data-g="${gi}" data-e="${i}" aria-label="Listen">${I.speaker}</button><span><span class="${zh ? 'zh' : ''}">${esc(textOf(S.lang, x))}</span><small>${esc(x.vi)}</small></span></li>`).join('')}</ul>`).join('')}
+    <h3 class="gh">Dialogue lines</h3>
+    <ul class="gex">${u.dlg.lines.slice(0, 7).map((x, i) => `<li><button class="mini-say" type="button" data-l="${i}" aria-label="Listen">${I.speaker}</button><span><span class="${zh ? 'zh' : ''}">${esc(textOf(S.lang, x))}</span><small>${esc(x.vi)}</small></span></li>`).join('')}</ul>`,
   (el) => {
     el.querySelectorAll('.gw').forEach((b) => b.addEventListener('click', () => speak(u.words[+b.dataset.i].w, S.lang)));
-    el.querySelectorAll('[data-e]').forEach((b) => b.addEventListener('click', () => speak(textOf(S.lang, g.ex[+b.dataset.e]), S.lang, { btn: b })));
+    el.querySelectorAll('[data-e]').forEach((b) => b.addEventListener('click', () => speak(textOf(S.lang, gs[+b.dataset.g].ex[+b.dataset.e]), S.lang, { btn: b })));
     el.querySelectorAll('[data-l]').forEach((b) => b.addEventListener('click', () => speak(textOf(S.lang, u.dlg.lines[+b.dataset.l]), S.lang, { btn: b })));
   }, 'wide');
 }
-const shuffleArr = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 function unitReview(c, uid) {
-  const { u } = findUnit(c, uid), zh = S.lang === 'zh';
+  const { u } = findUnit(c, uid), zh = isZh();
   const sents = [...u.dlg.lines, ...u.gram.ex].filter((s) => s.tk && s.tk.length >= 3 && s.tk.length <= 12);
   const q = shuffleArr(u.words).slice(0, 6).map((w, i) => ({ type: ['meaning', 'listenWord', 'wordFromVi'][i % 3], w }));
   shuffleArr(sents).slice(0, 2).forEach((s) => q.splice(2 + Math.floor(Math.random() * 4), 0, { type: 'order', s }));
@@ -254,33 +358,64 @@ function unitReview(c, uid) {
   if (sents.length) q.push({ type: zh ? 'listenOrder' : 'speak', s: shuffleArr(sents)[0] });
   runQueue(u, q, S.lang);
 }
+function openUnitChest(c, uid, btn) {
+  const { u } = findUnit(c, uid), reward = 20 + unitStars(uid);
+  S.chests[uid] = today(); addXP(reward); save(true);
+  btn.classList.add('popping'); sfx('chest');
+  const r = btn.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 34);
+  setTimeout(() => overlay(`<div class="rw">${chestSVG(true)}<h2>${esc(u.title)}</h2><p class="rw-x">+${reward} XP</p><p class="muted">20 XP for finishing the unit + ${unitStars(uid)} XP for your stars. Want more? Replay any lesson below 3 stars.</p><button class="btn acc ovl-ok" type="button">Awesome</button></div>`, () => { checkLevel(); checkBadges(); home(); }, 'reward'), 550);
+}
+// thử thách trùm: 20 câu trộn từ mọi chủ đề của level
+function bossFight(c, L) {
+  const zh = isZh(), units = L.units.filter((u) => unitProgress(u.id) > 0), src = units.length ? units : L.units;
+  const words = src.flatMap((u) => u.words), q = [];
+  shuffleArr(words).slice(0, 8).forEach((w, i) => q.push({ type: ['meaning', 'listenWord', 'wordFromVi', 'meaning'][i % 4], w }));
+  shuffleArr(src).slice(0, 4).forEach((u) => { const s = shuffleArr(u.dlg.lines.filter((l) => l.tk && l.tk.length >= 3 && l.tk.length <= 12))[0]; if (s) q.push({ type: 'order', s }); });
+  shuffleArr(src).slice(0, 5).forEach((u) => { const g = shuffleArr([u.gram, u.gram2].filter(Boolean))[0]; const d = shuffleArr(g.drill)[0]; q.push({ type: 'mcq', q: d.t, opts: d.opts, a: d.a, blank: true, note: g.title, vi: d.vi }); });
+  shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
+  const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
+  const before = playerLevel().lv;
+  import('./lesson.js?v=9').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+    if (r && r.done && r.acc >= 0.8 && !S.boss[S.lang + '|' + L.id]) { S.boss[S.lang + '|' + L.id] = today(); addXP(50); save(true); sfx('levelup'); overlay(`<div class="rw boss-win"><span class="boss-ic big">${I.crown}</span><h2>${esc(L.name)} boss defeated!</h2><p class="rw-x">+50 XP</p><p class="muted">You scored ${Math.round(r.acc * 100)}% on the final test.</p><button class="btn acc ovl-ok" type="button">Claim the crown</button></div>`, () => { checkLevel(before); checkBadges(); render(); }, 'reward'); return; }
+    if (r && r.done && r.acc < 0.8) toast(`You scored ${Math.round(r.acc * 100)}%. You need 80% to win. Review and try again.`);
+    checkLevel(before); checkBadges(); render();
+  } }));
+}
+let lvBefore = null;
+function checkLevel(before = lvBefore) {
+  const now = playerLevel().lv; if (before && now > before) {
+    sfx('levelup'); setTimeout(() => burst(innerWidth / 2, innerHeight / 2.4, 40), 150);
+    overlay(`<div class="rw lvup"><span class="lvup-n">${now}</span><h2>Level ${now}!</h2><p class="muted">Each new level needs a bit more XP. Keep your streak to level up faster.</p><button class="btn acc ovl-ok" type="button">Continue</button></div>`, null, 'reward');
+  }
+  lvBefore = now;
+}
 
 /* ---------- trang chủ ---------- */
-function moodLine(c) {
+function moodLine() {
   const tx = todayXP(), st = streakNow(), any = Object.keys(S.done).length;
-  if (!any) return 'Chào bạn! Mình là Mochi. Bấm vào viên tròn đang nhấp nháy để học bài đầu tiên nhé.';
-  if (tx >= S.goal) return 'Đủ mục tiêu hôm nay rồi! Thêm một bài nữa để nhớ lâu hơn?';
-  if (st >= 2) return `Chuỗi ${st} ngày rồi đó. Hôm nay mình đi tiếp nhé!`;
-  const tips = ['Nói to thành tiếng giúp nhớ lâu gấp đôi đọc thầm.', 'Mỗi ngày 10 phút hiệu quả hơn 2 tiếng mỗi cuối tuần.', 'Bí kíp: nghe câu mẫu rồi nhại lại đúng nhịp.', 'Ôn thẻ đúng hạn giúp từ vựng vào trí nhớ dài hạn.'];
+  if (!any) return 'Tap the glowing button on the map to start your first lesson.';
+  if (tx >= S.goal) return 'Daily goal reached! One more lesson for extra stars?';
+  if (st >= 2) return `${st}-day streak. One lesson keeps the fire going.`;
+  const tips = ['Speaking out loud sticks better than reading silently.', '10 minutes a day beats 2 hours on the weekend.', 'Score 95% or more for 3 stars on a lesson.', 'Review cards on time to move words into long-term memory.'];
   return tips[new Date().getDate() % tips.length];
 }
 async function home() {
   const c = await course(S.lang);
-  const L = curLevel(c), cur = currentPos(c);
+  const L = curLevel(c), cur = currentPos(c), lang = S.lang;
   const name = acct ? acct.name : '';
-  const hour = new Date().getHours(), hi = hour < 11 ? 'Chào buổi sáng' : hour < 14 ? 'Chào buổi trưa' : hour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
-  const tot = L.units.length * LN, dn = L.units.reduce((a, u) => a + unitProgress(u.id), 0);
+  const hour = new Date().getHours(), hi = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const ui = cur.u ? L.units.indexOf(cur.u) : -1, left = cur.u ? LN - unitProgress(cur.u.id) : 0;
   shell('#/', `
-  <section class="hello">
-    <div class="oc-hero">${mascot({ size: 78, wave: !Object.keys(S.done).length })}</div>
-    <div class="hl-t">
-      <h1>${hi}${name ? ', ' + esc(name) : ''}</h1>
-      <p class="say-bub">${esc(moodLine(c))}</p>
-    </div>
-  </section>
-  ${cur.u ? `<button class="card cont" type="button"><span class="cont-ic" style="--uc:${ucol(S.lang, L.units.indexOf(cur.u))}">${I[LESSONS[cur.k].icon]}</span><span class="cont-t"><small>Học tiếp · ${esc(L.name)} · Chủ đề ${L.units.indexOf(cur.u) + 1}</small><b>${esc(cur.u.title)}: ${LESSONS[cur.k].name}</b></span><span class="btn acc">${I.play}<span>Học</span></span></button>` : ''}
-  <div class="levels" role="tablist" aria-label="Chọn level">${c.levels.map((x) => { const t = x.units.length * LN, d = x.units.reduce((a, u) => a + unitProgress(u.id), 0); return `<button role="tab" data-lv="${x.id}" aria-selected="${x.id === L.id}"><b>${esc(x.name)}</b><span>${esc(x.short || '')}</span><span class="bar"><i style="width:${Math.round(d / t * 100)}%"></i></span></button>`; }).join('')}</div>
-  <div class="level-intro"><div><h2>${esc(L.title)}</h2><p>${esc(L.desc || '')} <a class="rm-link" href="#/roadmap">Xem lộ trình chi tiết</a></p></div><div class="lv-pct"><b>${Math.round(dn / tot * 100)}%</b><small>${dn}/${tot} bài</small></div></div>
+  <section class="hello"><div class="oc-hero">${mascot({ size: 56, wave: !Object.keys(S.done).length })}</div><div><h1>${hi}${name ? ', ' + esc(name) : ''}</h1><p>${esc(moodLine())}</p></div></section>
+  ${cur.u ? `<section class="mission" style="--uc:${ucol(lang, ui)}">
+    <div class="ms-ic">${I[LESSONS[cur.k].icon]}</div>
+    <div class="ms-t"><small>${esc(L.name)} · Unit ${ui + 1} · ${esc(cur.u.title)}</small><b>${esc(lessonName(lang, cur.k))}</b>
+      <span class="ms-steps">${LESSONS.map((x) => `<i class="${(S.done[cur.u.id] || [])[x.k] ? 'on' : x.k === cur.k ? 'cur' : ''}"></i>`).join('')}</span>
+      <em>${left > 1 ? `${left} lessons to the reward chest` : 'Last lesson, then open the chest!'}</em></div>
+    <button class="btn acc go" type="button">${I.play}<span>Continue</span></button>
+  </section>` : `<section class="mission done"><div class="ms-ic">${I.crown}</div><div class="ms-t"><b>All ${esc(L.name)} units done</b><em>Fight the level boss or move on to the next level.</em></div></section>`}
+  <div class="worlds" role="tablist" aria-label="Choose a level">${c.levels.map((x, li) => { const t = x.units.length * LN, d = x.units.reduce((a, u) => a + unitProgress(u.id), 0), st = x.units.reduce((a, u) => a + unitStars(u.id), 0), pc = Math.round(d / t * 100), beat = S.boss[lang + '|' + x.id]; return `<button role="tab" data-lv="${x.id}" aria-selected="${x.id === L.id}" style="--pc:${pc}"><span class="w-ring"><b>${esc(x.name)}</b></span><span class="w-t"><b>${esc(x.short || x.title)}</b><small>${I.star}${st}${beat ? ` ${I.crown}` : ''}</small></span></button>`; }).join('')}</div>
+  <div class="level-intro"><div><h2>${esc(L.title)}</h2><p>${esc(L.desc || '')} <a class="rm-link" href="#/roadmap">See the full roadmap</a></p></div></div>
   <div id="path" class="path"></div>`, asideHTML(c));
   const pEl = app.querySelector('#path');
   const draw = () => {
@@ -289,8 +424,9 @@ async function home() {
     pEl.querySelectorAll('.seg.anim').forEach((p) => { p.style.setProperty('--len', Math.ceil(p.getTotalLength())); });
     if (pEl.querySelector('.seg.anim, .node.pop-in')) setTimeout(() => sfx('build'), 300);
     pEl.querySelectorAll('.node').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); sfx('tap'); if (b.classList.contains('open') && popClose) popClose(); else openPop(c, b); }));
-    pEl.querySelectorAll('.cp').forEach((b) => b.addEventListener('click', () => { sfx('tap'); unitReview(c, b.dataset.u); }));
+    pEl.querySelectorAll('.cp').forEach((b) => b.addEventListener('click', () => { if (b.classList.contains('ready')) openUnitChest(c, b.dataset.u, b); else { sfx('tap'); unitReview(c, b.dataset.u); } }));
     pEl.querySelectorAll('.guide').forEach((b) => b.addEventListener('click', () => { sfx('open'); guidebook(c, b.dataset.u); }));
+    pEl.querySelectorAll('.boss-go').forEach((b) => b.addEventListener('click', () => { sfx('tap'); bossFight(c, L); }));
     pEl.querySelectorAll('.next-lv').forEach((b) => b.addEventListener('click', () => { sfx('tap'); S.level[S.lang] = b.dataset.lv; save(); home(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
     justBuilt = null;
   };
@@ -298,42 +434,47 @@ async function home() {
   let rt, lastW = pEl.clientWidth;
   window.onresize = () => { clearTimeout(rt); rt = setTimeout(() => { if ((location.hash === '' || location.hash === '#/') && pEl.isConnected && pEl.clientWidth !== lastW) { lastW = pEl.clientWidth; justBuilt = null; draw(); } }, 150); };
   if (scrollToUnit) { const t = pEl.querySelector(`.unit[data-u="${scrollToUnit}"]`); scrollToUnit = null; if (t) setTimeout(() => t.scrollIntoView({ block: 'start', behavior: 'smooth' }), 300); }
-  const curBtn = pEl.querySelector('.node.cur');
+  const curBtn = pEl.querySelector('.node.cur, .cp.ready');
   if (curBtn && sessionStorage.getItem('dcl_scrolled') !== L.id + S.lang) { setTimeout(() => curBtn.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350); try { sessionStorage.setItem('dcl_scrolled', L.id + S.lang); } catch (e) {} }
-  app.querySelectorAll('.levels button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); S.level[S.lang] = b.dataset.lv; save(); home(); }));
-  const cn = app.querySelector('.cont'); if (cn) cn.addEventListener('click', () => start(c, cur.u.id, cur.k));
+  app.querySelectorAll('.worlds button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); S.level[S.lang] = b.dataset.lv; save(); try { sessionStorage.removeItem('dcl_scrolled'); } catch (e) {} home(); }));
+  const go = app.querySelector('.mission .go'); if (go) go.addEventListener('click', () => start(c, cur.u.id, cur.k));
+  checkBadges();
 }
 function start(c, uid, k) {
   unlockAudio();
   const { u } = findUnit(c, uid);
-  const before = questDone();
+  const before = questDone(), lv0 = playerLevel().lv;
   runLesson({ unit: u, k, lang: S.lang, onExit: (r) => {
-    if (r && r.done) { justBuilt = { unit: u.id, k }; if (unitProgress(u.id) === LN) toast('Hoàn thành chủ đề! Huy hiệu đã mở khoá.'); }
-    questCheer(before);
+    if (r && r.done) { justBuilt = { unit: u.id, k }; if (unitProgress(u.id) === LN && !S.chests[u.id]) setTimeout(() => toast('Unit complete! Tap the chest for your reward'), 900); }
+    questCheer(before); checkLevel(lv0); checkBadges();
     if (location.hash !== '#/' && location.hash !== '') location.hash = '#/'; else home();
+    setTimeout(() => { const g = document.querySelector('.hud .gem'); if (r && r.done && g) floatText(g, `+${r.xp} XP`); }, 400);
   } });
 }
 const questDone = () => quests().filter((q) => q.v >= q.n).length;
-function questCheer(before) { const n = questDone(); if (n > before) { setTimeout(() => { sfx('quest'); toast(n === 3 ? 'Xong cả 3 nhiệm vụ hôm nay!' : 'Hoàn thành một nhiệm vụ hôm nay'); }, 500); } }
+function questCheer(before) { const n = questDone(); if (n > before) { setTimeout(() => { sfx('quest'); toast(n === 3 ? 'All 3 quests done! Open the quest chest' : 'Daily quest complete'); }, 500); } }
 
 /* ---------- lộ trình chi tiết ---------- */
 let scrollToUnit = null;
 async function roadmap() {
-  const c = await course(S.lang), zh = S.lang === 'zh', curL = curLevel(c);
+  const c = await course(S.lang), lang = S.lang, curL = curLevel(c);
   const totalU = c.levels.reduce((a, L) => a + L.units.length, 0), totalW = c.levels.reduce((a, L) => a + L.units.reduce((b, u) => b + u.words.length, 0), 0);
-  shell('#/roadmap', `<div class="page-h"><h1>Lộ trình ${zh ? 'tiếng Trung' : 'tiếng Anh'}</h1><p>${c.levels.length} level · ${totalU} chủ đề · ${totalU * LN} bài · ${totalW} từ vựng. Mỗi chủ đề gồm 8 bài: 2 bài từ vựng, 2 bài hội thoại, đọc hiểu, 2 bài ngữ pháp và kiểm tra.</p></div>
+  const title = lang === 'zh' ? 'Chinese roadmap' : lang === 'ielts' ? 'IELTS roadmap' : 'English roadmap';
+  shell('#/roadmap', `<div class="page-h"><h1>${title}</h1><p>${c.levels.length} levels · ${totalU} units · ${totalU * LN} lessons · ${totalW} words. Each unit has 8 lessons${lang === 'ielts' ? ': 2 academic vocabulary lessons, Speaking Part 1, Parts 2–3, Reading, grammar, Writing and a unit test.' : ': 2 vocabulary, 2 dialogues, reading, 2 grammar and a unit test.'}</p></div>
+  ${c.plan ? `<section class="panel rm-plan"><h3>${I.chart} ${esc(c.plan.title)}</h3>${c.plan.paras.map((p) => `<p>${esc(p)}</p>`).join('')}${c.plan.weeks ? `<ol class="rm-weeks">${c.plan.weeks.map((w) => `<li><b>${esc(w[0])}</b><span>${esc(w[1])}</span></li>`).join('')}</ol>` : ''}</section>` : ''}
   <div class="rm">${c.levels.map((L, li) => {
     const tot = L.units.length * LN, dn = L.units.reduce((a, u) => a + unitProgress(u.id), 0), pct = Math.round(dn / tot * 100);
-    return `<details class="rm-lv card" ${L === curL ? 'open' : ''} style="--uc:${ucol(S.lang, li)}">
-      <summary><span class="rm-badge">${esc(L.name)}</span><span class="rm-h"><b>${esc(L.title)}</b><small>${esc(L.short || '')} · ${L.units.length} chủ đề · ${tot} bài</small></span><span class="rm-pct"><b>${pct}%</b><span class="qbar"><i style="width:${pct}%"></i></span></span>${I.chev}</summary>
+    return `<details class="rm-lv panel" ${L === curL ? 'open' : ''} style="--uc:${ucol(lang, li)}">
+      <summary><span class="rm-badge">${esc(L.name)}</span><span class="rm-h"><b>${esc(L.title)}</b><small>${esc(L.short || '')} · ${L.units.length} units · ${tot} lessons${L.hours ? ' · about ' + esc(L.hours) : ''}</small></span><span class="rm-pct"><b>${pct}%</b><span class="qbar"><i style="width:${pct}%"></i></span></span>${I.chev}</summary>
       <div class="rm-body">
         <p class="rm-desc">${esc(L.desc || '')}</p>
-        ${L.goals && L.goals.length ? `<div class="rm-goals"><b>Học xong ${esc(L.name)}, bạn có thể:</b><ul>${L.goals.map((g) => `<li>${I.check}<span>${esc(g)}</span></li>`).join('')}</ul></div>` : ''}
-        <ol class="rm-units">${L.units.map((u, i) => { const p = unitProgress(u.id); return `<li><button class="rm-u ${p === LN ? 'done' : p ? 'part' : ''}" type="button" data-lv="${L.id}" data-u="${u.id}">
-          <span class="rm-n" style="--uc:${ucol(S.lang, i)}">${p === LN ? I.check : i + 1}</span>
-          <span class="rm-t"><b>${esc(u.title)}</b><small>${esc(u.sub || '')} · ${u.words.length} từ · Ngữ pháp: ${esc(u.gram.title)}${u.gram2 ? ' / ' + esc(u.gram2.title) : ''}</small></span>
-          <span class="rm-p">${p}/${LN}</span></button></li>`; }).join('')}</ol>
-        <button class="btn ${L === curL ? 'ghost' : 'acc'} rm-go" type="button" data-lv="${L.id}">${L === curL ? 'Đang học level này' : 'Học ' + esc(L.name)}</button>
+        ${L.goals && L.goals.length ? `<div class="rm-goals"><b>After ${esc(L.name)}, you can:</b><ul>${L.goals.map((g) => `<li>${I.check}<span>${esc(g)}</span></li>`).join('')}</ul></div>` : ''}
+        ${L.extra && L.extra.length ? `<div class="rm-goals rm-extra"><b>Also do outside this site:</b><ul>${L.extra.map((g) => `<li>${I.target}<span>${esc(g)}</span></li>`).join('')}</ul></div>` : ''}
+        <ol class="rm-units">${L.units.map((u, i) => { const p = unitProgress(u.id); return `<li><button class="rm-u ${p === LN ? 'done' : p ? 'part' : ''}" type="button" data-lv="${L.id}" data-u="${u.id}" style="--uc:${ucol(lang, i)}">
+          <span class="rm-n">${p === LN ? I.check : i + 1}</span>
+          <span class="rm-t"><b>${esc(u.title)}</b><small>${esc(u.sub || '')} · ${u.words.length} words · ${esc(u.gram.title)}${u.gram2 ? ' / ' + esc(u.gram2.title) : ''}${u.write ? ' · Writing ' + esc(u.write.task) : ''}</small></span>
+          <span class="rm-p">${I.star}${unitStars(u.id)}</span></button></li>`; }).join('')}</ol>
+        <button class="btn ${L === curL ? 'ghost' : 'acc'} rm-go" type="button" data-lv="${L.id}">${L === curL ? 'Current level' : 'Study ' + esc(L.name)}</button>
       </div></details>`; }).join('')}</div>`, asideHTML(c));
   const go = (lv, uid) => { sfx('tap'); S.level[S.lang] = lv; save(); scrollToUnit = uid || null; try { sessionStorage.setItem('dcl_scrolled', lv + S.lang); } catch (e) {} location.hash = '#/'; };
   app.querySelectorAll('.rm-u').forEach((b) => b.addEventListener('click', () => go(b.dataset.lv, b.dataset.u)));
@@ -347,22 +488,22 @@ async function review() {
   const list = due(S.lang).filter((w) => WORDS[S.lang + '|' + w]);
   if (!list.length) {
     const learned = Object.keys(S.srs).filter((k) => k.startsWith(S.lang + '|')).length;
-    shell('#/review', `<div class="page-h"><h1>Ôn tập</h1><p>Thẻ từ quay lại đúng lúc bạn sắp quên.</p></div>
-    <div class="card empty">${mascot({ size: 92, mood: 'calm' })}<h2>${learned ? 'Chưa có thẻ nào đến hạn' : 'Chưa có thẻ nào'}</h2><p>${learned ? `Bạn đang có ${learned} từ trong bộ thẻ. Thẻ tiếp theo sẽ đến hạn sau.` : 'Học xong một bài Từ vựng, các từ mới sẽ vào đây.'}</p>${learned >= 4 ? '<button class="btn acc quick">Luyện nhanh 10 câu</button>' : '<a class="btn acc" href="#/">Đi học bài mới</a>'}</div>`, asideHTML(c));
+    shell('#/review', `<div class="page-h"><h1>Review</h1><p>Word cards come back right before you forget them.</p></div>
+    <div class="panel empty">${mascot({ size: 84, mood: 'calm' })}<h2>${learned ? 'No cards due' : 'No cards yet'}</h2><p>${learned ? `You have ${learned} words in your deck. The next card will be due later.` : 'Finish a Vocabulary lesson and its words will appear here.'}</p>${learned >= 4 ? '<button class="btn acc quick">Quick 10-question drill</button>' : '<a class="btn acc" href="#/">Start a new lesson</a>'}</div>`, asideHTML(c));
     const q = app.querySelector('.quick'); if (q) q.addEventListener('click', () => quickPractice('mix'));
     return;
   }
   let i = 0, done = 0;
-  const zh = S.lang === 'zh', before = questDone();
-  shell('#/review', `<div class="page-h"><h1>Ôn tập</h1><p><b class="left">${list.length}</b> thẻ đến lượt. Chạm thẻ để lật.</p></div><div class="rv"></div>`, asideHTML(c));
+  const zh = isZh(), before = questDone();
+  shell('#/review', `<div class="page-h"><h1>Review</h1><p><b class="left">${list.length}</b> cards due. Tap a card to flip it.</p></div><div class="rv"></div>`, asideHTML(c));
   const box = app.querySelector('.rv');
   const one = () => {
-    if (i >= list.length) { box.innerHTML = `<div class="card empty">${mascot({ size: 92, mood: 'wow' })}<h2>Ôn xong ${done} thẻ</h2><p>Hẹn gặp lại các thẻ này vào đúng lúc.</p><a class="btn acc" href="#/">Về trang học</a></div>`; sfx('done'); questCheer(before); return; }
+    if (i >= list.length) { box.innerHTML = `<div class="panel empty">${mascot({ size: 84, mood: 'wow' })}<h2>${done} cards reviewed</h2><p>These cards will be back at just the right time.</p><a class="btn acc" href="#/">Back to the map</a></div>`; sfx('done'); questCheer(before); checkBadges(); return; }
     const w = WORDS[S.lang + '|' + list[i]];
-    box.innerHTML = `<div class="review-card"><div class="flip"><div class="face front"><h2 class="${zh ? 'zh' : ''}">${esc(w.w)}</h2><button class="say" type="button" aria-label="Nghe">${I.speaker}</button><span class="muted">Bạn có nhớ nghĩa không?</span></div>
+    box.innerHTML = `<div class="review-card"><div class="flip"><div class="face front"><h2 class="${zh ? 'zh' : ''}">${esc(w.w)}</h2><button class="say" type="button" aria-label="Listen">${I.speaker}</button><span class="muted">Do you remember the meaning?</span></div>
       <div class="face back"><h2 class="${zh ? 'zh' : ''}" style="font-size:${zh ? '2.4rem' : '1.7rem'}">${esc(w.w)}</h2><span class="muted">${esc(zh ? w.py : w.ipa || '')}</span><div style="font-size:1.3rem;font-weight:700">${esc(w.vi)}</div><div class="${zh ? 'zh' : ''}" style="font-size:${zh ? '1.15rem' : '.98rem'}">${esc(zh ? strip(w.ex) : w.ex)}</div><small class="muted">${esc(w.exVi || '')}</small></div></div></div>
-      <div class="grade" hidden><button class="btn again" data-g="0">Quên<small>10 phút</small></button><button class="btn ghost" data-g="1">Mơ hồ<small>vài ngày</small></button><button class="btn good" data-g="2">Nhớ rõ<small>lâu hơn</small></button></div>
-      <button class="btn ghost wide reveal" type="button">Lật thẻ</button>`;
+      <div class="grade" hidden><button class="btn again" data-g="0">Forgot<small>10 min</small></button><button class="btn ghost" data-g="1">Unsure<small>a few days</small></button><button class="btn good" data-g="2">Got it<small>longer</small></button></div>
+      <button class="btn ghost wide reveal" type="button">Flip card</button>`;
     const card = box.querySelector('.review-card'), g = box.querySelector('.grade'), rv = box.querySelector('.reveal');
     const flip = () => { if (card.classList.contains('on')) return; sfx('flip'); card.classList.add('on'); g.hidden = false; rv.hidden = true; speak(w.w, S.lang); };
     card.addEventListener('click', (e) => { if (e.target.closest('.say')) return; flip(); });
@@ -383,9 +524,11 @@ async function learnedUnits() {
 async function quickPractice(kind) {
   const us = await learnedUnits(), lang = S.lang, zh = lang === 'zh';
   const words = us.flatMap((u) => u.words), sents = us.flatMap((u) => [...u.dlg.lines, ...u.read.sents, ...u.gram.ex]).filter((s) => s.tk && s.tk.length >= 3 && s.tk.length <= 13);
-  const unit = { id: 'practice', title: 'Luyện tập', words, dlg: { lines: [] }, read: { sents: [], q: [] }, gram: { ex: [], drill: [] } };
+  const unit = { id: 'practice', title: 'Practice', words, dlg: { lines: [] }, read: { sents: [], q: [] }, gram: { ex: [], drill: [] } };
   let queue = [];
   if (kind === 'roleplay') { const u = shuffleArr(us)[0]; return runQueue(u, [{ type: 'dialogue' }, { type: 'roleplay' }], lang); }
+  if (kind === 'cue') { const u = shuffleArr(us.filter((x) => x.cue))[0]; if (!u) return toast('Do an IELTS Speaking lesson first'); return runQueue(u, [{ type: 'cue' }], lang); }
+  if (kind === 'writing') { const u = shuffleArr(us.filter((x) => x.write))[0]; if (!u) return toast('Reach an IELTS Writing lesson first'); return runQueue(u, [{ type: 'writeTask' }], lang); }
   if (kind === 'listen') queue = shuffleArr(sents).slice(0, 8).map((s) => (zh ? { type: 'listenOrder', s } : { type: 'dictation', s }));
   else if (kind === 'speak') queue = shuffleArr(sents).slice(0, 6).map((s) => ({ type: 'speak', s }));
   else if (kind === 'write') queue = shuffleArr(words.filter((w) => strip(w.w).length <= 2)).slice(0, 6).map((w) => ({ type: 'write', w }));
@@ -393,16 +536,53 @@ async function quickPractice(kind) {
   if (kind === 'mix' && sents.length) queue.splice(4, 0, { type: 'order', s: shuffleArr(sents)[0] });
   runQueue(unit, queue, lang);
 }
+// thử thách 60 giây: trả lời nhanh nghĩa của từ, sai trừ 2 giây
+async function speedRound() {
+  const us = await learnedUnits(), lang = S.lang, zh = lang === 'zh';
+  const words = shuffleArr(us.flatMap((u) => u.words)); if (words.length < 6) return toast('Learn a few vocabulary lessons first');
+  const key = 'speed|' + lang, best = S.best[key] || 0;
+  const o = overlay(`<div class="speed"><div class="sp-top"><span class="sp-time"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" class="bg"/><circle cx="22" cy="22" r="19" class="fg"/></svg><b>60</b></span><span class="sp-score"><small>Score</small><b>0</b></span><span class="sp-best"><small>Best</small><b>${best}</b></span><button class="icon-btn sp-x" type="button" aria-label="Quit">${I.x}</button></div><div class="sp-q"></div><div class="sp-opts"></div><p class="muted sp-hint">Pick the right meaning. Keys 1–4. A wrong answer costs 2 seconds.</p></div>`, null, 'speed-ovl');
+  const el = o.el, qEl = el.querySelector('.sp-q'), opEl = el.querySelector('.sp-opts'), tEl = el.querySelector('.sp-time b'), fg = el.querySelector('.sp-time .fg'), scEl = el.querySelector('.sp-score b');
+  const C = 2 * Math.PI * 19; fg.style.strokeDasharray = C;
+  let left = 60, score = 0, i = 0, combo = 0, over = false, tid = 0, cur = null;
+  const next = () => {
+    const w = words[i % words.length]; i++; cur = w;
+    const opts = shuffleArr([w, ...shuffleArr(words.filter((x) => x.vi !== w.vi)).slice(0, 3)]);
+    qEl.innerHTML = `<b class="${zh ? 'zh' : ''}">${esc(w.w)}</b>${zh ? `<small>${esc(w.py)}</small>` : ''}`; qEl.classList.remove('in'); void qEl.offsetWidth; qEl.classList.add('in');
+    opEl.innerHTML = opts.map((x, j) => `<button class="opt" type="button" data-ok="${x === w ? 1 : 0}"><span class="key">${j + 1}</span><span>${esc(x.vi)}</span></button>`).join('');
+    opEl.querySelectorAll('.opt').forEach((b) => b.addEventListener('click', () => pickOpt(b)));
+  };
+  const pickOpt = (b) => {
+    if (over) return;
+    if (b.dataset.ok === '1') { score++; combo++; sfx(combo % 5 === 0 ? 'combo' : 'ok'); b.classList.add('right'); scEl.textContent = score; floatText(scEl, '+1'); if (combo % 5 === 0) { left = Math.min(60, left + 3); floatText(tEl, '+3s', 'time'); } }
+    else { combo = 0; sfx('bad'); b.classList.add('wrong'); left = Math.max(0, left - 2); floatText(tEl, '-2s', 'bad'); }
+    setTimeout(next, 220);
+  };
+  const end = () => {
+    over = true; clearInterval(tid); document.removeEventListener('keydown', onKey);
+    const rec = score > best; if (rec) S.best[key] = score; addXP(Math.max(2, Math.round(score / 2))); save(true); sfx(rec ? 'levelup' : 'done');
+    el.querySelector('.ovl-in').innerHTML = `<div class="rw"><span class="sp-big">${score}</span><h2>${rec ? 'New record!' : 'Time\'s up!'}</h2><p class="muted">${rec ? `You beat your old best of ${best}.` : `Your best: ${best}.`} +${Math.max(2, Math.round(score / 2))} XP</p><div class="foot-row"><button class="btn ghost ovl-ok" type="button">Close</button><button class="btn acc again" type="button">Play again</button></div></div>`;
+    if (rec) { const r = el.querySelector('.sp-big').getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2); }
+    el.querySelector('.again').addEventListener('click', () => { o.close(); speedRound(); });
+    checkBadges();
+  };
+  const onKey = (e) => { if (/^[1-4]$/.test(e.key)) { const b = opEl.querySelectorAll('.opt')[+e.key - 1]; if (b) pickOpt(b); } if (e.key === 'Escape') { over = true; clearInterval(tid); document.removeEventListener('keydown', onKey); o.close(); } };
+  document.addEventListener('keydown', onKey);
+  el.querySelector('.sp-x').addEventListener('click', () => { over = true; clearInterval(tid); document.removeEventListener('keydown', onKey); o.close(); });
+  const tick = () => { tEl.textContent = left; fg.style.strokeDashoffset = C * (1 - left / 60); el.classList.toggle('hurry', left <= 10); };
+  tick(); next();
+  tid = setInterval(() => { left--; if (left <= 10 && left > 0) sfx('tick'); tick(); if (left <= 0) end(); }, 1000);
+}
 async function readingLibrary() {
   const c = await course(S.lang);
   const rows = []; c.levels.forEach((L) => L.units.forEach((u) => rows.push({ L, u })));
-  sheet(`<h2>Thư viện bài đọc</h2><p class="sub">Đọc lại, nghe lại các bài đọc theo level.</p><div class="list">${rows.map(({ L, u }) => `<button class="row" data-u="${u.id}" style="text-align:left;width:100%"><span class="grow"><b>${esc(u.read.title)}</b><small>${esc(L.name)} · ${esc(u.title)}</small></span>${unitProgress(u.id) ? I.check.replace('<svg', '<svg style="width:20px;color:var(--acc)"') : ''}</button>`).join('')}</div>`,
-    (el, close) => el.querySelectorAll('.row').forEach((b) => b.addEventListener('click', () => { close(); const { u } = findUnit(c, b.dataset.u); runQueue(u, [{ type: 'reading' }, ...u.read.q.map((x) => ({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'Theo bài đọc' }))], S.lang); })));
+  sheet(`<h2>Reading library</h2><p class="sub">Read and listen again to every reading, by level.</p><div class="list">${rows.map(({ L, u }) => `<button class="row" data-u="${u.id}" style="text-align:left;width:100%"><span class="grow"><b>${esc(u.read.title)}</b><small>${esc(L.name)} · ${esc(u.title)}</small></span>${unitProgress(u.id) ? I.check.replace('<svg', '<svg style="width:20px;color:var(--acc)"') : ''}</button>`).join('')}</div>`,
+    (el, close) => el.querySelectorAll('.row').forEach((b) => b.addEventListener('click', () => { close(); const { u } = findUnit(c, b.dataset.u); runQueue(u, [{ type: 'reading' }, ...u.read.q.map((x) => ({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading' }))], S.lang); })));
 }
 async function wordList() {
-  const us = await learnedUnits(), zh = S.lang === 'zh';
+  const us = await learnedUnits(), zh = isZh();
   const words = us.flatMap((u) => u.words);
-  sheet(`<h2>Từ đã học</h2><p class="sub">${words.length} từ. Chạm để nghe.</p><input class="input" placeholder="Tìm từ hoặc nghĩa" style="margin-bottom:12px"/><div class="list wl">${words.map((w, i) => `<button class="row" data-i="${i}" style="text-align:left;width:100%"><span class="grow"><b class="${zh ? 'zh' : ''}" style="${zh ? 'font-size:1.25rem;font-weight:400' : ''}">${esc(w.w)} <span class="py">${esc(zh ? w.py : w.ipa || '')}</span></b><small>${esc(w.vi)}</small></span>${I.speaker.replace('<svg', '<svg style="width:20px;color:var(--graphite)"')}</button>`).join('')}</div>`,
+  sheet(`<h2>My words</h2><p class="sub">${words.length} words. Tap to listen.</p><input class="input" placeholder="Search a word or meaning" style="margin-bottom:12px"/><div class="list wl">${words.map((w, i) => `<button class="row" data-i="${i}" style="text-align:left;width:100%"><span class="grow"><b class="${zh ? 'zh' : ''}" style="${zh ? 'font-size:1.25rem;font-weight:400' : ''}">${esc(w.w)} <span class="py">${esc(zh ? w.py : w.ipa || '')}</span></b><small>${esc(w.vi)}</small></span>${I.speaker.replace('<svg', '<svg style="width:20px;color:var(--muted)"')}</button>`).join('')}</div>`,
     (el) => {
       el.querySelectorAll('.wl .row').forEach((b) => b.addEventListener('click', () => speak(words[+b.dataset.i].w, S.lang)));
       el.querySelector('input').addEventListener('input', (e) => { const q = e.target.value.toLowerCase(); el.querySelectorAll('.wl .row').forEach((b) => { const w = words[+b.dataset.i]; b.hidden = q && !(w.w.toLowerCase().includes(q) || w.vi.toLowerCase().includes(q) || (w.py || '').toLowerCase().includes(q)); }); });
@@ -410,91 +590,98 @@ async function wordList() {
 }
 async function practice() {
   const c = await course(S.lang);
-  const zh = S.lang === 'zh';
+  const zh = isZh(), ie = S.lang === 'ielts', best = S.best['speed|' + S.lang] || 0;
   const tiles = [
-    ['roleplay', 'roleplay', 'Đóng vai hội thoại', 'Bạn nói phần của một nhân vật, máy đọc phần còn lại. Luyện phản xạ như nói chuyện thật.', 1],
-    ['speak', 'mic', 'Luyện nói', canListen() ? 'Đọc to câu, máy chấm độ khớp từng từ.' : 'Trình duyệt này chưa nghe được giọng nói. Dùng Chrome hoặc Edge.', 0],
-    ['listen', 'ear', 'Nghe chép', zh ? 'Nghe câu rồi xếp lại chữ.' : 'Nghe câu tiếng Anh rồi gõ lại.', 0],
-    ['mix', 'bolt', 'Luyện nhanh từ vựng', '10 câu trộn từ các bài đã học.', 0],
-    ['read', 'read', 'Thư viện bài đọc', 'Đọc lại các bài, chạm từ để xem nghĩa.', 0],
-    ...(zh ? [['write', 'brush', 'Viết chữ Hán', 'Viết theo thứ tự nét, có hướng dẫn.', 0]] : []),
-    ['words', 'book', 'Từ đã học', 'Tra lại và nghe phát âm.', 0],
+    ['speed', 'timer', '60-second challenge', `Match words to meanings fast. Every 5-answer combo adds time. Best: ${best}.`, 1],
+    ...(ie ? [['cue', 'mic', 'Speaking Part 2', 'Cue card, 1 minute to prepare, 2 minutes to talk. Counts words, pace and fillers.', 0], ['writing', 'pen', 'Timed writing', 'Write to a task you have studied. Word count, linkers and a model answer.', 0]] : []),
+    ['roleplay', 'roleplay', 'Role-play', 'You speak one part, the app reads the other.', 0],
+    ['speak', 'mic', 'Speaking drill', canListen() ? 'Read sentences aloud and get word-by-word scoring.' : 'This browser cannot recognise speech. Use Chrome or Edge.', 0],
+    ['listen', 'ear', 'Dictation', zh ? 'Listen, then rebuild the sentence.' : 'Listen to a sentence and type it.', 0],
+    ['mix', 'bolt', 'Quick vocab drill', '10 mixed questions from your lessons.', 0],
+    ['read', 'read', 'Reading library', 'Re-read passages and tap words for meanings.', 0],
+    ...(zh ? [['write', 'brush', 'Write characters', 'Stroke-order practice with guidance.', 0]] : []),
+    ['words', 'book', 'My words', 'Look words up and hear them again.', 0],
   ];
-  shell('#/practice', `<div class="page-h"><h1>Luyện tập</h1><p>Chọn một kỹ năng, mỗi lượt vài phút. Câu hỏi lấy từ các bài bạn đã học.</p></div>
-  <div class="tiles4">${tiles.map(([k, ic, t, d, big], i) => `<button class="card ptile ${big ? 'big' : ''}" data-k="${k}" style="--uc:${ucol(S.lang, i)}"><span class="ic">${I[ic]}</span><b>${t}</b><small>${d}</small>${big ? mascot({ size: 70, cls: 'pt-oc' }) : ''}</button>`).join('')}</div>`, asideHTML(c));
-  app.querySelectorAll('.ptile').forEach((b) => b.addEventListener('click', () => { sfx('tap'); const k = b.dataset.k; if (k === 'read') readingLibrary(); else if (k === 'words') wordList(); else quickPractice(k); }));
+  shell('#/practice', `<div class="page-h"><h1>Practice</h1><p>Pick a skill. A few minutes per round, using what you have already learned.</p></div>
+  <div class="tiles4">${tiles.map(([k, ic, t, d, big], i) => `<button class="panel ptile ${big ? 'big' : ''}" data-k="${k}" style="--uc:${ucol(S.lang, i + 3)}"><span class="ic">${I[ic]}</span><b>${t}</b><small>${d}</small>${big ? `<span class="pt-best"><small>Best</small><b>${best}</b></span>` : ''}</button>`).join('')}</div>`, asideHTML(c));
+  app.querySelectorAll('.ptile').forEach((b) => b.addEventListener('click', () => { sfx('tap'); const k = b.dataset.k; if (k === 'read') readingLibrary(); else if (k === 'words') wordList(); else if (k === 'speed') speedRound(); else quickPractice(k); }));
 }
 
-/* ---------- tài khoản & cài đặt ---------- */
-function syncText() { return !acct ? 'Chỉ lưu trên máy này' : sync.state === 'saving' ? 'Đang lưu…' : sync.state === 'err' ? 'Chưa lưu được, sẽ thử lại' : 'Đã lưu vào tài khoản'; }
+/* ---------- hồ sơ, huy hiệu & cài đặt ---------- */
+function syncText() { return !acct ? 'Saved on this device only' : sync.state === 'saving' ? 'Saving…' : sync.state === 'err' ? 'Not saved yet, will retry' : 'Saved to your account'; }
 async function me() {
-  const voicesEn = listVoices('en'), voicesZh = listVoices('zh');
-  shell('#/me', `<div class="page-h me-h"><span class="av big">${acct ? esc(initials(acct.name)) : I.user}</span><div><h1>${acct ? esc(acct.name) : 'Hồ sơ học'}</h1><p class="sync">${syncText()}</p></div></div>
+  const voicesEn = listVoices('en'), voicesZh = listVoices('zh'), p = playerLevel();
+  const days = [...Array(28)].map((_, i) => { const d = new Date(Date.now() - (27 - i) * 86400000); const k = today(d); return { k, v: S.days[k] || 0 }; });
+  shell('#/me', `<div class="page-h me-h">${lvRing(72)}<div><h1>${acct ? esc(acct.name) : 'My profile'}</h1><p class="sync">Level ${p.lv} · ${syncText()}</p></div></div>
   <div class="me-grid"><div class="list">
-    <div class="card me-stats">
-      <div><b>${streakNow()}</b><small>ngày liên tiếp</small></div>
+    <div class="panel me-stats">
+      <div><b>${streakNow()}</b><small>day streak</small></div>
       <div><b>${S.xp}</b><small>XP</small></div>
-      <div><b>${Object.keys(S.srs).length}</b><small>từ đã học</small></div>
-      <div><b>${S.minutes}′</b><small>thời gian</small></div>
+      <div><b>${Object.keys(S.srs).length}</b><small>words learned</small></div>
+      <div><b>${unitsDone()}</b><small>units done</small></div>
+      <div><b>${S.counts.perfect || 0}</b><small>perfect lessons</small></div>
+      <div><b>×${S.counts.combo || 0}</b><small>best combo</small></div>
     </div>
-    <div class="row"><span class="grow"><b>Mục tiêu mỗi ngày</b><small>XP cần đạt để giữ chuỗi</small></span><select class="input goal" style="width:auto;height:42px">${[10, 20, 30, 50].map((g) => `<option value="${g}" ${S.goal === g ? 'selected' : ''}>${g} XP</option>`).join('')}</select></div>
-    <label class="row"><span class="grow"><b>Âm thanh hiệu ứng</b><small>Tiếng đúng, sai, hoàn thành</small></span><span class="switch"><input type="checkbox" class="snd" ${S.settings.sound ? 'checked' : ''}><span></span></span></label>
-    <div class="row"><span class="grow"><b>Tốc độ đọc</b><small>Giọng đọc mẫu</small></span><select class="input rate" style="width:auto;height:42px">${[[0.8, 'Chậm'], [0.95, 'Vừa'], [1.1, 'Nhanh']].map(([v, l]) => `<option value="${v}" ${S.settings.rate === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-    ${voicesEn.length ? `<div class="row"><span class="grow"><b>Giọng tiếng Anh</b></span><select class="input vEn" style="width:auto;max-width:55%;height:42px"><option value="">Tự chọn</option>${voicesEn.map((v) => `<option ${S.settings.voice.en === v.name ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></div>` : ''}
-    ${voicesZh.length ? `<div class="row"><span class="grow"><b>Giọng tiếng Trung</b></span><select class="input vZh" style="width:auto;max-width:55%;height:42px"><option value="">Tự chọn</option>${voicesZh.map((v) => `<option ${S.settings.voice.zh === v.name ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></div>` : `<div class="row"><span class="grow"><b>Giọng tiếng Trung</b><small>Máy này chưa có giọng đọc tiếng Trung. Trên Windows: Cài đặt › Thời gian và ngôn ngữ › Giọng nói, thêm Chinese (Simplified).</small></span></div>`}
-    <div class="row"><span class="grow"><b>Micro & nhận giọng nói</b><small class="micst">Bấm để kiểm tra micro trước khi học</small></span><button class="btn ghost mtest" type="button" style="min-height:42px">${I.mic} Kiểm tra</button></div>
-    <label class="row"><span class="grow"><b>Hiện pinyin</b><small>Phiên âm dưới chữ Hán</small></span><span class="switch"><input type="checkbox" class="pyx" ${S.settings.pinyin ? 'checked' : ''}><span></span></span></label>
-    <label class="row"><span class="grow"><b>Giao diện tối</b><small>Dịu mắt khi học buổi tối</small></span><span class="switch"><input type="checkbox" class="dark" ${document.documentElement.dataset.theme === 'dark' ? 'checked' : ''}><span></span></span></label>
+    <div class="panel heat"><h3>${I.flame} Last 4 weeks</h3><div class="hm">${days.map((d) => `<i class="${d.v >= S.goal ? 'l3' : d.v >= S.goal / 2 ? 'l2' : d.v ? 'l1' : ''} ${d.k === today() ? 'td' : ''}" title="${d.k}: ${d.v} XP"></i>`).join('')}</div></div>
+    <div class="panel bwall"><h3>${I.medal} Badges <em>${Object.keys(S.badges).length}/${BADGES.length}</em></h3><div class="bw">${BADGES.map(([id, t, d, ic]) => `<div class="bw-i ${S.badges[id] ? 'on' : ''}"><span class="bdg ${S.badges[id] ? 'on' : ''}">${I[ic]}</span><b>${esc(t)}</b><small>${S.badges[id] ? 'Earned ' + esc(S.badges[id]) : esc(d)}</small></div>`).join('')}</div></div>
+    <div class="row"><span class="grow"><b>Daily goal</b><small>XP needed to keep your streak</small></span><select class="input goal" style="width:auto;height:42px">${[10, 20, 30, 50].map((g) => `<option value="${g}" ${S.goal === g ? 'selected' : ''}>${g} XP</option>`).join('')}</select></div>
+    <label class="row"><span class="grow"><b>Sound effects</b><small>Correct, wrong, combos, chests</small></span><span class="switch"><input type="checkbox" class="snd" ${S.settings.sound ? 'checked' : ''}><span></span></span></label>
+    <div class="row"><span class="grow"><b>Voice speed</b><small>Model audio</small></span><select class="input rate" style="width:auto;height:42px">${[[0.8, 'Slow'], [0.95, 'Normal'], [1.1, 'Fast']].map(([v, l]) => `<option value="${v}" ${S.settings.rate === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    ${voicesEn.length ? `<div class="row"><span class="grow"><b>English voice</b></span><select class="input vEn" style="width:auto;max-width:55%;height:42px"><option value="">Automatic</option>${voicesEn.map((v) => `<option ${S.settings.voice.en === v.name ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></div>` : ''}
+    ${voicesZh.length ? `<div class="row"><span class="grow"><b>Chinese voice</b></span><select class="input vZh" style="width:auto;max-width:55%;height:42px"><option value="">Automatic</option>${voicesZh.map((v) => `<option ${S.settings.voice.zh === v.name ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></div>` : `<div class="row"><span class="grow"><b>Chinese voice</b><small>No Chinese voice on this device. On Windows: Settings › Time & language › Speech, add Chinese (Simplified).</small></span></div>`}
+    <div class="row"><span class="grow"><b>Microphone & speech</b><small class="micst">Test your mic before studying</small></span><button class="btn ghost mtest" type="button" style="min-height:42px">${I.mic} Test</button></div>
+    <label class="row"><span class="grow"><b>Show pinyin</b><small>Romanisation under Chinese characters</small></span><span class="switch"><input type="checkbox" class="pyx" ${S.settings.pinyin ? 'checked' : ''}><span></span></span></label>
+    <label class="row"><span class="grow"><b>Light theme</b><small>Dark is the default</small></span><span class="switch"><input type="checkbox" class="light" ${document.documentElement.dataset.theme === 'light' ? 'checked' : ''}><span></span></span></label>
   </div>
   <div class="list">
-    ${acct ? `<div class="card pad"><h3>Tài khoản</h3><p class="muted" style="margin:6px 0 12px">Đăng nhập tên <b>${esc(acct.name)}</b> và mã PIN trên máy khác để học tiếp.</p><div class="foot-row"><button class="btn ghost syncnow">${I.cloud} Lưu ngay</button><button class="btn ghost out">${I.logout} Đăng xuất</button></div></div>`
-      : `<div class="card pad"><h3>Lưu tiến trình</h3><p class="muted" style="margin:6px 0 12px">Chỉ cần một cái tên và mã PIN 4–6 số. Không cần email hay số điện thoại.</p><button class="btn acc wide mk">Tạo tài khoản</button><button class="btn ghost wide lg" style="margin-top:10px">Tôi đã có tài khoản</button></div>`}
-    <div class="card pad"><h3>Về khoá học</h3><p class="muted" style="font-size:.9rem;margin-top:6px">Tiếng Anh A1–C1 (50 chủ đề) và tiếng Trung HSK4–HSK6 (30 chủ đề), mỗi chủ đề 8 bài, xoay quanh giao tiếp công việc, nói chuyện với sếp, khách hàng và đời sống hằng ngày. Giọng đọc và chấm phát âm dùng tính năng có sẵn của trình duyệt; viết chữ Hán dùng thư viện mã nguồn mở Hanzi Writer.</p><button class="btn ghost wide wipe" style="margin-top:12px">Xoá tiến trình trên máy này</button></div>
+    ${acct ? `<div class="panel pad"><h3>Account</h3><p class="muted" style="margin:6px 0 12px">Sign in with <b>${esc(acct.name)}</b> and your PIN on another device to continue.</p><div class="foot-row"><button class="btn ghost syncnow">${I.cloud} Save now</button><button class="btn ghost out">${I.logout} Sign out</button></div></div>`
+      : `<div class="panel pad"><h3>Save your progress</h3><p class="muted" style="margin:6px 0 12px">Just a name and a 4–6 digit PIN. No email or phone number.</p><button class="btn acc wide mk">Create account</button><button class="btn ghost wide lg" style="margin-top:10px">I already have an account</button></div>`}
+    <div class="panel pad"><h3>About</h3><p class="muted" style="font-size:.9rem;margin-top:6px">English A1–C1, Chinese HSK1–HSK6 and an IELTS path by band. 8 lessons per unit. Voices and speech scoring use your browser's built-in features; character writing uses the open-source Hanzi Writer library. Content written by desktopchill and not yet reviewed by native speakers.</p><button class="btn ghost wide wipe" style="margin-top:12px">Erase progress on this device</button></div>
   </div></div>`, null);
   const q = (s) => app.querySelector(s);
-  q('.goal').addEventListener('change', (e) => { S.goal = +e.target.value; save(); toast('Đã đổi mục tiêu'); });
+  q('.goal').addEventListener('change', (e) => { S.goal = +e.target.value; save(); toast('Goal updated'); });
   q('.snd').addEventListener('change', (e) => { S.settings.sound = e.target.checked; save(); applySettings(); sfx('ok'); });
   q('.rate').addEventListener('change', (e) => { S.settings.rate = +e.target.value; save(); applySettings(); speak(S.lang === 'zh' ? '你好，我们开始吧。' : "Hello, let's get started.", S.lang); });
   const ve = q('.vEn'); if (ve) ve.addEventListener('change', (e) => { S.settings.voice.en = e.target.value; save(); applySettings(); speak('This is my voice.', 'en'); });
   const vz = q('.vZh'); if (vz) vz.addEventListener('change', (e) => { S.settings.voice.zh = e.target.value; save(); applySettings(); speak('这是我的声音。', 'zh'); });
-  micState().then((st) => { const el = q('.micst'); if (el && st === 'denied') el.innerHTML = '<span style="color:var(--bad);font-weight:700">Micro đang bị chặn cho trang này</span>'; else if (el && st === 'granted') el.textContent = 'Đã cho phép micro'; });
+  watchMic((st) => { const el = q('.micst'); if (!el) return; if (st === 'denied') el.innerHTML = '<span style="color:var(--bad);font-weight:700">Chrome is blocking the mic for this site.</span> <a href="#" class="mhelp">How to fix</a>'; else if (st === 'granted') el.textContent = 'Microphone allowed'; else el.textContent = 'Test your mic before studying'; const h = el.querySelector('.mhelp'); if (h) h.addEventListener('click', (e) => { e.preventDefault(); micHelpSheet(); }); });
   q('.mtest').addEventListener('click', micTest);
   q('.pyx').addEventListener('change', (e) => { S.settings.pinyin = e.target.checked; save(); });
-  q('.dark').addEventListener('change', (e) => { const t = e.target.checked ? 'dark' : 'light'; document.documentElement.dataset.theme = t; try { localStorage.setItem('dcl_theme', t); } catch (er) {} });
-  q('.wipe').addEventListener('click', () => { if (confirm('Xoá toàn bộ tiến trình trên máy này?' + (acct ? ' Tài khoản trên máy chủ vẫn giữ nguyên.' : ''))) { logout(); reset(); location.hash = '#/'; render(); } });
+  q('.light').addEventListener('change', (e) => { const t = e.target.checked ? 'light' : 'dark'; document.documentElement.dataset.theme = t; try { localStorage.setItem('dcl_theme', t); } catch (er) {} });
+  q('.wipe').addEventListener('click', () => { if (confirm('Erase all progress on this device?' + (acct ? ' Your online account stays as it is.' : ''))) { logout(); reset(); location.hash = '#/'; render(); } });
   if (acct) {
-    q('.syncnow').addEventListener('click', async () => { await push(); toast(sync.state === 'ok' ? 'Đã lưu vào tài khoản' : 'Chưa lưu được, kiểm tra mạng'); me(); });
-    q('.out').addEventListener('click', () => { if (confirm('Đăng xuất? Tiến trình vẫn giữ trên máy này.')) { logout(); me(); } });
+    q('.syncnow').addEventListener('click', async () => { await push(); toast(sync.state === 'ok' ? 'Saved to your account' : 'Could not save. Check your connection.'); me(); });
+    q('.out').addEventListener('click', () => { if (confirm('Sign out? Your progress stays on this device.')) { logout(); me(); } });
   } else {
     q('.mk').addEventListener('click', () => authSheet('new'));
     q('.lg').addEventListener('click', () => authSheet('login'));
   }
 }
 function micTest() {
-  const lang = S.lang, sample = lang === 'zh' ? '你好，我是新同事。' : 'Hello, nice to meet you.';
-  sheet(`<h2>Kiểm tra micro</h2><p class="sub">Bấm micro rồi đọc: <b class="${lang === 'zh' ? 'zh' : ''}">${esc(sample)}</b></p>
-    <div class="mictest"><button class="mic" type="button" aria-label="Bấm để nói">${I.mic}</button><div class="heard">Vòng đỏ sẽ dao động theo giọng bạn.</div></div>`, (el) => {
+  const lang = S.lang === 'zh' ? 'zh' : 'en', sample = lang === 'zh' ? '你好，我是新同事。' : 'Hello, nice to meet you.';
+  sheet(`<h2>Microphone test</h2><p class="sub">Tap the mic and read: <b class="${lang === 'zh' ? 'zh' : ''}">${esc(sample)}</b></p>
+    <div class="mictest"><button class="mic" type="button" aria-label="Tap to speak">${I.mic}</button><div class="heard">The red ring moves with your voice.</div></div>`, (el) => {
     const mic = el.querySelector('.mic'), heard = el.querySelector('.heard');
     mic.addEventListener('click', async () => {
       if (mic.classList.contains('rec')) { stopListen(); return; }
-      unlockAudio(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Đang nghe…';
+      unlockAudio(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Listening…';
       try {
         const r = await listen(lang, { onPartial: (t) => { heard.textContent = t; }, onLevel: (v) => mic.style.setProperty('--lv', v.toFixed(3)) });
         mic.classList.remove('rec');
-        if (r.text) { sfx('ok'); heard.innerHTML = `<b style="color:var(--ok)">Micro hoạt động tốt.</b><br>Máy nghe được: “${esc(r.text)}”`; }
-        else heard.textContent = 'Chưa nghe thấy gì, thử nói to hơn.';
+        if (r.text) { sfx('ok'); heard.innerHTML = `<b style="color:var(--ok)">Your microphone works.</b><br>We heard: “${esc(r.text)}”`; }
+        else heard.textContent = 'Nothing heard. Try speaking louder.';
       } catch (e) { mic.classList.remove('rec'); sfx('bad'); heard.innerHTML = `<span class="mic-err">${esc(micMsg(e.message))}</span>${micBlocked(e.message) ? MIC_HELP : ''}`; }
     });
   });
 }
 function authForm(mode) {
-  return `<div class="tabs2" role="group"><button data-m="new" aria-pressed="${mode === 'new'}">Tạo tài khoản</button><button data-m="login" aria-pressed="${mode === 'login'}">Đăng nhập</button></div>
+  return `<div class="tabs2" role="group"><button data-m="new" aria-pressed="${mode === 'new'}">Create account</button><button data-m="login" aria-pressed="${mode === 'login'}">Sign in</button></div>
   <form class="authf" style="margin-top:14px" novalidate>
-    <div class="field"><label for="an">Tên của bạn</label><input class="input" id="an" autocomplete="username" maxlength="24" placeholder="Ví dụ: tuan.mitek" required /></div>
-    <div class="field"><label for="ap">Mã PIN (4–6 số)</label><input class="input pin" id="ap" type="password" inputmode="numeric" autocomplete="${mode === 'new' ? 'new-password' : 'current-password'}" maxlength="6" placeholder="••••" required /></div>
+    <div class="field"><label for="an">Your name</label><input class="input" id="an" autocomplete="username" maxlength="24" placeholder="e.g. tuan.mitek" required /></div>
+    <div class="field"><label for="ap">PIN (4–6 digits)</label><input class="input pin" id="ap" type="password" inputmode="numeric" autocomplete="${mode === 'new' ? 'new-password' : 'current-password'}" maxlength="6" placeholder="••••" required /></div>
     <p class="err" role="alert"></p>
-    <button class="btn acc wide sub" type="submit">${mode === 'new' ? 'Tạo tài khoản' : 'Đăng nhập'}</button>
-    <p class="muted" style="font-size:.84rem;margin-top:10px">${mode === 'new' ? 'Nhớ tên và mã PIN để đăng nhập lại. Mã PIN chỉ dùng cho trang học này.' : 'Tiến trình trên tài khoản sẽ được tải về máy này.'}</p>
+    <button class="btn acc wide sub" type="submit">${mode === 'new' ? 'Create account' : 'Sign in'}</button>
+    <p class="muted" style="font-size:.84rem;margin-top:10px">${mode === 'new' ? 'Remember your name and PIN to sign in again. The PIN is only used for this learning site.' : 'Your saved progress will be loaded onto this device.'}</p>
   </form>`;
 }
 function wireAuth(el, mode, done) {
@@ -504,56 +691,59 @@ function wireAuth(el, mode, done) {
   f.addEventListener('submit', async (e) => {
     e.preventDefault(); err.textContent = '';
     const n = el.querySelector('#an').value, p = el.querySelector('#ap').value;
-    if (!validName(n)) { err.textContent = 'Tên cần 3–24 ký tự: chữ, số, dấu chấm hoặc gạch.'; return; }
-    if (!validPin(p)) { err.textContent = 'Mã PIN gồm 4 đến 6 chữ số.'; return; }
-    sub.disabled = true; sub.textContent = 'Đang xử lý…';
+    if (!validName(n)) { err.textContent = 'Name must be 3–24 characters: letters, numbers, dots or dashes.'; return; }
+    if (!validPin(p)) { err.textContent = 'PIN must be 4 to 6 digits.'; return; }
+    sub.disabled = true; sub.textContent = 'Working…';
     try { if (mode === 'new') await register(n, p); else await login(n, p); sfx('ok'); done(mode); }
-    catch (x) { err.textContent = x.message; sub.disabled = false; sub.textContent = mode === 'new' ? 'Tạo tài khoản' : 'Đăng nhập'; sfx('bad'); }
+    catch (x) { err.textContent = x.message; sub.disabled = false; sub.textContent = mode === 'new' ? 'Create account' : 'Sign in'; sfx('bad'); }
   });
 }
 function authSheet(mode) {
-  sheet(`<h2>Tài khoản học</h2><p class="sub">Lưu tiến trình để học tiếp ở máy khác.</p><div class="authwrap">${authForm(mode)}</div>`, (el, close) => wireAuth(el, mode, (m) => { close(); toast(m === 'new' ? 'Đã tạo tài khoản, tiến trình đã được lưu' : 'Đã đăng nhập'); applySettings(); render(); }));
+  sheet(`<h2>Learning account</h2><p class="sub">Save your progress and continue on another device.</p><div class="authwrap">${authForm(mode)}</div>`, (el, close) => wireAuth(el, mode, (m) => { close(); toast(m === 'new' ? 'Account created, progress saved' : 'Signed in'); applySettings(); render(); }));
 }
 
 /* ---------- chào mừng ---------- */
 async function welcome() {
-  const [en, zh] = await Promise.all([course('en'), course('zh')]);
-  let lang = S.lang || 'en';
-  const lv = { en: S.level.en, zh: zh.levels.some((x) => x.id === S.level.zh) ? S.level.zh : zh.levels[0].id };
+  const all = {}; for (const k of AVAIL) { try { all[k] = await course(k); } catch (e) {} }
+  const avail = AVAIL.filter((k) => all[k]);
+  let lang = avail.includes(S.lang) ? S.lang : 'en';
+  const lv = { ...S.level }; avail.forEach((k) => { if (!all[k].levels.some((x) => x.id === lv[k])) lv[k] = all[k].levels[0].id; });
   const draw = () => {
-    const c = lang === 'en' ? en : zh;
+    const c = all[lang];
     document.documentElement.dataset.lang = lang;
-    app.innerHTML = `<div class="welcome"><div class="w-hero">
-      <h1>Học tiếng Anh, tiếng Trung để nói được ở chỗ làm.</h1>
-      <p class="lead">Lộ trình theo level, mỗi bài 5 phút: từ vựng, hội thoại với sếp và khách hàng, đọc hiểu, ngữ pháp, rồi đóng vai để luyện nói thành phản xạ.</p>
-      <ul class="w-feat"><li>${I.roleplay}<span>Đóng vai hội thoại, máy chấm phát âm</span></li><li>${I.cards}<span>Thẻ ôn quay lại đúng lúc sắp quên</span></li><li>${I.flame}<span>Chuỗi ngày, nhiệm vụ, XP mỗi ngày</span></li></ul>
+    app.innerHTML = `<div class="welcome">
+    <div class="w-hero">
+      <span class="w-logo">${LOGO}<b>learn</b></span>
+      <h1>Learn like a game. Speak like it's your job.</h1>
+      <p class="lead">A journey map by level, five minutes per lesson. Earn stars, open chests, keep your streak and beat the boss at the end of each level. Vocabulary, conversations with your boss and clients, and role-play with pronunciation scoring.</p>
+      <div class="w-stats"><span><b>${avail.reduce((a, k) => a + all[k].levels.reduce((b, L) => b + L.units.length, 0), 0)}</b><small>units</small></span><span><b>${avail.reduce((a, k) => a + all[k].levels.reduce((b, L) => b + L.units.length, 0), 0) * LN}</b><small>lessons</small></span><span><b>${BADGES.length}</b><small>badges</small></span></div>
     </div>
-    <div class="w-card card" data-lang="${lang}">
-      <div class="pick" role="group" aria-label="Chọn ngôn ngữ"><button data-l="en" aria-pressed="${lang === 'en'}"><span class="big">English</span><small>A1 → C1 · 50 chủ đề</small></button><button data-l="zh" aria-pressed="${lang === 'zh'}"><span class="big zh">中文</span><small>HSK4 → HSK6 · 30 chủ đề</small></button></div>
-      <div class="field"><label>Trình độ bắt đầu</label><div class="list">${c.levels.map((L) => `<button class="row lvp ${lv[lang] === L.id ? 'sel' : ''}" data-lv="${L.id}"><span class="lvn">${esc(L.name)}</span><span class="grow"><b>${esc(L.title)}</b><small>${esc(L.desc)}</small></span>${lv[lang] === L.id ? I.check : ''}</button>`).join('')}</div></div>
-      <button class="btn acc wide go" type="button">Bắt đầu học</button>
-      <button class="btn ghost wide have" type="button">Tôi đã có tài khoản</button>
+    <div class="w-card panel" data-lang="${lang}">
+      <div class="pick" role="group" aria-label="Choose a course">${avail.map((k) => `<button data-l="${k}" aria-pressed="${lang === k}"><span class="big ${k === 'zh' ? 'zh' : ''}">${esc(COURSES[k].name)}</span><small>${esc(COURSES[k].tag)}</small></button>`).join('')}</div>
+      <div class="field"><label>Start at</label><div class="list">${c.levels.map((L) => `<button class="row lvp ${lv[lang] === L.id ? 'sel' : ''}" data-lv="${L.id}"><span class="lvn">${esc(L.name)}</span><span class="grow"><b>${esc(L.title)}</b><small>${esc(L.desc)}</small></span>${lv[lang] === L.id ? I.check : ''}</button>`).join('')}</div></div>
+      <button class="btn acc wide go" type="button">Enter the map</button>
+      <button class="btn ghost wide have" type="button">I already have an account</button>
     </div></div>`;
     app.querySelectorAll('.pick button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); lang = b.dataset.l; draw(); }));
     app.querySelectorAll('.lvp').forEach((b) => b.addEventListener('click', () => { sfx('tap'); lv[lang] = b.dataset.lv; draw(); }));
     app.querySelector('.go').addEventListener('click', () => {
       unlockAudio(); sfx('ok');
       S.lang = lang; S.level = lv; save();
-      sheet(`<h2>Lưu tiến trình?</h2><p class="sub">Tạo tài khoản bằng tên và mã PIN để lần sau đăng nhập là học tiếp. Không cần email.</p><div class="authwrap">${authForm('new')}</div><button class="btn ghost wide later" style="margin-top:10px">Để sau, học thử trước</button>`, (el, close) => {
+      sheet(`<h2>Save your progress?</h2><p class="sub">Create an account with a name and PIN so you can pick up where you left off. No email needed.</p><div class="authwrap">${authForm('new')}</div><button class="btn ghost wide later" style="margin-top:10px">Later, let me try first</button>`, (el, close) => {
         const finish = () => { close(); S.onboarded = true; save(true); applySettings(); location.hash = '#/'; render(); };
-        wireAuth(el, 'new', (m) => { toast(m === 'new' ? 'Đã tạo tài khoản' : 'Đã đăng nhập'); finish(); });
+        wireAuth(el, 'new', (m) => { toast(m === 'new' ? 'Account created' : 'Signed in'); finish(); });
         el.querySelector('.later').addEventListener('click', finish);
       });
     });
-    app.querySelector('.have').addEventListener('click', () => sheet(`<h2>Đăng nhập</h2><p class="sub">Nhập tên và mã PIN bạn đã tạo.</p><div class="authwrap">${authForm('login')}</div>`, (el, close) => wireAuth(el, 'login', () => { close(); S.onboarded = true; save(true); applySettings(); location.hash = '#/'; render(); })));
+    app.querySelector('.have').addEventListener('click', () => sheet(`<h2>Sign in</h2><p class="sub">Enter the name and PIN you created.</p><div class="authwrap">${authForm('login')}</div>`, (el, close) => wireAuth(el, 'login', () => { close(); S.onboarded = true; save(true); applySettings(); location.hash = '#/'; render(); })));
   };
   draw();
 }
 
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
-  const before = questDone();
-  import('./lesson.js?v=8').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); render(); } }));
+  const before = questDone(), lv0 = playerLevel().lv;
+  import('./lesson.js?v=9').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */
@@ -561,6 +751,7 @@ async function render() {
   applySettings();
   document.getElementById('sheet-root').innerHTML = '';
   if (popClose) popClose();
+  if (!AVAIL.includes(S.lang)) S.lang = 'en';
   if (!S.onboarded) return welcome();
   const r = location.hash || '#/';
   try {
@@ -569,10 +760,15 @@ async function render() {
     else if (r.startsWith('#/me')) await me();
     else if (r.startsWith('#/roadmap')) await roadmap();
     else await home();
-  } catch (e) { console.error(e); app.innerHTML = `<div class="welcome"><div class="w-card card"><h1>Chưa tải được bài học</h1><p class="lead">Kiểm tra kết nối mạng rồi tải lại trang.</p><button class="btn acc" onclick="location.reload()">Tải lại</button></div></div>`; }
+  } catch (e) {
+    console.error(e);
+    if (e.message === 'no-course' && S.lang !== 'en') { S.lang = 'en'; save(); return render(); }
+    app.innerHTML = `<div class="welcome"><div class="w-card panel"><h1>Lessons could not load</h1><p class="lead">Check your internet connection and reload the page.</p><button class="btn acc" onclick="location.reload()">Reload</button></div></div>`;
+  }
   window.scrollTo(0, 0);
 }
+lvBefore = playerLevel().lv;
 window.addEventListener('hashchange', render);
-onSync(() => { const el = document.querySelector('.sync'); if (el) el.textContent = syncText(); });
+onSync(() => { const el = document.querySelector('.sync'); if (el) el.textContent = `Level ${playerLevel().lv} · ${syncText()}`; });
 document.addEventListener('pointerdown', unlockAudio, { once: true });
 render();
