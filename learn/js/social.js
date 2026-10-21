@@ -1,13 +1,15 @@
 // Học cùng nhau: bạn bè, lớp học (giáo viên / trợ giảng / học viên), quiz trực tiếp kiểu “nhập PIN cùng chơi” và báo cáo.
 // Mọi dữ liệu đi qua các hàm RPC trên Supabase (xem learn/setup/learn_social.sql).
-import { I } from './icons.js?v=11';
-import { S, save, LN, unitProgress } from './store.js?v=11';
-import { acct, call, rpc, ensureToken } from './account.js?v=11';
-import { sfx, unlockAudio } from './sound.js?v=11';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=11';
+import { I } from './icons.js?v=12';
+import { S, save, LN, unitProgress } from './store.js?v=12';
+import { acct, call, rpc, ensureToken } from './account.js?v=12';
+import { sfx, unlockAudio } from './sound.js?v=12';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=12';
+import * as hub from './hub.js?v=12';
+import * as walls from './walls.js?v=12';
 
 let C = null; // ngữ cảnh từ app.js
-export const counts = { requests: 0, rooms: 0 };
+export const counts = { get requests() { return hub.hub.requests || 0; }, set requests(v) { hub.hub.requests = v; }, rooms: 0 };
 const app = document.getElementById('app');
 const timers = new Set();
 export function cleanup() { timers.forEach((t) => { clearInterval(t); clearTimeout(t); }); timers.clear(); document.body.classList.remove('quizzing'); document.removeEventListener('keydown', keyH); keyH = null; }
@@ -28,13 +30,13 @@ const errMsg = (j) => ERR[j && j.error] || (j && j.error) || 'Something went wro
 
 export function init(ctx) {
   C = ctx;
-  if (acct) { refreshCounts(); setInterval(refreshCounts, 90000); }
+  // số lời mời kết bạn được cập nhật trong hub.js (learn_me mỗi 45 giây)
 }
 export async function refreshCounts() {
   if (!acct) return;
   try {
     const j = await call('learn_me'); if (!j || !j.ok) return;
-    const before = counts.requests; counts.requests = j.requests || 0; counts.rooms = j.rooms || 0;
+    const before = counts.requests; counts.requests = j.requests || 0; counts.rooms = j.rooms || 0; hub.hub.unread = j.unread || 0;
     if (j.avatar !== undefined && acct) acct.avatar = j.avatar;
     if (before !== counts.requests) { const b = document.querySelector('.hud-me'); if (b) { let x = b.querySelector('.badge'); if (counts.requests) { if (!x) { x = document.createElement('i'); x.className = 'badge'; b.appendChild(x); } x.textContent = counts.requests; } else if (x) x.remove(); } }
   } catch (e) {}
@@ -74,13 +76,13 @@ export async function friendsPage(args = []) {
   const unitLbl = { week: 'XP this week', xp: 'XP total', streak: 'day streak', units: 'units done' }[lbMode];
   const board = [...fr.map((x) => ({ ...x })), { ...me, me: true }].sort((a, b) => val(b) - val(a));
   C.shell(route, `<div class="page-h"><div><h1 class="serif">Friends</h1><p>Study together. Friends see each other’s streak, XP and level — nothing else.</p></div></div>
-  <section class="panel fr-me">${avatar(me.name, me.avatar, 'lg')}<div class="grow"><b style="font-size:1.1rem">${esc(me.name)}</b><small class="muted" style="display:block">Share your code or link so friends can add you</small></div>
+  <section class="panel fr-me">${vipAv(me.name, me.avatar, me.vip || 0, 'lg')}<div class="grow"><b style="font-size:1.1rem">${esc(me.name)}</b><small class="muted" style="display:block">Share your code or link so friends can add you</small></div>
     <span class="fr-code"><b>${esc(me.code || '')}</b><button class="icon-btn cp-code" type="button" title="Copy code">${I.copy}</button></span><button class="btn sm ghost cp-link" type="button">${I.link} Copy invite link</button></section>
   <div class="layout-in" style="display:grid;gap:14px;margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
     <section class="panel pad">
       <h3 class="sec-h">${I.chart} Leaderboard <em>${unitLbl}</em></h3>
       <div class="seg lb-mode" style="margin-bottom:12px">${[['week', 'This week'], ['xp', 'Total XP'], ['streak', 'Streak'], ['units', 'Units']].map(([k, l]) => `<button type="button" data-m="${k}" aria-pressed="${lbMode === k}">${l}</button>`).join('')}</div>
-      <div class="lb">${board.map((x, i) => `<div class="lb-row ${x.me ? 'me' : ''}"><span class="lb-rank">${i + 1}</span>${avatar(x.name, x.avatar)}<span class="lb-n"><b>${esc(x.name)}${x.me ? ' (you)' : ''}${!x.me && online(x.last_seen) ? '<i class="online" title="Online now"></i>' : ''}</b><small>${x.sum ? `${esc(levelLabel(x.sum))} · ${x.me ? 'now' : 'seen ' + ago(x.last_seen)}` : ''}</small></span><span class="lb-v">${val(x)}<small>${esc(unitLbl)}</small></span></div>`).join('')}</div>
+      <div class="lb">${board.map((x, i) => `<div class="lb-row ${x.me ? 'me' : ''}"><span class="lb-rank ${i < 3 ? 'top t' + (i + 1) : ''}">${i + 1}</span>${vipAv(x.name, x.avatar, x.vip || 0)}<span class="lb-n"><b>${esc(x.name)}${x.me ? ' (you)' : ''}${!x.me && online(x.last_seen) ? '<i class="online" title="Online now"></i>' : ''}</b><small>${x.sum ? `${esc(levelLabel(x.sum))} · ${x.me ? 'now' : 'seen ' + ago(x.last_seen)}` : ''}</small></span><span class="lb-v">${val(x)}<small>${esc(unitLbl)}</small></span></div>`).join('')}</div>
       ${fr.length ? '' : '<p class="muted" style="margin-top:12px;font-size:.88rem">Add a friend to start a friendly race. The board resets every Monday.</p>'}
     </section>
     <div style="display:grid;gap:14px;align-content:start">
@@ -91,7 +93,7 @@ export async function friendsPage(args = []) {
       </section>
       ${inc.length ? `<section class="panel pad"><h3 class="sec-h">${I.users} Requests <em>${inc.length}</em></h3><div class="list">${inc.map((x) => `<div class="req-row">${avatar(x.name, x.avatar)}<span class="grow"><b>${esc(x.name)}</b><small class="muted">wants to be friends · ${ago(x.since)}</small></span><button class="btn sm acc fr-ok" data-u="${x.uid}" type="button">Accept</button><button class="icon-btn fr-no" data-u="${x.uid}" type="button" title="Decline">${I.x}</button></div>`).join('')}</div></section>` : ''}
       <section class="panel pad"><h3 class="sec-h">${I.users} Friends <em>${fr.length}</em></h3>
-        ${fr.length ? `<div class="list">${fr.map((x) => `<div class="row">${avatar(x.name, x.avatar)}<span class="grow"><b>${esc(x.name)}${online(x.last_seen) ? '<i class="online"></i>' : ''}</b><small>${esc(levelLabel(x.sum))} · ${x.sum.streak} day streak · ${x.sum.words} words</small></span><button class="icon-btn fr-rm" data-u="${x.uid}" data-n="${esc(x.name)}" type="button" title="Remove friend">${I.trash}</button></div>`).join('')}</div>` : '<p class="muted" style="font-size:.9rem">No friends yet. Share your code above.</p>'}
+        ${fr.length ? `<div class="list">${fr.map((x) => `<div class="row">${vipAv(x.name, x.avatar, x.vip || 0)}<span class="grow"><b>${esc(x.name)}${online(x.last_seen) ? '<i class="online"></i>' : ''}</b><small>${x.vip ? `VIP ${x.vip} · ` : ''}${esc(levelLabel(x.sum))} · ${x.sum.streak} day streak · ${x.walls || 0}/70 wallpapers</small></span><a class="icon-btn" href="#/duel/new/${x.uid}" title="Challenge to a duel">${I.swords}</a><button class="icon-btn fr-gift" type="button" title="Share a wallpaper">${I.gift}</button><button class="icon-btn fr-rm" data-u="${x.uid}" data-n="${esc(x.name)}" type="button" title="Remove friend">${I.trash}</button></div>`).join('')}</div>` : '<p class="muted" style="font-size:.9rem">No friends yet. Share your code above.</p>'}
         ${out.length ? `<h3 class="sec-h" style="margin-top:14px">Sent requests</h3><div class="list">${out.map((x) => `<div class="row">${avatar(x.name, x.avatar)}<span class="grow"><b>${esc(x.name)}</b><small>waiting · ${ago(x.since)}</small></span><button class="btn sm ghost fr-no" data-u="${x.uid}" type="button">Cancel</button></div>`).join('')}</div>` : ''}
       </section>
     </div>
@@ -104,8 +106,10 @@ export async function friendsPage(args = []) {
     e.preventDefault(); const v = q('.who').value.trim(); if (!v) return;
     try { const j = await call('learn_friend_request', { p_who: v }); if (!j.ok) { q('.addf-err').textContent = errMsg(j); sfx('bad'); return; } sfx('ok'); toast(j.accepted ? 'You are now friends!' : 'Friend request sent'); friendsPage(); } catch (er) { q('.addf-err').textContent = er.message; }
   });
-  app.querySelectorAll('.fr-ok').forEach((b) => b.addEventListener('click', async () => { try { await call('learn_friend_respond', { p_uid: +b.dataset.u, p_accept: true }); sfx('ok'); toast('Friend added'); refreshCounts(); friendsPage(); } catch (e) { toast(e.message); } }));
-  app.querySelectorAll('.fr-no').forEach((b) => b.addEventListener('click', async () => { try { await call('learn_friend_respond', { p_uid: +b.dataset.u, p_accept: false }); refreshCounts(); friendsPage(); } catch (e) { toast(e.message); } }));
+  app.querySelectorAll('.fr-ok').forEach((b) => b.addEventListener('click', async () => { try { await call('learn_friend_respond', { p_uid: +b.dataset.u, p_accept: true }); sfx('ok'); toast('Friend added'); hub.poll(); friendsPage(); } catch (e) { toast(e.message); } }));
+  app.querySelectorAll('.fr-no').forEach((b) => b.addEventListener('click', async () => { try { await call('learn_friend_respond', { p_uid: +b.dataset.u, p_accept: false }); hub.poll(); friendsPage(); } catch (e) { toast(e.message); } }));
+  app.querySelectorAll('.fr-gift').forEach((b) => b.addEventListener('click', () => walls.shareSheet()));
+  hub.hub.friends = d; hub.hub.fAt = Date.now(); hub.renderRail();
   app.querySelectorAll('.fr-rm').forEach((b) => b.addEventListener('click', async () => { if (!(await confirmBox('Remove friend?', `${b.dataset.n} will no longer see your progress.`, 'Remove', true))) return; try { await call('learn_friend_respond', { p_uid: +b.dataset.u, p_accept: false }); friendsPage(); } catch (e) { toast(e.message); } }));
 }
 function levelLabel(sum) {
@@ -180,13 +184,14 @@ export async function classPage(id, tab = 'stream') {
   C.shell(route, `<section class="panel cl-hero">
     <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag-s ${role === 'teacher' ? 'acc' : role === 'assistant' ? 'vio' : ''}">${ROLE[role]}${isOwner ? ' · owner' : ''}</span><span class="tag-s">${esc(C.COURSES[r.lang] ? C.COURSES[r.lang].name : r.lang)}${r.level ? ' · ' + esc(r.level.toUpperCase()) : ''}</span><span class="tag-s">${I.users} ${d.members.length}</span>${r.archived ? '<span class="tag-s gold">Archived</span>' : ''}${r.settings && r.settings.open === false ? '<span class="tag-s">Closed to new members</span>' : ''}</div>
     <h1>${esc(r.name)}</h1>${r.description ? `<p>${esc(r.description)}</p>` : ''}
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="fr-code cl-code"><small class="muted">Class code</small><b>${esc(r.code)}</b><button class="icon-btn cp-code" type="button" title="Copy code">${I.copy}</button></span><button class="btn sm ghost cp-link" type="button">${I.link} Invite link</button>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="fr-code cl-code"><small class="muted">Class code</small><b>${esc(r.code)}</b><button class="icon-btn cp-code" type="button" title="Copy code">${I.copy}</button></span><button class="btn sm ghost cp-link" type="button">${I.link} Invite link</button><button class="btn sm ghost inv-fr" type="button">${I.users} Invite friends</button>
       <span style="flex:1"></span>${staff ? `<button class="btn sm acc live" type="button">${I.zap} Start a live quiz</button>` : ''}${role === 'teacher' ? `<button class="icon-btn set" type="button" title="Class settings">${I.gear}</button>` : ''}<button class="icon-btn leave" type="button" title="Leave class">${I.door}</button></div>
   </section>
   <div class="cl-tabs" role="tablist">${tabs.map(([k, l, ic]) => `<button type="button" data-t="${k}" aria-pressed="${k === tab}">${I[ic]}${l}</button>`).join('')}</div>
   <div class="cl-body"></div>`, null, { noCourse: true });
   app.querySelector('.cp-code').addEventListener('click', () => copyText(r.code, 'Class code copied'));
   app.querySelector('.cp-link').addEventListener('click', () => copyText(link, 'Invite link copied'));
+  app.querySelector('.inv-fr').addEventListener('click', () => hub.inviteSheet('class', { room: r.id }, r.name));
   app.querySelectorAll('.cl-tabs button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); history.replaceState(null, '', `#/class/${id}/${b.dataset.t}`); classPage(id, b.dataset.t); }));
   const lv = app.querySelector('.live'); if (lv) lv.addEventListener('click', () => quizSetupSheet({ room: r }));
   const st = app.querySelector('.set'); if (st) st.addEventListener('click', () => classSettings(d));
@@ -361,6 +366,20 @@ export async function quizHub() {
   app.querySelector('.host').addEventListener('click', () => { if (!acct) return C.authSheet('new'); quizSetupSheet({ sets: mine ? mine.sets : [] }); });
   app.querySelector('.sets').addEventListener('click', () => { if (!acct) return C.authSheet('new'); setsSheet(mine ? mine.sets : []); });
 }
+// ngân hàng câu hỏi theo chủ đề (data/quizbank.json): đáp án đúng luôn ở vị trí đầu, xáo khi tạo ván
+let BANK = null;
+async function bank() { if (!BANK) { const r = await fetch('data/quizbank.json?v=1'); BANK = await r.json(); } return BANK; }
+function fromTopics(ids, n) {
+  const pool = BANK.topics.filter((t) => ids.includes(t.id)).flatMap((t) => t.q.map((q) => ({ ...q, topic: t.name })));
+  return shuffleArr(pool).slice(0, n).map((x) => { const idx = shuffleArr([0, 1, 2, 3]); return { q: x.q, opts: idx.map((i) => x.opts[i]), a: idx.indexOf(0), note: x.topic, fun: x.fun }; });
+}
+// câu đùa chung cho câu hỏi tạo từ bài học
+const FUN = ['Why did the student eat his homework? The teacher said it was a piece of cake.', 'I told my dictionary a joke. It did not get it, but it knew the meaning.', 'Learning English: “read” and “read” are spelled the same and pronounced differently. Just read that again.',
+  'Why is “abbreviation” such a long word? Nobody knows.', 'My grammar teacher said I used too many commas, but I disagree, you know, honestly, mostly.', 'The past, present and future walked into a bar. It was tense.',
+  'A comma and an apostrophe walk into a bar. The apostrophe says: it’s mine.', 'I used to hate maths, but then I realised decimals have a point.', 'Why do Chinese learners love tones? Because 妈 and 马 are not the same, and your mum knows it.',
+  'Studying vocabulary is like dating: you meet 20 new words, remember 3, and one of them ghosts you.', 'The word “queue” is just a q followed by four letters waiting in line.', 'Why did the verb break up with the noun? It needed more action.',
+  'Silent letters are like that one friend in the group chat. Present, but saying nothing.', 'I tried to learn sign language. It was handy.', 'Pronunciation tip: English spelling is a suggestion, not a rule.',
+  'My phone autocorrected “homework” to “home wok”. Now I cook instead.', 'Never trust a dictionary. It is full of words it can’t explain without other words.', 'Why do teachers wear sunglasses? Their students are so bright.'];
 // câu hỏi tự sinh từ bài học
 function buildQuestions(lang, units, kinds, n) {
   const zh = lang === 'zh', pool = [], words = units.flatMap((u) => u.words);
@@ -378,7 +397,7 @@ function buildQuestions(lang, units, kinds, n) {
     }
     if (p.k === 'g') { const o = shufOpts(p.d.opts.slice(0, 4), p.d.a); return { q: p.d.t.replace(/_{2,}/g, '_____'), ...o, note: p.g.title }; }
     const o = shufOpts(p.x.opts.slice(0, 4), p.x.a); return { q: `${p.u.read.title}: ${p.x.q}`, ...o, note: '' };
-  }).filter((q) => q.opts.length >= 2);
+  }).filter((q) => q.opts.length >= 2).map((q) => ({ ...q, fun: FUN[Math.floor(Math.random() * FUN.length)] }));
 }
 async function quizSetupSheet(o = {}) {
   if (!acct) return C.authSheet('new');
@@ -387,12 +406,18 @@ async function quizSetupSheet(o = {}) {
   let staffRooms = [];
   if (!room) { try { const j = await call('learn_rooms_mine'); staffRooms = (j.items || []).filter((x) => x.role !== 'student' && !x.archived); } catch (e) {} }
   const st = { ...lastSetup };
+  try { await bank(); } catch (e) {}
+  const topics = BANK ? BANK.topics : [];
   sheet(`<h2>${room ? `Live quiz · ${esc(room.name)}` : 'Create a live quiz'}</h2><p class="sub">Choose the questions and the rules. You get a PIN to show on screen.</p>
   <form class="qs" novalidate>
-    <div class="field"><label>Questions from</label><div class="qz-src">
-      <button type="button" data-s="course" aria-pressed="true"><span class="ic">${I.book}</span><span><b>A course</b><small>Words, grammar and reading from units you pick</small></span></button>
+    <div class="field"><label>Questions from</label><div class="qz-src three">
+      <button type="button" data-s="topic" aria-pressed="${topics.length ? 'true' : 'false'}" ${topics.length ? '' : 'disabled style="opacity:.5"'}><span class="ic">${I.sparkle}</span><span><b>Topics</b><small>${topics.reduce((a, t) => a + t.q.length, 0)} questions in ${topics.length} topics, each with a joke</small></span></button>
+      <button type="button" data-s="course" aria-pressed="${topics.length ? 'false' : 'true'}"><span class="ic">${I.book}</span><span><b>A course</b><small>Words, grammar and reading from units you pick</small></span></button>
       <button type="button" data-s="set" aria-pressed="false" ${sets.length ? '' : 'disabled style="opacity:.5"'}><span class="ic">${I.edit}</span><span><b>My question set</b><small>${sets.length ? sets.length + ' saved set' + (sets.length === 1 ? '' : 's') : 'Create one in “My question sets” first'}</small></span></button></div></div>
-    <div class="src-course"><div class="field"><label>Course</label><select class="input q-lang">${C.AVAIL.map((l) => `<option value="${l}" ${lang0 === l ? 'selected' : ''}>${esc(C.COURSES[l].name)}</option>`).join('')}</select></div>
+    <div class="src-topic" ${topics.length ? '' : 'hidden'}><div class="field"><label>Pick one or more topics</label><div class="tp-grid">${topics.map((t, i) => `<button type="button" class="tp" data-t="${t.id}" aria-pressed="${i === 0 ? 'true' : 'false'}"><span class="tp-ic">${t.icon}</span><b>${esc(t.name)}</b><small>${esc(t.desc)} · ${t.q.length}</small></button>`).join('')}</div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button type="button" class="chip tp-all">Select all</button><button type="button" class="chip tp-rnd">${I.dice} Surprise me</button></div></div>
+      <div class="field"><label>Number of questions</label><select class="input tp-n">${[5, 10, 15, 20, 30].map((n) => `<option ${n === 10 ? 'selected' : ''}>${n}</option>`).join('')}</select></div></div>
+    <div class="src-course" ${topics.length ? 'hidden' : ''}><div class="field"><label>Course</label><select class="input q-lang">${C.AVAIL.map((l) => `<option value="${l}" ${lang0 === l ? 'selected' : ''}>${esc(C.COURSES[l].name)}</option>`).join('')}</select></div>
       <div class="field"><label>Level</label><select class="input q-lv"></select></div>
       <div class="field"><label>Units</label><div class="q-units list" style="max-height:220px;overflow:auto"></div></div>
       <div class="field"><label>Question types</label><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="chip q-kind" data-k="words" aria-pressed="true">Vocabulary</button><button type="button" class="chip q-kind" data-k="grammar" aria-pressed="true">Grammar</button><button type="button" class="chip q-kind" data-k="reading" aria-pressed="false">Reading</button></div></div>
@@ -408,15 +433,20 @@ async function quizSetupSheet(o = {}) {
     </div>
     <p class="err" style="margin-top:10px"></p><button class="btn acc wide" type="submit">${I.zap} Create game</button>
   </form>`, async (el, close) => {
-    let src = 'course';
+    let src = topics.length ? 'topic' : 'course';
+    const tpTitle = () => { const on = [...el.querySelectorAll('.tp[aria-pressed="true"]')].map((b) => topics.find((t) => t.id === b.dataset.t)); if (!title.dataset.ed) title.value = on.length === 1 ? `${on[0].name} quiz` : on.length ? 'Mixed topics quiz' : ''; };
+    el.querySelectorAll('.tp').forEach((b) => b.addEventListener('click', () => { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); sfx('tap'); tpTitle(); }));
+    el.querySelector('.tp-all') && el.querySelector('.tp-all').addEventListener('click', () => { el.querySelectorAll('.tp').forEach((b) => b.setAttribute('aria-pressed', 'true')); tpTitle(); });
+    el.querySelector('.tp-rnd') && el.querySelector('.tp-rnd').addEventListener('click', () => { const bs = shuffleArr([...el.querySelectorAll('.tp')]); el.querySelectorAll('.tp').forEach((b) => b.setAttribute('aria-pressed', 'false')); bs.slice(0, 3).forEach((b) => b.setAttribute('aria-pressed', 'true')); sfx('pop'); tpTitle(); });
     const lsel = el.querySelector('.q-lang'), lvsel = el.querySelector('.q-lv'), ubox = el.querySelector('.q-units'), title = el.querySelector('.q-title');
     let cur = null;
     const fillUnits = () => { const L = cur.levels.find((x) => x.id === lvsel.value); ubox.innerHTML = L.units.map((u, i) => `<label class="row" style="cursor:pointer"><input type="checkbox" value="${u.id}" ${unitProgress(u.id) > 0 || i === 0 ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--acc)"><span class="grow"><b style="font-size:.9rem">Unit ${i + 1}: ${esc(u.title)}</b></span></label>`).join(''); if (!title.dataset.ed) title.value = `${L.name} quiz`; };
     const fillLv = async () => { cur = await C.course(lsel.value); lvsel.innerHTML = cur.levels.map((L) => `<option value="${L.id}" ${((room && room.lang === lsel.value && room.level) || S.level[lsel.value]) === L.id ? 'selected' : ''}>${esc(L.name)} · ${esc(L.title)}</option>`).join(''); fillUnits(); };
     await fillLv(); lsel.addEventListener('change', fillLv); lvsel.addEventListener('change', fillUnits);
+    if (src === 'topic') { delete title.dataset.ed; tpTitle(); }
     title.addEventListener('input', () => { title.dataset.ed = 1; });
     el.querySelectorAll('.q-kind').forEach((b) => b.addEventListener('click', () => b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')));
-    el.querySelectorAll('.qz-src button').forEach((b) => b.addEventListener('click', () => { if (b.disabled) return; src = b.dataset.s; el.querySelectorAll('.qz-src button').forEach((x) => x.setAttribute('aria-pressed', x === b)); el.querySelector('.src-course').hidden = src !== 'course'; el.querySelector('.src-set').hidden = src !== 'set'; if (src === 'set' && !title.dataset.ed) { const s = sets.find((x) => x.id === +el.querySelector('.q-set').value); if (s) title.value = s.title; } }));
+    el.querySelectorAll('.qz-src button').forEach((b) => b.addEventListener('click', () => { if (b.disabled) return; src = b.dataset.s; el.querySelectorAll('.qz-src button').forEach((x) => x.setAttribute('aria-pressed', x === b)); el.querySelector('.src-course').hidden = src !== 'course'; el.querySelector('.src-set').hidden = src !== 'set'; el.querySelector('.src-topic').hidden = src !== 'topic'; if (src === 'topic') tpTitle(); if (src === 'set' && !title.dataset.ed) { const s = sets.find((x) => x.id === +el.querySelector('.q-set').value); if (s) title.value = s.title; } }));
     const qset = el.querySelector('.q-set'); if (qset) qset.addEventListener('change', () => { const s = sets.find((x) => x.id === +qset.value); if (s && !title.dataset.ed) title.value = s.title; });
     el.querySelector('.qs').addEventListener('submit', async (e) => {
       e.preventDefault(); const err = el.querySelector('.err'); err.textContent = '';
@@ -424,7 +454,10 @@ async function quizSetupSheet(o = {}) {
       ['speed', 'streak', 'show_q', 'shuffle', 'guests', 'late', 'class_only'].forEach((k) => { const x = el.querySelector('.s-' + k); settings[k] = x ? x.checked : false; });
       lastSetup = { ...lastSetup, ...settings }; try { localStorage.setItem('dcl_qset', JSON.stringify(lastSetup)); } catch (er) {}
       let questions = [];
-      if (src === 'course') {
+      if (src === 'topic') {
+        const ids = [...el.querySelectorAll('.tp[aria-pressed="true"]')].map((b) => b.dataset.t); if (!ids.length) { err.textContent = 'Pick at least one topic'; return; }
+        questions = fromTopics(ids, +el.querySelector('.tp-n').value);
+      } else if (src === 'course') {
         const ids = [...ubox.querySelectorAll('input:checked')].map((x) => x.value); if (!ids.length) { err.textContent = 'Pick at least one unit'; return; }
         const kinds = {}; el.querySelectorAll('.q-kind').forEach((b) => { kinds[b.dataset.k] = b.getAttribute('aria-pressed') === 'true'; }); if (!kinds.words && !kinds.grammar && !kinds.reading) { err.textContent = 'Pick at least one question type'; return; }
         const L = cur.levels.find((x) => x.id === lvsel.value);
@@ -519,11 +552,12 @@ export async function hostPage(key) {
   const drawLobby = () => {
     const link = `${SITE}#/play/${g.pin}`;
     inner.innerHTML = `<div class="lobby"><p class="join-at">Join at <b>desktopchill.com/learn</b> → Live quiz, or open <b>${esc(link.replace('https://', ''))}</b></p><div class="big-pin">${g.pin.slice(0, 3)} ${g.pin.slice(3)}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="btn sm ghost cp" type="button">${I.link} Copy join link</button><button class="btn sm ghost lk" type="button">${I.lock} ${g.locked ? 'Unlock game' : 'Lock game'}</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="btn sm ghost cp" type="button">${I.link} Copy join link</button><button class="btn sm ghost lk" type="button">${I.lock} ${g.locked ? 'Unlock game' : 'Lock game'}</button>${acct ? `<button class="btn sm ghost inv" type="button">${I.users} Invite friends</button>` : ''}</div>
       <div class="pl-count" style="font-size:1.4rem">${I.users} ${g.players.length} player${g.players.length === 1 ? '' : 's'}</div>
       <div class="pl-cloud">${g.players.map((p) => `<span>${esc(p.nick)}<button type="button" data-p="${p.id}" title="Remove">${I.x}</button></span>`).join('') || '<span class="muted" style="background:none;border:0">Waiting for players…</span>'}</div></div>`;
     inner.querySelector('.cp').addEventListener('click', () => copyText(link, 'Join link copied'));
     inner.querySelector('.lk').addEventListener('click', () => doAct('lock'));
+    const iv = inner.querySelector('.inv'); if (iv) iv.addEventListener('click', () => hub.inviteSheet('quiz', { pin: g.pin, title: g.title }, g.title));
     inner.querySelectorAll('.pl-cloud button').forEach((b) => b.addEventListener('click', () => doAct('kick', { id: +b.dataset.p })));
     bot.innerHTML = `<button class="btn acc go" type="button" ${g.players.length ? '' : 'disabled'} style="min-width:220px">${I.play} Start game</button>`;
     bot.querySelector('.go').addEventListener('click', () => { unlockAudio(); sfx('levelup'); doAct('start'); });
@@ -542,7 +576,7 @@ export async function hostPage(key) {
     const q = g.question, max = Math.max(1, ...(g.counts || [0]));
     inner.innerHTML = `<div class="qz-q"><h2 class="${/[㐀-鿿]/.test(q.q) ? 'zh' : ''}">${esc(q.q)}</h2></div>
       <div class="qz-bars">${q.opts.map((_, i) => `<div class="b c${i}"><b>${(g.counts || [])[i] || 0}</b><i style="height:${Math.round(((g.counts || [])[i] || 0) / max * 120) + 6}px"></i><span class="shp">${SHAPES[i]}</span></div>`).join('')}</div>
-      <div class="qz-ans">${q.opts.map((o, i) => `<div class="qa c${i} ${i === q.a ? 'right' : 'dim'}">${shp(i)}<span>${esc(o)}</span>${i === q.a ? `<span class="tick">${I.check}</span>` : ''}</div>`).join('')}</div>${q.note ? `<p style="text-align:center;color:var(--ink-2)">${esc(q.note)}</p>` : ''}`;
+      <div class="qz-ans">${q.opts.map((o, i) => `<div class="qa c${i} ${i === q.a ? 'right' : 'dim'}">${shp(i)}<span>${esc(o)}</span>${i === q.a ? `<span class="tick">${I.check}</span>` : ''}</div>`).join('')}</div>${q.note && !q.fun ? `<p style="text-align:center;color:var(--ink-2)">${esc(q.note)}</p>` : ''}${q.fun ? `<p class="qz-fun"><span>😄</span>${esc(q.fun)}</p>` : ''}`;
     bot.innerHTML = `<button class="btn acc nx" type="button" style="min-width:220px">Leaderboard ${I.chev}</button>`;
     bot.querySelector('.nx').addEventListener('click', () => doAct('board'));
   };
@@ -629,7 +663,7 @@ function joinForm(pin) {
 function playStage(pin, me) {
   const el = stage(`<div class="qz-top"><span class="ttl">Joining…</span><span class="tag-s">PIN ${esc(pin)}</span></div><div class="qz-body"><div class="qz-in"></div></div><div class="pl-bar"><b class="grow nkn">${esc(me.nick)}</b><span class="sc">0</span></div>`);
   const top = el.querySelector('.ttl'), inner = el.querySelector('.qz-in'), sc = el.querySelector('.sc');
-  let st = null, phase = '', qi = -2, sent = null, base = 0, baseAt = 0, prevScore = 0;
+  let st = null, phase = '', qi = -2, sent = null, base = 0, baseAt = 0, prevScore = 0, endPolls = 0;
   const pads = (n, showText) => `<div class="pl-pads ${n === 2 ? 'n2' : ''} ${showText ? 'txt' : ''}">${[...Array(n)].map((_, i) => `<button class="qa c${i} ${showText && /[㐀-鿿]/.test(st.opts[i]) ? 'zh' : ''}" data-i="${i}" type="button">${shp(i)}${showText ? `<span>${esc(st.opts[i])}</span>` : ''}</button>`).join('')}</div>`;
   const drawQ = () => {
     const showText = !!st.opts;
@@ -646,15 +680,17 @@ function playStage(pin, me) {
   const drawResult = () => {
     const r = st.result || {};
     if (!r.answered) inner.innerHTML = `<div class="pl-res bad"><span class="mk">${I.timer}</span><h2>Time’s up</h2><p class="note">No answer this time. Your streak resets.</p><p class="muted">You are ${ordinal(st.rank)} of ${st.players}</p></div>`;
-    else inner.innerHTML = `<div class="pl-res ${r.correct ? 'ok' : 'bad'}"><span class="mk">${r.correct ? I.check : I.x}</span><h2>${r.correct ? 'Correct!' : 'Not this time'}</h2><span class="pts">+${r.points}</span>${r.correct && st.streak >= 2 ? `<p style="color:var(--fire);font-weight:800">${st.streak} correct in a row</p>` : ''}${!r.correct && st.opts ? `<p class="note">Answer: <b>${esc(st.opts[r.a])}</b></p>` : ''}${r.note ? `<p class="note">${esc(r.note)}</p>` : ''}<p class="muted">You are ${ordinal(st.rank)} of ${st.players}</p></div>`;
+    else inner.innerHTML = `<div class="pl-res ${r.correct ? 'ok' : 'bad'}"><span class="mk">${r.correct ? I.check : I.x}</span><h2>${r.correct ? 'Correct!' : 'Not this time'}</h2><span class="pts">+${r.points}</span>${r.correct && st.streak >= 2 ? `<p style="color:var(--fire);font-weight:800">${st.streak} correct in a row</p>` : ''}${!r.correct && st.opts ? `<p class="note">Answer: <b>${esc(st.opts[r.a])}</b></p>` : ''}${r.note && !r.fun ? `<p class="note">${esc(r.note)}</p>` : ''}${r.fun ? `<p class="qz-fun sm"><span>😄</span>${esc(r.fun)}</p>` : ''}<p class="muted">You are ${ordinal(st.rank)} of ${st.players}</p></div>`;
     sfx(r.correct ? 'ok' : 'bad');
     if (r.correct) { const m = inner.querySelector('.mk').getBoundingClientRect(); burst(m.left + m.width / 2, m.top + m.height / 2, 22); }
   };
   const drawBoard = () => { inner.innerHTML = `<div class="pl-wait" style="padding-top:4vh"><h2>${ordinal(st.rank)} place</h2><p>${st.score} points</p></div><div class="board">${(st.board || []).map((p, i) => `<div class="board-row" style="animation-delay:${i * 0.06}s"><span class="r">${i + 1}</span><span>${esc(p.nick)}</span><span class="s">${p.score}</span></div>`).join('')}</div>`; };
   const drawEnd = () => {
     inner.innerHTML = `<div class="pl-res ok"><span class="mk" style="background:linear-gradient(140deg,#FFF1C2,var(--gold))">${I.trophy.replace('<svg', '<svg style="color:#2A1C00"')}</span><h2>${st.rank <= 3 ? `You finished ${ordinal(st.rank)}!` : `${ordinal(st.rank)} of ${st.players}`}</h2><span class="pts">${st.score} points</span><p class="muted">${esc(st.title)}</p>
+      ${st.award ? `<div class="qz-award">${st.award.wall ? walls.card(st.award.wall, { state: 'got', cls: 'aw', tag: 'Prize' }) : ''}<p><b>${st.award.rank === 1 ? 'Winner’s prize' : 'Podium bonus'}</b>${st.award.wall ? ` · ${esc(walls.wallOf(st.award.wall).name)} is in your collection` : ''} · +${st.award.pts} VIP points</p></div>` : st.rank === 1 && !acct ? '<p class="muted">Sign in next time: winners of games with 3+ players get a wallpaper and VIP points.</p>' : ''}
       <div class="foot-row" style="max-width:420px;width:100%">${acct ? '<a class="btn ghost" href="#/quiz">My games</a>' : ''}<a class="btn acc" href="${S.onboarded ? '#/' : '#/'}">${S.onboarded ? 'Back to learning' : 'Try desktopchill learn'}</a></div></div>`;
     if (st.rank <= 3) { sfx('levelup'); later(() => burst(innerWidth / 2, innerHeight / 3, 50), 300); }
+    if (st.award) { walls.loadCat().then(() => { const c = inner.querySelector('.qz-award .wcard'); if (c) { c.outerHTML = walls.card(st.award.wall, { state: 'got', cls: 'aw', tag: 'Prize' }); } walls.syncWalls(); }); later(() => { const c = inner.querySelector('.qz-award .wcard'); if (c) walls.flyToCollection([c]); }, 2600); }
     try { sessionStorage.removeItem('dcl_play_' + pin); localStorage.removeItem('dcl_play_' + pin); } catch (e) {}
   };
   const apply = (j) => {
@@ -667,6 +703,7 @@ function playStage(pin, me) {
     sc.textContent = st.score; if (st.score > prevScore) { sc.animate([{ transform: 'scale(1.3)' }, { transform: 'scale(1)' }], { duration: 400 }); } prevScore = st.score;
     const ph = st.state === 'question' && base < 0 ? 'count' : st.state;
     if (st.q_index !== qi) sent = null;
+    if (ph === 'ended' && phase === 'ended' && st.award && !inner.querySelector('.qz-award')) drawEnd();
     if (ph !== phase || st.q_index !== qi) {
       if (ph === 'lobby') inner.innerHTML = `<div class="pl-wait"><h2>You’re in!</h2><p>See your nickname on the big screen?</p><p class="pl-count">${I.users} ${st.players} players</p><p class="muted">The game starts when the host is ready.</p></div>`;
       else if (ph === 'count') inner.innerHTML = `<div class="countdown">${Math.max(1, Math.ceil(-base / 1000))}</div><p style="text-align:center;color:var(--ink-2);font-weight:700">Question ${st.q_index + 1} of ${st.total}</p>`;
@@ -676,7 +713,7 @@ function playStage(pin, me) {
       else if (ph === 'ended') drawEnd();
     } else if (ph === 'lobby') { const c = inner.querySelector('.pl-count'); if (c) c.innerHTML = `${I.users} ${st.players} players`; }
     phase = ph; qi = st.q_index;
-    if (ph === 'ended') cleanupPolls();
+    if (ph === 'ended' && (st.award || ++endPolls > 3 || !acct)) cleanupPolls();
   };
   const cleanupPolls = () => { timers.forEach((t) => { clearInterval(t); clearTimeout(t); }); timers.clear(); };
   const poll = async () => { try { const j = await rpc('learn_quiz_play_state', { p_pin: pin, p_pkey: me.pkey }); if (document.querySelector('.qz-stage')) apply(j); } catch (e) {} };

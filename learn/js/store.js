@@ -23,6 +23,11 @@ function fresh() {
     best: {},          // kỷ lục: "speed|en" → điểm
     counts: { perfect: 0, combo: 0, speakOk: 0, reviewed: 0 },
     dchest: '',        // ngày đã mở rương nhiệm vụ
+    walls: {},         // hình nền đã sưu tập: id → { at, src }
+    wclaims: {},       // số sao đã nhận ở từng ô thưởng: "en-a1-1" / "boss|en|a1" → sao
+    bossStars: {},     // sao tốt nhất của thử thách boss: "en|a1" → 1..3
+    vipSeen: 0,        // cấp VIP đã chúc mừng
+    bg: 0,             // hình nền đang dùng làm nền trang (0 = rừng)
   };
 }
 function merge(base, add) {

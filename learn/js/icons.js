@@ -60,6 +60,16 @@ export const I = {
   dia: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 22 12 12 22 2 12z"/></svg>',
   cir: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/></svg>',
   sqr: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>',
+  gallery: s('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/>'),
+  bell: s('<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
+  swords: s('<path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6M16 16l4 4M19 21l2-2"/><path d="M9.5 6.5 14 2h3v3l-4.5 4.5"/><path d="m5 14 4 4M7 17l-3 3M3 19l2 2"/>'),
+  gift: s('<rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13"/><path d="M12 8C10 4 6.5 4 6.5 6.2 6.5 8 9 8 12 8zM12 8c2-4 5.5-4 5.5-1.8C17.5 8 15 8 12 8z"/>'),
+  chevUp: s('<path d="m6 15 6-6 6 6"/>'),
+  chevDown: s('<path d="m6 9 6 6 6-6"/>'),
+  sparkle: s('<path d="M12 3c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7z"/><path d="M19 15c.2 1.6 1 2.4 2.5 2.5-1.5.2-2.3 1-2.5 2.5-.2-1.5-1-2.3-2.5-2.5 1.5-.1 2.3-.9 2.5-2.5z"/>'),
+  upload: s('<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>'),
+  dice: s('<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.2"/><circle cx="16" cy="16" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="16" cy="8" r="1.2"/><circle cx="8" cy="16" r="1.2"/>'),
+  rail: s('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>'),
   logout: s('<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h11"/>'),
 };
 // Logo: desktopchill mark (same as /admin)

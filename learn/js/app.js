@@ -1,13 +1,16 @@
-import { I, LOGO } from './icons.js?v=11';
-import { sound, sfx, unlockAudio } from './sound.js?v=11';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic } from './speech.js?v=11';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=11';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=11';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, AVATARS } from './ui.js?v=11';
-import * as social from './social.js?v=11';
-import { setVideo } from './scene.js?v=11';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=11';
-import { mascot } from './mascot.js?v=11';
+import { I, LOGO } from './icons.js?v=12';
+import { sound, sfx, unlockAudio } from './sound.js?v=12';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic } from './speech.js?v=12';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=12';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=12';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=12';
+import * as social from './social.js?v=12';
+import { setVideo, setBg } from './scene.js?v=12';
+import * as walls from './walls.js?v=12';
+import * as hub from './hub.js?v=12';
+import * as duel from './duel.js?v=12';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=12';
+import { mascot } from './mascot.js?v=12';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -81,8 +84,25 @@ function checkBadges() {
 }
 
 /* ---------- khung trang: thanh HUD, menu, cột phải ---------- */
-const NAV = [['#/', 'Learn', 'home'], ['#/roadmap', 'Roadmap', 'list'], ['#/review', 'Review', 'cards'], ['#/practice', 'Practice', 'target'], ['#/classes', 'Classes', 'school'], ['#/quiz', 'Live quiz', 'zap'], ['#/friends', 'Friends', 'users']];
-const TABS = [['#/', 'Learn', 'home'], ['#/practice', 'Practice', 'target'], ['#/classes', 'Classes', 'school'], ['#/quiz', 'Quiz', 'zap'], ['#/me', 'Me', 'user']];
+const NAV = [['#/', 'Learn', 'home'], ['#/review', 'Review', 'cards'], ['#/practice', 'Practice', 'target'], ['#/collection', 'Collection', 'gallery'], ['#/duel', 'Duels', 'swords'], ['#/quiz', 'Live quiz', 'zap'], ['#/classes', 'Classes', 'school'], ['#/friends', 'Friends', 'users']];
+const TABS = [['#/', 'Learn', 'home'], ['#/practice', 'Practice', 'target'], ['#/collection', 'Collection', 'gallery'], ['#/quiz', 'Quiz', 'zap'], ['#/me', 'Me', 'user']];
+/* ---------- giao diện sáng / tối ---------- */
+const theme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('dcl_theme', t); } catch (e) {}
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === 'light' ? '#e9f0ec' : '#07100d';
+  document.querySelectorAll('.theme-t').forEach((b) => { b.innerHTML = t === 'light' ? I.moon : I.sun; b.title = t === 'light' ? 'Dark mode' : 'Light mode'; });
+  const sw = document.querySelector('.thm'); if (sw) sw.checked = t === 'light';
+}
+// ảnh đại diện của mình (có vòng VIP nếu có)
+function meAv(size = 40) {
+  if (!acct) return lvRing(size);
+  const v = walls.myVip();
+  if (v) return vipAv(acct.name, acct.avatar, v, size >= 60 ? 'lg' : '');
+  const inner = isImg(acct.avatar) ? `<span class="av-in"><img src="${acct.avatar}" alt=""></span>` : acct.avatar ? `<span class="av-in">${esc(acct.avatar)}</span>` : `<span class="av-in" style="font-size:.78rem;font-weight:800">${esc(initials(acct.name))}</span>`;
+  return lvRing(size, inner);
+}
 function lvRing(size = 44, inner = '') {
   const p = playerLevel(), r = size / 2 - 3, C = 2 * Math.PI * r;
   return `<span class="lvr" title="Level ${p.lv}: ${p.cur}/${p.need} XP to next level" style="width:${size}px;height:${size}px"><svg viewBox="0 0 ${size} ${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="bg"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="fg" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - p.cur / p.need)}"/></svg>${inner || `<b>${p.lv}</b>`}</span>`;
@@ -93,10 +113,10 @@ function courseTabs() {
 const routeOf = (r) => r === '#/' ? '#/' : '#/' + (r.split('/')[1] || '');
 function shell(route, inner, aside, opts = {}) {
   const dueN = due(S.lang).length, reqN = social.counts.requests || 0, cur = routeOf(route);
-  const link = ([href, label, ic]) => `<a href="${href}" ${cur === href || (href === '#/classes' && cur === '#/class') ? 'aria-current="page"' : ''}>${I[ic]}<span>${label}</span>${href === '#/review' && dueN ? `<i class="badge">${dueN > 99 ? '99+' : dueN}</i>` : ''}${href === '#/friends' && reqN ? `<i class="badge">${reqN}</i>` : ''}${href === '#/me' && reqN ? `<i class="badge">${reqN}</i>` : ''}</a>`;
+  const duN = hub.hub.duels || 0;
+  const link = ([href, label, ic]) => `<a href="${href}" ${cur === href || (href === '#/classes' && cur === '#/class') ? 'aria-current="page"' : ''}>${I[ic]}<span>${label}</span>${href === '#/review' && dueN ? `<i class="badge">${dueN > 99 ? '99+' : dueN}</i>` : ''}${href === '#/friends' && reqN ? `<i class="badge">${reqN}</i>` : ''}${href === '#/me' && reqN ? `<i class="badge">${reqN}</i>` : ''}${href === '#/duel' && duN ? `<i class="badge">${duN}</i>` : ''}</a>`;
   const st = streakNow(), lit = todayXP() > 0;
   const left = opts.left || '', lay = left && aside ? 'three' : aside ? 'two' : 'one';
-  const me = acct ? (acct.avatar ? `<span class="av-in">${esc(acct.avatar)}</span>` : `<span class="av-in" style="font-size:.78rem;font-weight:800">${esc(initials(acct.name))}</span>`) : '';
   app.innerHTML = `
   <header class="hud"><div class="hud-in">
     <a class="brand" href="#/" aria-label="desktopchill learn">${LOGO}<span>desktop<b>chill</b><small>learn</small></span></a>
@@ -105,9 +125,13 @@ function shell(route, inner, aside, opts = {}) {
       ${opts.noCourse ? '' : courseTabs()}
       <span class="chipx fire ${lit ? 'lit' : ''}" title="Day streak">${I.flame}<b>${st}</b></span>
       <span class="chipx gem" title="Total XP">${I.gem}<b class="xp-n">${S.xp}</b></span>
-      <a class="hud-me" href="#/me" title="Profile">${lvRing(40, me)}${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
+      ${hub.bellHTML()}${acct ? `<button class="icon-btn rail-btn" type="button" title="Friends online" aria-label="Friends online">${I.users}</button>` : ''}
+      <button class="icon-btn theme-t" type="button" title="${theme() === 'light' ? 'Dark mode' : 'Light mode'}">${theme() === 'light' ? I.moon : I.sun}</button>
+      <a class="hud-me" href="#/me" title="Profile">${meAv(40)}${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
     </div>
+    <button class="hud-hide" type="button" title="Hide the menu" aria-label="Hide the menu">${I.chevUp}</button>
   </div></header>
+  <button class="hud-show" type="button" title="Show the menu" aria-label="Show the menu">${I.chevDown}<span>Menu</span></button>
   <div class="layout ${lay}">
     ${left ? `<aside class="lcol" aria-label="Levels">${left}</aside>` : ''}
     <main class="main" id="main">${inner}</main>
@@ -116,6 +140,11 @@ function shell(route, inner, aside, opts = {}) {
   <nav class="tabbar" aria-label="Main">${TABS.map(link).join('')}</nav>`;
   app.querySelectorAll('.ctab').forEach((b) => b.addEventListener('click', () => switchCourse(b.dataset.l)));
   app.querySelectorAll('.nav a, .tabbar a').forEach((a) => a.addEventListener('click', () => sfx('tap')));
+  app.querySelector('.theme-t').addEventListener('click', () => { sfx('tap'); setTheme(theme() === 'light' ? 'dark' : 'light'); });
+  app.querySelector('.hud-hide').addEventListener('click', () => hub.toggleHud(false));
+  app.querySelector('.hud-show').addEventListener('click', () => hub.toggleHud(true));
+  hub.wireBell(app);
+  const rb = app.querySelector('.rail-btn'); if (rb) rb.addEventListener('click', () => hub.toggleRail());
   if (aside) wireAside();
 }
 async function switchCourse(l) {
@@ -160,8 +189,9 @@ function asideHTML(c) {
   <section class="panel badges-mini">
     <h3>${I.medal} Badges <em>${got.length}/${BADGES.length}</em></h3>
     <div class="bm-row">${got.slice(-4).map(([, t, , ic]) => `<span class="bdg on" title="${esc(t)}">${I[ic]}</span>`).join('')}${next.map(([, t, d, ic]) => `<span class="bdg" title="${esc(t)}: ${esc(d)}">${I[ic]}</span>`).join('')}</div>
-    <a class="more" href="#/me">See all</a>
+    <a class="more" href="#/collection/badges">See all</a>
   </section>
+  ${walls.miniHTML()}
   ${ph ? `<section class="panel phrase">
     <h3>${I.chat} Phrase of the day</h3>
     <p class="ph-t ${zh ? 'zh' : ''}">${esc(textOf(S.lang, ph.l))}</p>
@@ -207,12 +237,30 @@ function openDailyChest(btn) {
 }
 
 /* ---------- rương & hình minh hoạ ---------- */
-function chestSVG(open = false) {
-  return `<svg class="chest ${open ? 'open' : ''}" viewBox="0 0 80 70" aria-hidden="true">
-    <g class="rays"><path d="M40 34 34 -4h12zM40 34 78 18l4 12zM40 34 2 18l-4 12zM40 34l30-34 8 8zM40 34 10 0 2 8z"/></g>
-    <rect x="8" y="32" width="64" height="32" rx="5" class="cb"/><rect x="8" y="44" width="64" height="5" class="cband"/><rect x="34" y="32" width="12" height="32" class="cm"/>
-    <g class="lid"><path d="M8 34c0-14 10-22 32-22s32 8 32 22z" class="cl"/><rect x="34" y="12" width="12" height="22" class="cm"/></g>
-    <rect x="33" y="38" width="14" height="12" rx="3" class="lock"/><circle cx="40" cy="43" r="2.2" class="kh"/></svg>`;
+function chestSVG(open = false, tier = '') {
+  // rương gỗ bọc kim loại: thân, nắp vòm, đai vàng, góc bọc, khoá đá quý
+  return `<svg class="chest ch2 ${open ? 'open' : ''} ${tier}" viewBox="0 0 80 72" aria-hidden="true">
+    <defs><linearGradient id="chW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B8733A"/><stop offset=".55" stop-color="#8A4F22"/><stop offset="1" stop-color="#5A3013"/></linearGradient>
+      <linearGradient id="chL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CD8645"/><stop offset="1" stop-color="#8A4F22"/></linearGradient>
+      <linearGradient id="chG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0B3"/><stop offset=".45" stop-color="#FFC94A"/><stop offset="1" stop-color="#B9860F"/></linearGradient>
+      <radialGradient id="chJ" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#C9FFF6"/><stop offset=".5" stop-color="#2DD4BF"/><stop offset="1" stop-color="#0F766E"/></radialGradient>
+      <radialGradient id="chI" cx=".5" cy="1" r=".9"><stop offset="0" stop-color="#FFF6D0"/><stop offset=".6" stop-color="#FFC94A" stop-opacity=".7"/><stop offset="1" stop-color="#FFC94A" stop-opacity="0"/></radialGradient></defs>
+    <g class="rays"><path d="M40 36 34 -6h12zM40 36 80 18l4 12zM40 36 0 18l-4 12zM40 36l32-36 8 8zM40 36 8 0 0 8z"/></g>
+    <ellipse cx="40" cy="68" rx="30" ry="3.5" fill="#000" opacity=".28"/>
+    <ellipse class="inner" cx="40" cy="35" rx="26" ry="6" fill="url(#chI)"/>
+    <rect x="9" y="34" width="62" height="32" rx="4" fill="url(#chW)" stroke="#3A1F0A" stroke-width="2.2"/>
+    <path d="M10 44h60M10 54h60" stroke="#4A2810" stroke-width="1.2" opacity=".55"/>
+    <rect x="9" y="34" width="62" height="5" fill="url(#chG)" stroke="#7A5200" stroke-width="1"/>
+    <path d="M18 34v32M62 34v32" stroke="url(#chG)" stroke-width="5"/><path d="M18 34v32M62 34v32" stroke="#7A5200" stroke-width="5" stroke-opacity=".35" stroke-dasharray="1 7"/>
+    <path d="M9 58v4a4 4 0 0 0 4 4h5M71 58v4a4 4 0 0 1-4 4h-5" fill="none" stroke="url(#chG)" stroke-width="3.5" stroke-linecap="round"/>
+    <g class="lid2"><path d="M9 35c0-15 12-23 31-23s31 8 31 23z" fill="url(#chL)" stroke="#3A1F0A" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M14 30c3-9 12-13 26-13s23 4 26 13" fill="none" stroke="#FFE3B0" stroke-width="1.4" opacity=".35"/>
+      <path d="M18 34c0-11 6-18 0-18M62 34c0-11-6-18 0-18" fill="none"/>
+      <path d="M18 33.5C18 22 21 15 25 13.6M62 33.5C62 22 59 15 55 13.6" fill="none" stroke="url(#chG)" stroke-width="5"/>
+      <rect x="9" y="31" width="62" height="4.5" rx="1.5" fill="url(#chG)" stroke="#7A5200" stroke-width="1"/></g>
+    <path d="M33 33h14v10l-7 6-7-6z" fill="url(#chG)" stroke="#7A5200" stroke-width="1.4" stroke-linejoin="round"/>
+    <circle class="gem" cx="40" cy="39.5" r="3.6" fill="url(#chJ)" stroke="#0B4F49" stroke-width="1"/>
+    <circle cx="38.8" cy="38.2" r="1" fill="#fff" opacity=".85"/></svg>`;
 }
 
 /* ---------- bản đồ hành trình ---------- */
@@ -260,7 +308,8 @@ function pathHTML(c, W) {
         ${isCur ? '<span class="tip">Start</span>' : ''}<span class="face">${I[ls.icon]}</span>${dn ? starRow(stars) : ''}</button>`;
     }).join('');
     const cp = P[LN], opened = !!S.chests[u.id], ready = p === LN && !opened;
-    const cpBtn = `<button class="cp ${ready ? 'ready' : ''} ${opened ? 'opened' : ''}" style="left:${cp.x}px;top:${cp.y}px" data-u="${u.id}" aria-label="${ready ? 'Open reward chest' : 'Unit review'}: ${esc(u.title)}">${chestSVG(opened)}${ready ? '<span class="tip gold">Open me!</span>' : ''}</button>`;
+    const upg = opened && p === LN && walls.CAT && walls.canUpgrade(u.id, walls.chestStars(u.id));
+    const cpBtn = `<button class="cp ${ready || upg ? 'ready' : ''} ${opened ? 'opened' : ''} ${upg ? 'upg' : ''}" style="left:${cp.x}px;top:${cp.y}px" data-u="${u.id}" aria-label="${ready ? 'Open reward chest' : upg ? 'Chest refilled' : 'Chest contents'}: ${esc(u.title)}">${chestSVG(opened && !upg, p === LN ? 't' + walls.chestStars(u.id) : '')}${ready ? '<span class="tip gold">Open me!</span>' : upg ? '<span class="tip gold">Refilled!</span>' : ''}${walls.chestBadge(u.id, p === LN)}</button>`;
     const us = unitStars(u.id);
     return `<section class="unit ${p === LN ? 'complete' : p ? 'started' : ''}" data-u="${u.id}" style="--uc:${ucol(lang, i)}">
       <header class="unit-head panel">
@@ -279,7 +328,8 @@ function bossHTML(c, L) {
   return `<div class="boss panel ${beat ? 'beat' : all ? 'ready' : ''}">
     <span class="boss-ic">${beat ? I.crown : I.shield}</span>
     <div><small>End of ${esc(L.name)}</small><h3>${beat ? `${esc(L.name)} boss defeated` : `${esc(L.name)} boss challenge`}</h3>
-    <p class="muted">${beat ? 'You passed the final test of this level.' : `20 mixed questions from every unit. Score 80% or more to win the crown${all ? '' : '. Best tried after finishing the units'}.`}</p></div>
+    <p class="muted">${beat ? `You passed the final test of this level. Best: ${S.bossStars[S.lang + '|' + L.id] || 1}★.` : `20 mixed questions from every unit. Score 80% or more to win the crown${all ? '' : '. Best tried after finishing the units'}.`} Boss chest: 80% / 88% / 95% for 1 / 2 / 3 wallpapers.</p>
+    ${walls.CAT ? `<div class="boss-walls">${walls.slotView(`boss|${S.lang}|${L.id}`, beat).map((x, i) => walls.card(x.w, { state: x.have ? 'got' : x.state, cls: 'mini', hideName: x.state === 'locked', lockText: ['80%', '88%', '95%'][i] })).join('')}</div>` : ''}</div>
     <div class="boss-act"><button class="btn ${all && !beat ? 'gold' : 'ghost'} boss-go" type="button" ${started ? '' : 'disabled'}>${beat ? 'Try again' : 'Fight'}</button>
     ${nx ? `<button class="btn ${beat ? 'acc' : 'ghost'} next-lv" type="button" data-lv="${nx.id}">${beat ? 'Go to ' : 'Preview '}${esc(nx.name)}</button>` : ''}</div>
   </div>`;
@@ -329,11 +379,14 @@ function unitReview(c, uid) {
   runQueue(u, q, S.lang);
 }
 function openUnitChest(c, uid, btn) {
-  const { u } = findUnit(c, uid), reward = 20 + unitStars(uid);
-  S.chests[uid] = today(); addXP(reward); save(true);
-  btn.classList.add('popping'); sfx('chest');
-  const r = btn.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 34);
-  setTimeout(() => overlay(`<div class="rw">${chestSVG(true)}<h2>${esc(u.title)}</h2><p class="rw-x">+${reward} XP</p><p class="muted">20 XP for finishing the unit + ${unitStars(uid)} XP for your stars. Want more? Replay any lesson below 3 stars.</p><button class="btn acc ovl-ok" type="button">Awesome</button></div>`, () => { checkLevel(); checkBadges(); home(); }, 'reward'), 550);
+  const { L, u } = findUnit(c, uid), first = !S.chests[uid], reward = first ? 20 + unitStars(uid) : 0;
+  const lv0 = playerLevel().lv;
+  if (first) { S.chests[uid] = today(); addXP(reward); }
+  save(true);
+  btn.classList.add('popping'); sfx('tap');
+  const r = btn.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 24);
+  const res = walls.claim(uid, walls.chestStars(uid)), i = L.units.indexOf(u);
+  setTimeout(() => walls.reveal({ slot: uid, res, title: u.title, kicker: `${L.name} · Unit ${i + 1} chest`, xp: reward, xpNote: reward ? `20 for the unit + ${unitStars(uid)} for your stars` : '', onClose: () => { checkLevel(lv0); checkBadges(); walls.checkVip(); home(); } }), 380);
 }
 // thử thách trùm: 20 câu trộn từ mọi chủ đề của level
 function bossFight(c, L) {
@@ -345,8 +398,16 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=11').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
-    if (r && r.done && r.acc >= 0.8 && !S.boss[S.lang + '|' + L.id]) { S.boss[S.lang + '|' + L.id] = today(); addXP(50); save(true); sfx('levelup'); overlay(`<div class="rw boss-win"><span class="boss-ic big">${I.crown}</span><h2>${esc(L.name)} boss defeated!</h2><p class="rw-x">+50 XP</p><p class="muted">You scored ${Math.round(r.acc * 100)}% on the final test.</p><button class="btn acc ovl-ok" type="button">Claim the crown</button></div>`, () => { checkLevel(before); checkBadges(); render(); }, 'reward'); return; }
+  import('./lesson.js?v=12').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+    const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
+    if (st > 0) {
+      const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
+      if (st > (S.bossStars[key] || 0)) S.bossStars[key] = st;
+      save(true);
+      const res = walls.claim(`boss|${S.lang}|${L.id}`, st);
+      if (first || res.fresh.length || res.dup.length) { sfx('levelup'); walls.reveal({ slot: `boss|${S.lang}|${L.id}`, res, title: first ? `${L.name} boss defeated!` : `${L.name} boss: ${Math.round(r.acc * 100)}%`, kicker: `You scored ${Math.round(r.acc * 100)}%`, xp: first ? 50 : 0, onClose: () => { checkLevel(before); checkBadges(); walls.checkVip(); render(); } }); return; }
+      toast(`You scored ${Math.round(r.acc * 100)}%. ${st < 3 ? `Score ${st < 2 ? '88' : '95'}% for the next boss wallpaper.` : 'Boss chest already empty.'}`);
+    }
     if (r && r.done && r.acc < 0.8) toast(`You scored ${Math.round(r.acc * 100)}%. You need 80% to win. Review and try again.`);
     checkLevel(before); checkBadges(); render();
   } }));
@@ -404,8 +465,14 @@ async function home() {
     pEl.querySelectorAll('.seg.anim').forEach((p) => { p.style.setProperty('--len', Math.ceil(p.getTotalLength())); });
     if (pEl.querySelector('.seg.anim, .node.pop-in')) setTimeout(() => sfx('build'), 300);
     pEl.querySelectorAll('.node').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); sfx('tap'); if (b.classList.contains('open') && popClose) popClose(); else openPop(c, b); }));
-    pEl.querySelectorAll('.cp').forEach((b) => b.addEventListener('click', () => { if (b.classList.contains('ready')) openUnitChest(c, b.dataset.u, b); else { sfx('tap'); unitReview(c, b.dataset.u); } }));
+    pEl.querySelectorAll('.cp').forEach((b) => b.addEventListener('click', () => {
+      const uid = b.dataset.u;
+      if (b.classList.contains('ready')) openUnitChest(c, uid, b);
+      else if (S.chests[uid] && walls.CAT) { sfx('open'); walls.chestInfo(uid, findUnit(c, uid).u.title, () => unitReview(c, uid)); }
+      else { sfx('tap'); unitReview(c, uid); }
+    }));
     pEl.querySelectorAll('.guide').forEach((b) => b.addEventListener('click', () => { sfx('open'); guidebook(c, b.dataset.u); }));
+    pEl.querySelectorAll('.boss-walls').forEach((b) => walls.wireCards(b, (id) => { sfx('open'); walls.wallSheet(id); }));
     pEl.querySelectorAll('.boss-go').forEach((b) => b.addEventListener('click', () => { sfx('tap'); bossFight(c, L); }));
     pEl.querySelectorAll('.next-lv').forEach((b) => b.addEventListener('click', () => { sfx('tap'); S.level[S.lang] = b.dataset.lv; save(); home(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
     justBuilt = null;
@@ -425,8 +492,8 @@ function start(c, uid, k) {
   const { u } = findUnit(c, uid);
   const before = questDone(), lv0 = playerLevel().lv;
   runLesson({ unit: u, k, lang: S.lang, onExit: (r) => {
-    if (r && r.done) { justBuilt = { unit: u.id, k }; if (unitProgress(u.id) === LN && !S.chests[u.id]) setTimeout(() => toast('Unit complete! Tap the chest for your reward'), 900); }
-    questCheer(before); checkLevel(lv0); checkBadges();
+    if (r && r.done) { justBuilt = { unit: u.id, k }; if (unitProgress(u.id) === LN && !S.chests[u.id]) setTimeout(() => toast('Unit complete! Tap the chest for your reward'), 900); else if (unitProgress(u.id) === LN && walls.canUpgrade(u.id, walls.chestStars(u.id))) setTimeout(() => toast('More stars! The unit chest refilled with a new wallpaper'), 900); }
+    questCheer(before); checkLevel(lv0); checkBadges(); setTimeout(() => walls.checkVip(), 1200);
     const back = sessionStorage.getItem('dcl_back'); sessionStorage.removeItem('dcl_back');
     if (back) { if (location.hash === back) render(); else location.hash = back; }
     else if (location.hash !== '#/' && location.hash !== '') location.hash = '#/'; else home();
@@ -595,7 +662,7 @@ async function me() {
   const voicesEn = listVoices('en'), voicesZh = listVoices('zh'), p = playerLevel();
   const days = [...Array(28)].map((_, i) => { const d = new Date(Date.now() - (27 - i) * 86400000); const k = today(d); return { k, v: S.days[k] || 0 }; });
   const vidOn = (() => { try { return localStorage.getItem('dcl_video') !== 'off'; } catch (e) { return true; } })(), dim = document.documentElement.dataset.dim || '0';
-  shell('#/me', `<div class="page-h"><div class="me-head">${acct ? `<button class="av-pick" type="button" title="Change avatar" style="border-radius:50%">${avatar(acct.name, acct.avatar, 'lg')}</button>` : lvRing(64)}<div><h1>${acct ? esc(acct.name) : 'My profile'}</h1><p class="sync">Level ${p.lv} · ${syncText()}</p></div></div>
+  shell('#/me', `<div class="page-h"><div class="me-head">${acct ? `<button class="av-pick" type="button" title="Change avatar">${meAv(64)}<span class="av-edit">${I.edit}</span></button>` : lvRing(64)}<div><h1>${acct ? esc(acct.name) : 'My profile'}</h1><p class="sync">Level ${p.lv} · ${syncText()}</p></div></div>
     <div class="acts"><a class="btn sm ghost" href="#/friends">${I.users} Friends${social.counts.requests ? ` <i class="tag-s acc">${social.counts.requests}</i>` : ''}</a><a class="btn sm ghost" href="#/classes">${I.school} Classes</a><a class="btn sm ghost" href="#/roadmap">${I.list} Roadmap</a><a class="btn sm ghost" href="#/review">${I.cards} Review</a></div></div>
   <div class="me-grid"><div class="list">
     <div class="panel me-stats">
@@ -607,7 +674,8 @@ async function me() {
       <div><b>×${S.counts.combo || 0}</b><small>best combo</small></div>
     </div>
     <div class="panel heat"><h3>${I.flame} Last 4 weeks</h3><div class="hm">${days.map((d) => `<i class="${d.v >= S.goal ? 'l3' : d.v >= S.goal / 2 ? 'l2' : d.v ? 'l1' : ''} ${d.k === today() ? 'td' : ''}" title="${d.k}: ${d.v} XP"></i>`).join('')}</div></div>
-    <div class="panel bwall"><h3>${I.medal} Badges <em>${Object.keys(S.badges).length}/${BADGES.length}</em></h3><div class="bw">${BADGES.map(([id, t, d, ic]) => `<div class="bw-i ${S.badges[id] ? 'on' : ''}"><span class="bdg ${S.badges[id] ? 'on' : ''}">${I[ic]}</span><b>${esc(t)}</b><small>${S.badges[id] ? 'Earned ' + esc(S.badges[id]) : esc(d)}</small></div>`).join('')}</div></div>
+    ${meCollection()}
+    ${badgesHTML()}
     <div class="row"><span class="grow"><b>Daily goal</b><small>XP needed to keep your streak</small></span><select class="input goal" style="width:auto;height:42px">${[10, 20, 30, 50].map((g) => `<option value="${g}" ${S.goal === g ? 'selected' : ''}>${g} XP</option>`).join('')}</select></div>
     <label class="row"><span class="grow"><b>Sound effects</b><small>Correct, wrong, combos, chests</small></span><span class="switch"><input type="checkbox" class="snd" ${S.settings.sound ? 'checked' : ''}><span></span></span></label>
     <div class="row"><span class="grow"><b>Voice speed</b><small>Model audio</small></span><select class="input rate" style="width:auto;height:42px">${[[0.8, 'Slow'], [0.95, 'Normal'], [1.1, 'Fast']].map(([v, l]) => `<option value="${v}" ${S.settings.rate === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
@@ -615,6 +683,8 @@ async function me() {
     ${voicesZh.length ? `<div class="row"><span class="grow"><b>Chinese voice</b></span><select class="input vZh" style="width:auto;max-width:55%;height:42px"><option value="">Automatic</option>${voicesZh.map((v) => `<option ${S.settings.voice.zh === v.name ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></div>` : `<div class="row"><span class="grow"><b>Chinese voice</b><small>No Chinese voice on this device. On Windows: Settings › Time & language › Speech, add Chinese (Simplified).</small></span></div>`}
     <div class="row"><span class="grow"><b>Microphone & speech</b><small class="micst">Test your mic before studying</small></span><button class="btn ghost mtest" type="button" style="min-height:42px">${I.mic} Test</button></div>
     <label class="row"><span class="grow"><b>Show pinyin</b><small>Romanisation under Chinese characters</small></span><span class="switch"><input type="checkbox" class="pyx" ${S.settings.pinyin ? 'checked' : ''}><span></span></span></label>
+    <label class="row"><span class="grow"><b>Light mode</b><small>Bright glass over the forest. Dark mode is easier at night</small></span><span class="switch"><input type="checkbox" class="thm" ${theme() === 'light' ? 'checked' : ''}><span></span></span></label>
+    <div class="row"><span class="grow"><b>Background</b><small>${S.bg ? `Wallpaper: ${esc(walls.wallOf(S.bg).name)}` : 'Forest'} · use any wallpaper you collected</small></span><button class="btn ghost bgpick" type="button" style="min-height:42px">${I.gallery} Choose</button></div>
     <label class="row"><span class="grow"><b>Moving background</b><small>The forest video. Turn off to save battery or data</small></span><span class="switch"><input type="checkbox" class="vid" ${vidOn ? 'checked' : ''}><span></span></span></label>
     <div class="row"><span class="grow"><b>Background brightness</b><small>Darker makes text easier to read</small></span><select class="input dim" style="width:auto;height:42px">${[['0', 'Bright'], ['1', 'Dim'], ['2', 'Dark']].map(([v, l]) => `<option value="${v}" ${dim === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
   </div>
@@ -633,21 +703,70 @@ async function me() {
   q('.mtest').addEventListener('click', micTest);
   q('.pyx').addEventListener('change', (e) => { S.settings.pinyin = e.target.checked; save(); });
   q('.vid').addEventListener('change', (e) => setVideo(e.target.checked));
+  q('.thm').addEventListener('change', (e) => setTheme(e.target.checked ? 'light' : 'dark'));
+  q('.bgpick').addEventListener('click', bgSheet);
+  app.querySelectorAll('.mc-grid').forEach((g) => walls.wireCards(g, (id) => { sfx('open'); walls.wallSheet(id); }));
   q('.dim').addEventListener('change', (e) => { const v = e.target.value; if (v === '0') delete document.documentElement.dataset.dim; else document.documentElement.dataset.dim = v; try { localStorage.setItem('dcl_dim', v === '0' ? '' : v); } catch (er) {} });
   const ap = q('.av-pick'); if (ap) ap.addEventListener('click', avatarSheet);
   q('.wipe').addEventListener('click', () => { if (confirm('Erase all progress on this device?' + (acct ? ' Your online account stays as it is.' : ''))) { logout(); reset(); location.hash = '#/'; render(); } });
   if (acct) {
     q('.syncnow').addEventListener('click', async () => { await push(); toast(sync.state === 'ok' ? 'Saved to your account' : 'Could not save. Check your connection.'); me(); });
-    q('.out').addEventListener('click', () => { if (confirm('Sign out? Your progress stays on this device.')) { logout(); me(); } });
+    q('.out').addEventListener('click', () => { if (confirm('Sign out? Your progress stays on this device.')) { logout(); hub.start(); me(); } });
   } else {
     q('.mk').addEventListener('click', () => authSheet('new'));
     q('.lg').addEventListener('click', () => authSheet('login'));
   }
 }
 function avatarSheet() {
-  sheet(`<h2>Pick an avatar</h2><p class="sub">Shown to your friends, classmates and in live quizzes.</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px">${['', ...AVATARS].map((a) => `<button class="chip" type="button" data-a="${esc(a)}" style="height:54px;justify-content:center;font-size:${a ? '1.6rem' : '.8rem'}" aria-pressed="${(acct.avatar || '') === a}">${a ? esc(a) : esc(initials(acct.name))}</button>`).join('')}</div>`, (el, close) => {
-    el.querySelectorAll('[data-a]').forEach((b) => b.addEventListener('click', async () => { sfx('tap'); close(); try { await setAvatar(b.dataset.a); toast('Avatar updated'); } catch (e) { toast(e.message); } me(); }));
+  sheet(`<h2>Change your avatar</h2><p class="sub">Shown to friends, classmates, duel opponents and in live quizzes.</p>
+    <div class="av-up"><span class="av-prev">${avatar(acct.name, acct.avatar, 'lg')}</span><div><button class="btn acc up-btn" type="button">${I.upload} Upload a picture</button><small class="muted">JPG, PNG or WebP. It is cropped to a square and shrunk to 128 px.</small></div><input type="file" accept="image/png,image/jpeg,image/webp" hidden></div>
+    <h3 class="gh">Or pick one</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px">${['', ...AVATARS].map((a) => `<button class="chip" type="button" data-a="${esc(a)}" style="height:54px;justify-content:center;font-size:${a ? '1.6rem' : '.8rem'}" aria-pressed="${(acct.avatar || '') === a}">${a ? esc(a) : esc(initials(acct.name))}</button>`).join('')}</div>`, (el, close) => {
+    const set = async (a) => { try { const j = await setAvatar(a); if (j && j.ok === false) throw new Error('That picture could not be used. Try a smaller one.'); sfx('ok'); toast('Avatar updated'); hub.loadFriends(); } catch (e) { toast(e.message); } close(); me(); };
+    el.querySelectorAll('[data-a]').forEach((b) => b.addEventListener('click', () => { sfx('tap'); set(b.dataset.a); }));
+    const inp = el.querySelector('input[type=file]');
+    el.querySelector('.up-btn').addEventListener('click', () => inp.click());
+    inp.addEventListener('change', async () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      if (f.size > 15 * 1024 * 1024) { toast('That file is too big (max 15 MB).'); return; }
+      try { const url = await squareImage(f, 128); el.querySelector('.av-prev').innerHTML = avatar(acct.name, url, 'lg'); set(url); } catch (e) { toast('Could not read that picture.'); }
+    });
   });
+}
+// cắt ảnh vuông ở giữa, thu nhỏ, nén JPEG (dưới 60 KB để lưu trên máy chủ)
+function squareImage(file, size) {
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(img.naturalWidth, img.naturalHeight), cv = document.createElement('canvas'); cv.width = cv.height = size;
+      const g = cv.getContext('2d'); g.imageSmoothingQuality = 'high';
+      g.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      let q = 0.86, out = cv.toDataURL('image/jpeg', q);
+      while (out.length > 58000 && q > 0.4) { q -= 0.1; out = cv.toDataURL('image/jpeg', q); }
+      res(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('bad image')); };
+    img.src = url;
+  });
+}
+// thành tích (huy hiệu) — dùng ở trang Me và tab Badges của Collection
+function badgesHTML() {
+  return `<div class="panel bwall"><h3>${I.medal} Achievements <em>${Object.keys(S.badges).length}/${BADGES.length}</em></h3><div class="bw">${BADGES.map(([id, t, d, ic]) => `<div class="bw-i ${S.badges[id] ? 'on' : ''}"><span class="bdg ${S.badges[id] ? 'on' : ''}">${I[ic]}</span><b>${esc(t)}</b><small>${S.badges[id] ? 'Earned ' + esc(S.badges[id]) : esc(d)}</small></div>`).join('')}</div></div>`;
+}
+function meCollection() {
+  if (!walls.CAT) return '';
+  const n = walls.ownedCount();
+  return `<div class="panel me-col"><h3>${I.gallery} Wallpaper collection <em>${n}/${walls.CAT.walls.length}</em></h3>
+    <div class="mc-grid">${walls.CAT.walls.map((w) => walls.card(w.id, { cls: 'tiny', hideName: true })).join('')}</div>
+    <div class="foot-row" style="margin-top:12px"><a class="btn ghost" href="#/collection">${I.gallery} Open collection</a><button class="btn ghost" type="button" onclick="location.hash='#/collection/badges'">${I.medal} Achievements</button></div></div>`;
+}
+function bgSheet() {
+  const mine = Object.keys(S.walls).map(Number);
+  sheet(`<h2>Page background</h2><p class="sub">Play any wallpaper you collected behind the lessons. ${mine.length ? '' : 'Open a unit chest to get your first one.'}</p>
+    <div class="wgrid sm bgs"><button class="wcard s-got forest ${S.bg ? '' : 'picked'}" type="button" data-w="0"><span class="wc-in"><span class="wc-media"><img src="media/forest-poster.jpg" alt=""></span><span class="wc-cap"><b>Forest</b><small>Default</small></span></span></button>${mine.map((w) => walls.card(w, { cls: S.bg === w ? 'picked' : '' })).join('')}</div>`, (el, close) => {
+    walls.wireCards(el.querySelector('.bgs'), (id) => { walls.setBg(id); sfx('ok'); close(); toast(id ? 'Background changed' : 'Back to the forest'); if (location.hash.startsWith('#/me')) me(); });
+  }, 'wide');
 }
 function micTest() {
   const lang = S.lang === 'zh' ? 'zh' : 'en', sample = lang === 'zh' ? '你好，我是新同事。' : 'Hello, nice to meet you.';
@@ -671,6 +790,7 @@ function authForm(mode) {
   <form class="authf" style="margin-top:14px" novalidate>
     <div class="field"><label for="an">Your name</label><input class="input" id="an" autocomplete="username" maxlength="24" placeholder="e.g. tuan.mitek" required /><small class="nchk" aria-live="polite"></small></div>
     <div class="field"><label for="ap">PIN (4–6 digits)</label><input class="input pin" id="ap" type="password" inputmode="numeric" autocomplete="${mode === 'new' ? 'new-password' : 'current-password'}" maxlength="6" placeholder="••••" required /></div>
+    <label class="remember"><input type="checkbox" class="rem" checked><span>Remember me on this device</span></label>
     <p class="err" role="alert"></p>
     <button class="btn acc wide sub" type="submit">${mode === 'new' ? 'Create account' : 'Sign in'}</button>
     <p class="muted" style="font-size:.84rem;margin-top:10px">${mode === 'new' ? 'Remember your name and PIN to sign in again. The PIN is only used for this learning site.' : 'Your saved progress will be loaded onto this device.'}</p>
@@ -697,7 +817,8 @@ function wireAuth(el, mode, done) {
     if (!validPin(p)) { err.textContent = 'PIN must be 4 to 6 digits.'; return; }
     if (mode === 'new' && taken) { err.textContent = 'This account name already exists. Choose another name or sign in.'; nIn.focus(); return; }
     sub.disabled = true; sub.textContent = 'Working…';
-    try { if (mode === 'new') await register(n, p); else await login(n, p); sfx('ok'); done(mode); }
+    const rem = el.querySelector('.rem') ? el.querySelector('.rem').checked : true;
+    try { if (mode === 'new') await register(n, p, rem); else await login(n, p, rem); sfx('ok'); hub.start(); walls.syncWalls().then(() => walls.checkVip()); done(mode); }
     catch (x) { err.textContent = x.message; sub.disabled = false; sub.textContent = mode === 'new' ? 'Create account' : 'Sign in'; sfx('bad'); }
   });
 }
@@ -748,7 +869,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=11').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=12').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */
@@ -769,6 +890,8 @@ async function render() {
     else if (r.startsWith('#/classes')) await social.classesPage(r.split('/').slice(2));
     else if (r.startsWith('#/class/')) await social.classPage(r.split('/')[2], r.split('/')[3]);
     else if (r.startsWith('#/friends')) await social.friendsPage(r.split('/').slice(2));
+    else if (r.startsWith('#/collection')) await walls.collectionPage(r.split('/').slice(2));
+    else if (r.startsWith('#/duel')) await duel.duelPage(r.split('/').slice(2));
     else if (r.startsWith('#/review')) await review();
     else if (r.startsWith('#/practice')) await practice();
     else if (r.startsWith('#/me')) await me();
@@ -780,10 +903,25 @@ async function render() {
     app.innerHTML = `<div class="welcome"><div class="w-card panel"><h1>Lessons could not load</h1><p class="lead">Check your internet connection and reload the page.</p><button class="btn acc" onclick="location.reload()">Reload</button></div></div>`;
   }
   window.scrollTo(0, 0);
+  hub.applyChrome();
 }
 lvBefore = playerLevel().lv;
-social.init({ shell, render, authSheet, course, findUnit, curLevel, startLesson: (c, uid, k) => start(c, uid, k), COURSES, AVAIL, LN, lessonName, asideHTML, lvRing });
+// đi tới một chủ đề / level (từ bộ sưu tập)
+async function goTo(lang, lv, uid) {
+  try { await course(lang); } catch (e) { return; }
+  document.getElementById('sheet-root').innerHTML = '';
+  S.lang = lang; if (lv) S.level[lang] = lv; save(); applySettings();
+  scrollToUnit = uid || null; try { sessionStorage.setItem('dcl_scrolled', (lv || '') + lang); } catch (e) {}
+  if (location.hash === '#/' || location.hash === '') render(); else location.hash = '#/';
+}
+const ctx = { shell, render, authSheet, course, findUnit, curLevel, startLesson: (c, uid, k) => start(c, uid, k), COURSES, AVAIL, LN, lessonName, asideHTML, lvRing, goTo, badgesHTML, applyBg: setBg };
+social.init(ctx); walls.init(ctx); hub.init(ctx); duel.init(ctx);
+const boot = walls.loadCat().catch(() => {});
 window.addEventListener('hashchange', render);
 onSync(() => { const el = document.querySelector('.sync'); if (el) el.textContent = `Level ${playerLevel().lv} · ${syncText()}`; });
 document.addEventListener('pointerdown', unlockAudio, { once: true });
-render();
+boot.then(() => {
+  render();
+  const sig = () => JSON.stringify(S.wclaims) + walls.ownedCount(), s0 = sig();
+  if (acct) walls.syncWalls().then(() => { walls.checkVip(); if (sig() !== s0 && (location.hash || '#/') === '#/' && !document.querySelector('.ovl, .player, .sheet')) home(); }); else setTimeout(() => walls.checkVip(), 800);
+});

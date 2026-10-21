@@ -1,0 +1,205 @@
+/* =========================================================
+   desktopchill learn — light mode ("misty morning")
+   Bright frosted glass over the same forest video.
+   ========================================================= */
+:root[data-theme="light"] {
+  --bg: #E9F0EC;
+  --glass: rgba(250, 253, 251, .66); --glass-2: rgba(250, 253, 251, .82); --glass-3: rgba(20, 44, 34, .05); --glass-4: rgba(20, 44, 34, .08);
+  --line: rgba(20, 44, 34, .11); --line-2: rgba(20, 44, 34, .19);
+  --ink: #12201A; --ink-2: #33443B; --muted: #5C6D64; --faint: #87958D;
+  --acc: #EE5844; --acc-2: #D4532F; --acc-grad: linear-gradient(120deg, #F45F4B, #FF9A57); --acc-shadow: rgba(238, 88, 68, .28);
+  --gold: #D9960A; --gold-d: #9A6A00; --fire: #E5701F; --gem: #0E9C89; --vio: #6F52D8;
+  --ok: #18924F; --ok-bg: rgba(24, 146, 79, .12); --bad: #D63A3A; --bad-bg: rgba(214, 58, 58, .1); --warn: #C88A00;
+  --sink: rgba(20, 44, 34, .06);
+  --shadow: 0 18px 50px rgba(30, 60, 45, .16); --shadow-sm: 0 8px 22px rgba(30, 60, 45, .11);
+  color-scheme: light;
+}
+:root[data-theme="light"] body { background: var(--bg); }
+:root[data-theme="light"] .scene { background-color: #DCE7E1; }
+:root[data-theme="light"] .veil { background: linear-gradient(180deg, rgba(238, 245, 241, .74) 0%, rgba(238, 245, 241, .56) 30%, rgba(238, 245, 241, .66) 70%, rgba(238, 245, 241, .86) 100%); }
+:root[data-theme="light"][data-dim="1"] .veil { background: rgba(238, 245, 241, .82); }
+:root[data-theme="light"][data-dim="2"] .veil { background: rgba(238, 245, 241, .92); }
+
+/* ---- generated overrides (learnbuild/theme/light.js) ---- */
+:where(:root[data-theme="light"]) .panel, :where(:root[data-theme="light"]) .card { box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.30); }
+:where(:root[data-theme="light"]) .btn:hover { background: rgba(20, 44, 34, 0.165); }
+:where(:root[data-theme="light"]) .btn.ghost { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .chip { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .chip:hover { background: rgba(20, 44, 34, 0.132); }
+:where(:root[data-theme="light"]) .seg { background: rgba(255, 255, 255, 0.60); }
+:where(:root[data-theme="light"]) .lvr .bg { stroke: rgba(20, 44, 34, 0.132); }
+:where(:root[data-theme="light"]) .lvr .av-in { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .av { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .lv-ring { background: conic-gradient(var(--acc-2) calc(var(--pc) * 1%), rgba(20, 44, 34, 0.132) 0); }
+:where(:root[data-theme="light"]) .lv-ring::before { background: #EEF4F0; }
+:where(:root[data-theme="light"]) .lv-list button[aria-selected="true"] .lv-ring { background: conic-gradient(#fff calc(var(--pc) * 1%), rgba(20, 44, 34, 0.330) 0); }
+:where(:root[data-theme="light"]) .bar { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .qi { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .qbar { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .dchest { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .bdg { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .ml-ic { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .hello h1 { text-shadow: 0 2px 24px rgba(255, 255, 255, 0.70); }
+:where(:root[data-theme="light"]) .hello p { text-shadow: 0 1px 10px rgba(255, 255, 255, 0.70); }
+:where(:root[data-theme="light"]) .ms-steps i { background: rgba(20, 44, 34, 0.154); }
+:where(:root[data-theme="light"]) .ms-steps i.cur { background: rgba(20, 44, 34, 0.500); }
+:where(:root[data-theme="light"]) .level-intro h2 { text-shadow: 0 2px 20px rgba(255, 255, 255, 0.70); }
+:where(:root[data-theme="light"]) .level-intro p { text-shadow: 0 1px 10px rgba(255, 255, 255, 0.80); }
+:where(:root[data-theme="light"]) .uh-n { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .uh-bar { background: rgba(20, 44, 34, 0.132); }
+:where(:root[data-theme="light"]) .road .edge { stroke: rgba(20, 44, 34, 0.125); }
+:where(:root[data-theme="light"]) .road .bed { stroke: rgba(20, 44, 34, 0.176); }
+:where(:root[data-theme="light"]) .node .face { background: rgba(250, 253, 251, 0.72); box-shadow: 0 10px 24px rgba(30, 50, 40, 0.158); }
+:where(:root[data-theme="light"]) .srow i { color: rgba(20, 44, 34, 0.264); }
+:where(:root[data-theme="light"]) .tip { box-shadow: 0 8px 20px rgba(30, 50, 40, 0.158); }
+:where(:root[data-theme="light"]) .chest { filter: drop-shadow(0 8px 14px rgba(30, 50, 40, 0.180)); }
+:where(:root[data-theme="light"]) .cp:not(.ready):not(.opened) .chest { filter: drop-shadow(0 8px 14px rgba(30, 50, 40, 0.180)) saturate(.3) brightness(.75); }
+:where(:root[data-theme="light"]) .pop { background: rgba(250, 253, 251, 0.90); }
+:where(:root[data-theme="light"]) .pop::before { background: rgba(250, 253, 251, 0.95); }
+:where(:root[data-theme="light"]) .boss-ic { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .rm-weeks li { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .rm-badge { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .rm-goals { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .rm-u { background: rgba(20, 44, 34, 0.039); }
+:where(:root[data-theme="light"]) .rm-u:hover { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .rm-n { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .sheet-bg { background: rgba(225, 235, 229, 0.62); }
+:where(:root[data-theme="light"]) .sheet { background: rgba(250, 253, 251, 0.92); }
+:where(:root[data-theme="light"]) .gw { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .gw:hover { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .gex li { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .player { background: rgba(250, 253, 251, 0.78); }
+:where(:root[data-theme="light"]) .prog { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .p-foot { background: rgba(250, 253, 251, 0.72); }
+:where(:root[data-theme="light"]) .p-foot.ok { background: color-mix(in srgb, var(--ok) 14%, rgba(250, 253, 251, 0.85)); }
+:where(:root[data-theme="light"]) .p-foot.bad { background: color-mix(in srgb, var(--bad) 14%, rgba(250, 253, 251, 0.85)); }
+:where(:root[data-theme="light"]) .prompt { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .say.slow { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .opt { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .opt:hover { background: rgba(20, 44, 34, 0.099); }
+:where(:root[data-theme="light"]) .tile { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .tile:hover { background: rgba(20, 44, 34, 0.132); }
+:where(:root[data-theme="light"]) .type-in { background: rgba(255, 255, 255, 0.53); }
+:where(:root[data-theme="light"]) .cp-row code { background: rgba(255, 255, 255, 0.72); }
+:where(:root[data-theme="light"]) .score i { background: rgba(20, 44, 34, 0.132); }
+:where(:root[data-theme="light"]) .learn-card { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .mini-say { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .bubble { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .bubble.me { background: color-mix(in srgb, var(--acc) 18%, rgba(20, 44, 34, 0.044)); }
+:where(:root[data-theme="light"]) .rp-card { background: color-mix(in srgb, var(--acc) 9%, rgba(20, 44, 34, 0.044)); }
+:where(:root[data-theme="light"]) .reading { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .vi-box { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .hz-box { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .hz-box svg.grid line { stroke: rgba(20, 44, 34, 0.154); }
+:where(:root[data-theme="light"]) .wt-prompt, :where(:root[data-theme="light"]) .cue-card { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .wt-data { background: rgba(255, 255, 255, 0.60); }
+:where(:root[data-theme="light"]) .wt-plan { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .wt-bar span { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .wt-c { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .wt-model { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .cue-clock .bg { stroke: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .cue-trans { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .cue-stats span { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .res-stars .st { color: rgba(20, 44, 34, 0.168); }
+:where(:root[data-theme="light"]) .result .stat { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .float-tx { text-shadow: 0 2px 10px rgba(255, 255, 255, 0.70); }
+:where(:root[data-theme="light"]) .ovl { background: rgba(225, 235, 229, 0.66); }
+:where(:root[data-theme="light"]) .ovl-in { background: rgba(250, 253, 251, 0.92); }
+:where(:root[data-theme="light"]) .badge-toast { background: rgba(250, 253, 251, 0.92); }
+:where(:root[data-theme="light"]) .sp-time .bg { stroke: rgba(20, 44, 34, 0.132); }
+:where(:root[data-theme="light"]) .sp-q { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .ptile .ic { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .panel .row, :where(:root[data-theme="light"]) .sheet .row { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .me-stats > div { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .hm i { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .bw-i { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .input { background: rgba(255, 255, 255, 0.60); }
+:where(:root[data-theme="light"]) select.input { background: rgba(255, 255, 255, 0.72); }
+:where(:root[data-theme="light"]) .switch span { background: rgba(20, 44, 34, 0.154); }
+:where(:root[data-theme="light"]) .switch span::after { box-shadow: 0 2px 6px rgba(30, 50, 40, 0.135); }
+:where(:root[data-theme="light"]) .empty .e-ic { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .tabs2 { background: rgba(255, 255, 255, 0.60); }
+:where(:root[data-theme="light"]) .tag-s { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .welcome h1 { text-shadow: 0 2px 24px rgba(255, 255, 255, 0.77); }
+:where(:root[data-theme="light"]) .welcome .lead { text-shadow: 0 1px 12px rgba(255, 255, 255, 0.80); }
+:where(:root[data-theme="light"]) .pick button { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .pick button:hover { background: rgba(20, 44, 34, 0.099); }
+:where(:root[data-theme="light"]) .lvp:hover { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .lvp .lvn { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .fr-code { background: rgba(255, 255, 255, 0.60); }
+:where(:root[data-theme="light"]) .lb-row { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .post { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .post-a button:hover { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .tbl td { border-bottom: 1px solid rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .tbl tbody tr:hover { background: rgba(20, 44, 34, 0.033); }
+:where(:root[data-theme="light"]) .pbar { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .task { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .task .t-ic { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .qz-src button { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .qz-src .ic { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .qe-q { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .qz-stage { background: rgba(225, 235, 229, 0.60); }
+:where(:root[data-theme="light"]) .big-pin { text-shadow: 0 4px 40px rgba(255, 255, 255, 0.80); }
+:where(:root[data-theme="light"]) .qz-q h2 { background: rgba(20, 44, 34, 0.500); }
+:where(:root[data-theme="light"]) .qz-timer .bg { stroke: rgba(20, 44, 34, 0.165); }
+:where(:root[data-theme="light"]) .pl-res .pts { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .pl-bar { background: rgba(255, 255, 255, 0.80); }
+:where(:root[data-theme="light"]) .pl-bar .sc { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .rep-q { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .ch2 { filter: drop-shadow(0 8px 12px rgba(30, 50, 40, 0.158)); }
+:where(:root[data-theme="light"]) .cp:not(.ready):not(.opened) .ch2 { filter: drop-shadow(0 8px 12px rgba(30, 50, 40, 0.158)) saturate(.35) brightness(.75); }
+:where(:root[data-theme="light"]) .rv-ovl .ovl-in { background: radial-gradient(ellipse at 50% 0%, rgba(255, 201, 74, .14), transparent 60%), rgba(250, 253, 251, 0.94); }
+:where(:root[data-theme="light"]) .dr-n { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .cm-th { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .cm-th.empty { background: rgba(20, 44, 34, 0.033); }
+:where(:root[data-theme="light"]) .av.img { background: #EEF4F0; }
+:where(:root[data-theme="light"]) .av-edit { box-shadow: 0 2px 6px rgba(30, 50, 40, 0.180); }
+:where(:root[data-theme="light"]) .av-up { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .vip-ovl .ovl-in { background: radial-gradient(ellipse at 50% 20%, rgba(255, 201, 74, .18), transparent 60%), rgba(250, 253, 251, 0.95); }
+:where(:root[data-theme="light"]) .vip-ovl:has(.v7) .ovl-in, :where(:root[data-theme="light"]) .vip-ovl:has(.v8) .ovl-in { background: radial-gradient(ellipse at 50% 20%, rgba(180, 107, 255, .25), transparent 60%), rgba(250, 253, 251, 0.95); }
+:where(:root[data-theme="light"]) .np { background: rgba(250, 253, 251, 0.96); }
+:where(:root[data-theme="light"]) .rl-i.me { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .sh-quota { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .qdots i { background: rgba(20, 44, 34, 0.154); }
+:where(:root[data-theme="light"]) .sh-f { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .du-o { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .du-used { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .du-stats span { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .du-stage { background: rgba(225, 235, 229, 0.72); }
+:where(:root[data-theme="light"]) .du-prog i { background: rgba(20, 44, 34, 0.132); }
+:where(:root[data-theme="light"]) .du-time { background: rgba(20, 44, 34, 0.110); }
+:where(:root[data-theme="light"]) .du-banner { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .du-banner.win { background: radial-gradient(ellipse at 50% 0, rgba(255, 201, 74, .3), transparent 70%), rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .du-banner.lose { background: radial-gradient(ellipse at 50% 0, rgba(120, 140, 160, .22), transparent 70%), rgba(20, 44, 34, 0.033); }
+:where(:root[data-theme="light"]) .du-rev li { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .tp { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .fb .mean { background: rgba(20, 44, 34, 0.066); }
+:where(:root[data-theme="light"]) .mean-w span { background: rgba(20, 44, 34, 0.077); }
+
+/* ---- hand-tuned ---- */
+:root[data-theme="light"] .chip[aria-pressed="true"] { color: var(--acc-2); }
+:root[data-theme="light"] .tabbar a[aria-current="page"] { color: var(--acc-2); }
+:root[data-theme="light"] .nav a[aria-current="page"] { color: var(--acc-2); }
+:root[data-theme="light"] .node .face { color: var(--ink-2); }
+:root[data-theme="light"] .tip { box-shadow: 0 8px 20px rgba(30, 60, 45, .2); }
+:root[data-theme="light"] .lv-list button[aria-selected="true"] .lv-ring::before { background: #F06450; }
+:root[data-theme="light"] .np-k, :root[data-theme="light"] .rl-av .dot { box-shadow: 0 0 0 2px #fff; }
+:root[data-theme="light"] .sh-block { color: #7A5600; }
+:root[data-theme="light"] .qz-fun { color: #6B4A00; background: rgba(255, 201, 74, .2); }
+:root[data-theme="light"] .rv-hint.miss { color: #A0461C; }
+:root[data-theme="light"] .rv-ovl .ovl-in { background: radial-gradient(ellipse at 50% 0%, rgba(255, 201, 74, .22), transparent 60%), rgba(250, 253, 251, .95); }
+:root[data-theme="light"] .vip-ovl .ovl-in { background: radial-gradient(ellipse at 50% 20%, rgba(255, 201, 74, .25), transparent 60%), rgba(250, 253, 251, .96); }
+:root[data-theme="light"] .vipup h2 { background-image: linear-gradient(120deg, #E0A100, #F06C1E); }
+:root[data-theme="light"] .du-vs { background: radial-gradient(ellipse at center, rgba(255, 106, 88, .25), rgba(232, 240, 236, .94) 65%); }
+:root[data-theme="light"] .du-stage { background: rgba(236, 243, 239, .86); }
+:root[data-theme="light"] .qz-stage { background: rgba(236, 243, 239, .72); }
+:root[data-theme="light"] .player { background: rgba(240, 246, 242, .88); }
+:root[data-theme="light"] .hello h1, :root[data-theme="light"] .level-intro h2, :root[data-theme="light"] .welcome h1 { color: var(--ink); }
+:root[data-theme="light"] .badge-toast { background: rgba(250, 253, 251, .95); }
+:root[data-theme="light"] .pop, :root[data-theme="light"] .pop::before { background: rgba(250, 253, 251, .96); }
+:root[data-theme="light"] .toast { background: #1A2A22; color: #fff; }
+:root[data-theme="light"] .ws-c { color: #0D1A14; }
+:root[data-theme="light"] .tag-s.d0 { color: #12803F; } :root[data-theme="light"] .tag-s.d1 { color: #0B7E6F; } :root[data-theme="light"] .tag-s.d2 { color: #9A6A00; } :root[data-theme="light"] .tag-s.d3 { color: #B4530F; } :root[data-theme="light"] .tag-s.d4 { color: #B42828; }
+:root[data-theme="light"] .wc-cap, :root[data-theme="light"] .wc-lock { color: #fff; }
+:root[data-theme="light"] .wc-cap small { color: rgba(255, 255, 255, .85); }
+:root[data-theme="light"] .c3d .f { border-color: var(--trim2); }

@@ -1,5 +1,5 @@
 // Tiện ích giao diện dùng chung (app.js và social.js)
-import { I } from './icons.js?v=11';
+import { I } from './icons.js?v=12';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const shuffleArr = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -53,7 +53,14 @@ export function overlay(html, onClose, cls = '') {
 }
 export const initials = (n) => (n || '?').split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
 // ảnh đại diện: emoji nếu có, không thì chữ cái đầu
-export const avatar = (name, emo, cls = '') => emo ? `<span class="av emo ${cls}">${esc(emo)}</span>` : `<span class="av ${cls}">${esc(initials(name))}</span>`;
+export const isImg = (a) => typeof a === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(a);
+export const avatar = (name, emo, cls = '') => isImg(emo) ? `<span class="av img ${cls}"><img src="${emo}" alt="" loading="lazy" decoding="async"></span>` : emo ? `<span class="av emo ${cls}">${esc(emo)}</span>` : `<span class="av ${cls}">${esc(initials(name))}</span>`;
+// ảnh đại diện có vòng VIP (1–10). Không có VIP thì trả về ảnh thường.
+export const vipAv = (name, emo, vip = 0, cls = '') => {
+  const v = Math.max(0, Math.min(10, vip | 0));
+  if (!v) return avatar(name, emo, cls);
+  return `<span class="vav v${v} ${cls}" title="VIP ${v}"><i class="vr" aria-hidden="true"></i>${v >= 7 ? '<i class="vr2" aria-hidden="true"></i>' : ''}${v >= 9 ? '<i class="vsp" aria-hidden="true"><b></b><b></b><b></b></i>' : ''}${avatar(name, emo, cls)}<b class="vb">V${v}</b></span>`;
+};
 export function ago(t) {
   if (!t) return 'never';
   const s = (Date.now() - new Date(t).getTime()) / 1000;

@@ -1,12 +1,12 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=11';
-import { mascot } from './mascot.js?v=11';
-import { sfx } from './sound.js?v=11';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong } from './speech.js?v=11';
+import { I } from './icons.js?v=12';
+import { mascot } from './mascot.js?v=12';
+import { sfx } from './sound.js?v=12';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong } from './speech.js?v=12';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
-import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=11';
+import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=12';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -202,13 +202,19 @@ function tilesUI(el, tokens, api, { zh, target }) {
     return norm(said, api.lang) === norm(target, api.lang);
   };
 }
+// sau khi ghép câu: hiện nghĩa tiếng Việt của cả câu + các từ vựng có trong câu
+function meaningOf(api, s) {
+  const zh = api.lang === 'zh', t = zh ? strip(s.t) : s.t, low = t.toLowerCase();
+  const ws = ((api.unit && api.unit.words) || []).filter((w) => { const k = zh ? strip(w.w) : w.w.toLowerCase(); return k && (zh ? t.includes(k) : new RegExp(`(^|[^a-z])${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`).test(low)); }).slice(0, 6);
+  return `<div class="mean-s ${zh ? 'zh' : ''}">${esc(t)}</div>${zh && s.py ? `<div class="py">${esc(Array.isArray(s.py) ? s.py.join(' ') : s.py)}</div>` : ''}<div class="mean-vi">${esc(s.vi || '')}</div>${ws.length ? `<div class="mean-w">${ws.map((w) => `<span><b class="${zh ? 'zh' : ''}">${esc(w.w)}</b>${zh && w.py ? `<i>${esc(w.py)}</i>` : ''}<em>${esc(w.vi)}</em></span>`).join('')}</div>` : ''}`;
+}
 R.order = (el, it, api) => {
   const { s } = it, zh = api.lang === 'zh';
   el.innerHTML = `<p class="q">Build the sentence</p><div class="prompt"><button class="mini-say" type="button" aria-label="Listen">${I.speaker}</button><div>${esc(s.vi)}</div></div>`;
   el.querySelector('.mini-say').addEventListener('click', (e) => speak(textOf(api.lang, s), api.lang, { btn: e.currentTarget }));
   const target = s.tk.join(zh ? '' : ' ');
   const done = tilesUI(el, s.tk, api, { zh, target });
-  return { check: () => { const ok = done(); if (!audioOff()) speak(textOf(api.lang, s), api.lang); return { ok, answer: zh ? strip(s.t) : s.t }; } };
+  return { check: () => { const ok = done(); if (!audioOff()) speak(textOf(api.lang, s), api.lang); return { ok, answer: zh ? strip(s.t) : s.t, mean: meaningOf(api, s) }; } };
 };
 R.listenOrder = (el, it, api) => {
   if (audioOff()) return R.order(el, it, api);
@@ -216,7 +222,7 @@ R.listenOrder = (el, it, api) => {
   el.innerHTML = `<p class="q">Listen and rebuild the sentence</p><div class="listen-big">${sayBtn()}${sayBtn('slow')}</div>`;
   wireSay(el, textOf(api.lang, s), api.lang); setTimeout(() => speak(textOf(api.lang, s), api.lang, { btn: el.querySelector('.say') }), 250);
   const done = tilesUI(el, s.tk, api, { zh: true, target: s.tk.join('') });
-  return { check: () => ({ ok: done(), answer: `${strip(s.t)} — ${s.vi}` }) };
+  return { check: () => ({ ok: done(), answer: strip(s.t), mean: meaningOf(api, s) }) };
 };
 R.listenLine = (el, it, api) => {
   if (audioOff()) return R.order(el, { s: it.s }, api);
@@ -562,7 +568,7 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
   const root = h(`<div class="player" data-lang="${lang}" role="dialog" aria-label="Lesson">
     <div class="p-top"><button class="icon-btn quit" type="button" aria-label="Quit lesson">${I.x}</button><div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i style="width:0%"></i></div><div class="combo" aria-live="polite">${I.flame}<b>0</b></div></div>
     <div class="p-stage"><div class="p-inner"></div></div>
-    <div class="p-foot"><div class="in"><div class="fb"><span class="mark"></span><div><b></b><p></p></div></div><div class="foot-row"><button class="btn ghost skipb" type="button" hidden>Skip</button><button class="btn acc check" type="button" disabled>Check</button></div></div></div>
+    <div class="p-foot"><div class="in"><div class="fb"><span class="mark"></span><div><b></b><p></p><div class="mean"></div></div></div><div class="foot-row"><button class="btn ghost skipb" type="button" hidden>Skip</button><button class="btn acc check" type="button" disabled>Check</button></div></div></div>
   </div>`);
   document.body.appendChild(root); document.body.style.overflow = 'hidden'; document.body.classList.add('playing');
   let innerEl = $('.p-inner', root); const foot = $('.p-foot', root), btn = $('.check', root), skipb = $('.skipb', root), bar = $('.prog i', root);
@@ -576,7 +582,7 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     document.querySelectorAll('.gloss').forEach((g) => g.remove());
     if (idx >= queue.length) return finish();
     const it = queue[idx]; state = 'answer';
-    foot.classList.remove('ok', 'bad');
+    foot.classList.remove('ok', 'bad'); $('.fb .mean', root).innerHTML = '';
     const stage = $('.p-stage', root); stage.scrollTop = 0;
     const fresh = h('<div class="p-inner"></div>'); innerEl.replaceWith(fresh); innerEl = fresh;
     api = { unit, lang, ready: (v) => { if (state === 'answer') btn.disabled = !v; }, autoCheck: () => setTimeout(() => { if (state === 'answer') doCheck(); }, 450), autoOk: () => setTimeout(() => { if (state === 'answer') doCheck(); }, 380), skip: (msg) => { toastMsg(msg); queue.splice(idx, 1); total0Adj(); show(); }, keys: null, onLeave: null };
@@ -602,6 +608,7 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
       $('.fb p', root).textContent = (r.answer ? 'Answer: ' + r.answer : '') + (r.note ? '  ' + r.note : '');
       const n = (seen.get(it) || 0); if (n < 1 && it.type !== 'match') { seen.set(it, n + 1); queue.push(it); requeued++; }
     }
+    $('.fb .mean', root).innerHTML = r.mean || '';
     setProg();
   }
   let endResult = null;

@@ -1,11 +1,12 @@
 // Tài khoản đơn giản: tên + mã PIN. Tiến trình lưu lên Supabase qua các hàm RPC.
 // Sau khi đăng nhập, máy chủ cấp một "token phiên" để dùng cho bạn bè, lớp học và quiz (không gửi PIN mỗi lần).
-import { S, onSave, replace } from './store.js?v=11';
+import { S, onSave, replace } from './store.js?v=12';
 const URL = 'https://phcmbgaozkaibqsttonc.supabase.co/rest/v1/rpc/';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoY21iZ2FvemthaWJxc3R0b25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODk3NTgsImV4cCI6MjEwNDk2NTc1OH0.Hvs0Gxebog5gcKILnSdT3g6nz6-GI0CEepmMJM0gCxo';
 const AKEY = 'dcl_account';
 export let acct = null; // { name, pin, token, uid, code, avatar }
-try { acct = JSON.parse(localStorage.getItem(AKEY) || 'null'); } catch (e) {}
+// "Remember me": bật thì lưu trong localStorage (mở lại web là vào luôn), tắt thì chỉ giữ tới khi đóng trình duyệt
+try { acct = JSON.parse(localStorage.getItem(AKEY) || sessionStorage.getItem(AKEY) || 'null'); } catch (e) {}
 export const sync = { state: acct ? 'idle' : 'off', at: 0 };
 const listeners = new Set();
 export const onSync = (f) => listeners.add(f);
@@ -25,7 +26,12 @@ const clean = (n) => (n || '').trim().replace(/\s+/g, ' ');
 export function validName(n) { n = clean(n); return n.length >= 3 && n.length <= 24 && /^[\p{L}\p{N} ._-]+$/u.test(n); }
 export const validPin = (p) => /^\d{4,6}$/.test(p || '');
 
-function store() { try { if (acct) localStorage.setItem(AKEY, JSON.stringify(acct)); else localStorage.removeItem(AKEY); } catch (e) {} }
+function store() {
+  try {
+    localStorage.removeItem(AKEY); sessionStorage.removeItem(AKEY);
+    if (acct) (acct.remember === false ? sessionStorage : localStorage).setItem(AKEY, JSON.stringify(acct));
+  } catch (e) {}
+}
 function setAcct(a) { acct = a; store(); sync.state = a ? 'idle' : 'off'; emit(); }
 
 export async function nameAvailable(name) {
@@ -53,21 +59,21 @@ export async function call(fn, body = {}) {
   catch (e) { if (!e.auth) throw e; acct.token = null; const t2 = await auth(); return rpc(fn, { p_token: t2, ...body }); }
 }
 
-export async function register(name, pin) {
+export async function register(name, pin, remember = true) {
   name = clean(name);
   const j = await rpc('learn_register', { p_name: name, p_pin: pin, p_data: S });
   if (!j || !j.ok) throw new Error(j && j.error === 'taken' ? `“${name}” is already taken. Try another name, or sign in if it’s yours.` : (j && j.error) || 'Could not create the account');
-  setAcct({ name, pin }); sync.at = Date.now(); sync.state = 'ok'; emit();
+  setAcct({ name, pin, remember }); sync.at = Date.now(); sync.state = 'ok'; emit();
   try { await auth(); } catch (e) {}
 }
-export async function login(name, pin) {
+export async function login(name, pin, remember = true) {
   name = clean(name);
   const j = await rpc('learn_login', { p_name: name, p_pin: pin });
   if (!j || !j.ok) {
     const m = { nouser: 'No account with that name. Check the spelling or create one.', badpin: 'Wrong PIN', locked: 'Too many attempts. Try again in 10 minutes.' };
     throw new Error(m[j && j.error] || 'Could not sign in');
   }
-  setAcct({ name: j.name || name, pin });
+  setAcct({ name: j.name || name, pin, remember });
   // lấy bản mới hơn giữa máy này và máy chủ
   if (j.data && (!S.updated || (j.data.updated || 0) >= S.updated || !S.onboarded)) replace(j.data);
   else await push();
@@ -75,7 +81,13 @@ export async function login(name, pin) {
   try { await auth(); } catch (e) {}
 }
 export function logout() { if (acct && acct.token) rpc('learn_logout', { p_token: acct.token }).catch(() => {}); setAcct(null); }
-export function setAvatar(a) { if (!acct) return; acct.avatar = a; store(); emit(); return call('learn_set_avatar', { p_avatar: a }); }
+export async function setAvatar(a) {
+  if (!acct) return;
+  const old = acct.avatar; acct.avatar = a; store(); emit();
+  const j = await call('learn_set_avatar', { p_avatar: a });
+  if (j && j.ok === false) { acct.avatar = old; store(); emit(); }
+  return j;
+}
 
 let busy = false, again = false;
 export async function push() {
