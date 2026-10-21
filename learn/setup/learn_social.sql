@@ -823,7 +823,7 @@ begin
       'host', (select name from learn_users where id = g.host_user), 'room', (select name from learn_rooms where id = g.room_id),
       'players', (select count(*) from learn_quiz_players p where p.game_id = g.id and not p.kicked),
       'guests', (select count(*) from learn_quiz_players p where p.game_id = g.id and p.user_id is null),
-      'accuracy', (select round(100.0 * avg(case when a.correct then 1 else 0 end)) from learn_quiz_answers a where a.game_id = g.id),
+      'accuracy', (select round(100.0 * count(*) filter (where a.correct) / nullif(jsonb_array_length(g.questions) * (select count(*) from learn_quiz_players p where p.game_id = g.id and not p.kicked), 0)) from learn_quiz_answers a where a.game_id = g.id),
       'winner', (select nick || ' (' || score || ')' from learn_quiz_players p where p.game_id = g.id and not p.kicked order by score desc limit 1)) order by g.created_at desc)
     from (select * from learn_quiz_games order by created_at desc limit 300) g), '[]'::jsonb);
 end $$;

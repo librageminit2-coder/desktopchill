@@ -62,7 +62,7 @@ main{padding:104px 0 90px}
 .card.pad{padding:18px}
 .card h3{font-size:.98rem;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .card h3 em{margin-left:auto;font-style:normal;font-size:.78rem;font-weight:600;color:var(--text-faint)}
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
 .stat{padding:16px 16px 14px}
 .stat .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:10px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
 .stat .ico svg{width:18px;height:18px}
@@ -299,7 +299,7 @@ tbody tr:hover{background:rgba(255,255,255,.035)}
     var d; try{d=await rpc('learn_admin_games')}catch(e){return err(e)}
     var st={lobby:'<span class="pill warn">Phòng chờ</span>',question:'<span class="pill acc">Đang chơi</span>',reveal:'<span class="pill acc">Đang chơi</span>',board:'<span class="pill acc">Đang chơi</span>',ended:'<span class="pill">Đã xong</span>'};
     var pl=(d||[]).reduce(function(a,g){return a+g.players},0);
-    document.getElementById('qv').innerHTML='<div class="stat-grid">'+stat('accent',I.quiz,'Game',fmt((d||[]).length),'')+stat('',I.users,'Lượt người chơi',fmt(pl),fmt((d||[]).reduce(function(a,g){return a+g.guests},0))+' là khách')+'</div><div class="card"><div class="table-wrap"><table><thead><tr><th>Quiz</th><th>Chủ phòng</th><th>Lớp</th><th>Trạng thái</th><th class="num">Câu</th><th class="num">Người chơi</th><th class="num">Đúng TB</th><th>Thắng</th><th>Lúc</th></tr></thead><tbody>'+
+    document.getElementById('qv').innerHTML='<div class="stat-grid">'+stat('accent',I.quiz,'Game',fmt((d||[]).length),'')+stat('',I.users,'Lượt người chơi',fmt(pl),fmt((d||[]).reduce(function(a,g){return a+g.guests},0))+' là khách')+'</div><div class="card"><div class="table-wrap"><table><thead><tr><th>Quiz</th><th>Chủ phòng</th><th>Lớp</th><th>Trạng thái</th><th class="num">Câu</th><th class="num">Người chơi</th><th class="num" title="Số câu đúng / (số người chơi × số câu); câu bỏ trống tính là sai">Đúng TB</th><th>Thắng</th><th>Lúc</th></tr></thead><tbody>'+
     ((d||[]).length?d.map(function(g){return '<tr><td><b>'+esc(g.title)+'</b></td><td>'+esc(g.host||'—')+'</td><td>'+esc(g.room||'')+'</td><td>'+(st[g.state]||g.state)+'</td><td class="num">'+g.questions+'</td><td class="num">'+g.players+(g.guests?' <span class="faint">('+g.guests+' khách)</span>':'')+'</td><td class="num">'+(g.accuracy==null?'–':g.accuracy+'%')+'</td><td>'+esc(g.winner||'')+'</td><td>'+dt(g.created_at)+'</td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Chưa có game nào.</td></tr>')+'</tbody></table></div></div>';
   }
   function err(e){var m=e&&e.message||String(e);root.innerHTML+='';var box=root.querySelector('#tv,#lv,#cv,#qv');var t=/forbidden|permission/i.test(m)?'Tài khoản đang đăng nhập không có quyền xem dữ liệu này.':/function .* does not exist|Could not find the function/i.test(m)?'Máy chủ chưa có các hàm thống kê. Cần chạy file learn/setup/learn_social.sql trên Supabase.':m;if(box)box.innerHTML='<div class="card empty">'+esc(t)+'</div>'}
