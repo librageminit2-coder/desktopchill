@@ -1,19 +1,19 @@
-import { I, LOGO } from './icons.js?v=10';
-import { sound, sfx, unlockAudio } from './sound.js?v=10';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic } from './speech.js?v=10';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=10';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=10';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, AVATARS } from './ui.js?v=10';
-import * as social from './social.js?v=10';
-import { setVideo } from './scene.js?v=10';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=10';
-import { mascot } from './mascot.js?v=10';
+import { I, LOGO } from './icons.js?v=11';
+import { sound, sfx, unlockAudio } from './sound.js?v=11';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic } from './speech.js?v=11';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=11';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=11';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, AVATARS } from './ui.js?v=11';
+import * as social from './social.js?v=11';
+import { setVideo } from './scene.js?v=11';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=11';
+import { mascot } from './mascot.js?v=11';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
 const COURSE = {}, WORDS = {};
 let justBuilt = null;
-const DATA_V = 7;
+const DATA_V = 8;
 
 /* ---------- các khoá học ---------- */
 const COURSES = {
@@ -345,7 +345,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=10').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=11').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= 0.8 && !S.boss[S.lang + '|' + L.id]) { S.boss[S.lang + '|' + L.id] = today(); addXP(50); save(true); sfx('levelup'); overlay(`<div class="rw boss-win"><span class="boss-ic big">${I.crown}</span><h2>${esc(L.name)} boss defeated!</h2><p class="rw-x">+50 XP</p><p class="muted">You scored ${Math.round(r.acc * 100)}% on the final test.</p><button class="btn acc ovl-ok" type="button">Claim the crown</button></div>`, () => { checkLevel(before); checkBadges(); render(); }, 'reward'); return; }
     if (r && r.done && r.acc < 0.8) toast(`You scored ${Math.round(r.acc * 100)}%. You need 80% to win. Review and try again.`);
     checkLevel(before); checkBadges(); render();
@@ -369,7 +369,7 @@ function moodLine() {
   const tips = ['Speaking out loud sticks better than reading silently.', '10 minutes a day beats 2 hours on the weekend.', 'Score 95% or more for 3 stars on a lesson.', 'Review cards on time to move words into long-term memory.'];
   return tips[new Date().getDate() % tips.length];
 }
-const NEW_LV = new Set(['zh|hsk1', 'zh|hsk2', 'zh|hsk3']);
+const NEW_LV = new Set(['zh|hsk1', 'zh|hsk2', 'zh|hsk3', 'ielts|b5', 'ielts|b6', 'ielts|b7', 'ielts|b8']);
 function levelList(c, L) {
   const lang = S.lang, all = c.levels.reduce((a, x) => a + x.units.length, 0), doneU = c.levels.reduce((a, x) => a + x.units.filter((u) => unitProgress(u.id) === LN).length, 0);
   return `<div class="lc-label">LEVELS</div>
@@ -748,7 +748,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=10').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=11').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */

@@ -1,12 +1,12 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=10';
-import { mascot } from './mascot.js?v=10';
-import { sfx } from './sound.js?v=10';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong } from './speech.js?v=10';
+import { I } from './icons.js?v=11';
+import { mascot } from './mascot.js?v=11';
+import { sfx } from './sound.js?v=11';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong } from './speech.js?v=11';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
-import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=10';
+import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=11';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -260,7 +260,7 @@ R.mcq = (el, it, api) => {
   const qtext = it.blank ? esc(it.q).replace(/_{2,}|＿+/g, '<b style="display:inline-block;min-width:60px;border-bottom:2px solid var(--acc)">&nbsp;</b>') : esc(it.q);
   el.innerHTML = `<p class="q" style="font-size:1rem;color:var(--graphite);margin-bottom:6px">${esc(it.note || '')}</p><div class="prompt"><div class="big ${zh || (api.lang === 'zh' && /[㐀-鿿]/.test(it.q)) ? 'zh' : ''}" style="font-size:${api.lang === 'zh' && /[㐀-鿿]/.test(it.q) ? '1.45rem' : '1.15rem'}">${qtext}${it.vi ? `<div class="py" style="margin-top:6px">${esc(it.vi)}</div>` : ''}</div></div>${optsHTML(order.map((i) => esc(it.opts[i])), api.lang, zh)}`;
   const done = single(el, api, order.indexOf(it.a));
-  return { check: () => { const ok = done(); return { ok, answer: it.blank ? it.q.replace(/_{2,}|＿+/, it.opts[it.a]) : it.opts[it.a] }; } };
+  return { check: () => { const ok = done(); return { ok, answer: it.blank && /_{2,}|＿+/.test(it.q) ? it.q.replace(/_{2,}|＿+/, it.opts[it.a]) : it.opts[it.a] }; } };
 };
 R.speak = (el, it, api) => {
   if (micOff()) return api.lang === 'zh' ? R.listenOrder(el, it, api) : R.order(el, it, api);

@@ -1,10 +1,10 @@
 // Học cùng nhau: bạn bè, lớp học (giáo viên / trợ giảng / học viên), quiz trực tiếp kiểu “nhập PIN cùng chơi” và báo cáo.
 // Mọi dữ liệu đi qua các hàm RPC trên Supabase (xem learn/setup/learn_social.sql).
-import { I } from './icons.js?v=10';
-import { S, save, LN, unitProgress } from './store.js?v=10';
-import { acct, call, rpc, ensureToken } from './account.js?v=10';
-import { sfx, unlockAudio } from './sound.js?v=10';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=10';
+import { I } from './icons.js?v=11';
+import { S, save, LN, unitProgress } from './store.js?v=11';
+import { acct, call, rpc, ensureToken } from './account.js?v=11';
+import { sfx, unlockAudio } from './sound.js?v=11';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=11';
 
 let C = null; // ngữ cảnh từ app.js
 export const counts = { requests: 0, rooms: 0 };
