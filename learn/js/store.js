@@ -6,7 +6,7 @@ const yesterday = () => today(new Date(Date.now() - DAY));
 
 function fresh() {
   return {
-    v: 3, updated: 0, lang: 'en', level: { en: 'a1', zh: 'hsk4', ielts: 'b4' },
+    v: 3, updated: 0, lang: 'en', level: { en: 'a1', zh: 'hsk1', ielts: 'b4' },
     daily: { d: '', lessons: 0, speak: 0, review: 0 }, // đếm cho nhiệm vụ hằng ngày
     done: {},          // "en-a1-1": [1,0,0,0]  (4 bài trong mỗi chủ đề)
     xp: 0, goal: 20,
@@ -34,7 +34,7 @@ function merge(base, add) {
 }
 export let S = fresh();
 try { const raw = localStorage.getItem(KEY); if (raw) S = merge(fresh(), JSON.parse(raw)); } catch (e) {}
-// lộ trình tiếng Trung giờ bắt đầu từ HSK4
+// sửa dữ liệu cũ: thêm IELTS, chuyển dữ liệu v1 (4 bài) sang 8 bài
 const fixLevel = () => {
   if (!S.level.ielts) S.level.ielts = 'b4';
   // v2: mỗi chủ đề có 8 bài (trước là 4: từ vựng, hội thoại, đọc, ngữ pháp)

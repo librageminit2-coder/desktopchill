@@ -1,12 +1,12 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=9';
-import { mascot } from './mascot.js?v=9';
-import { sfx } from './sound.js?v=9';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong } from './speech.js?v=9';
+import { I } from './icons.js?v=10';
+import { mascot } from './mascot.js?v=10';
+import { sfx } from './sound.js?v=10';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong } from './speech.js?v=10';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
-import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=9';
+import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=10';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -365,7 +365,7 @@ R.dialogue = (el, it, api) => {
 // ---- đóng vai: người học nói phần của một nhân vật, máy đọc phần còn lại ----
 R.roleplay = (el, it, api) => {
   const d = api.unit[it.d || 'dlg'] || api.unit.dlg, zh = api.lang === 'zh', speakers = [...new Set(d.lines.map((l) => l.s))];
-  const me = speakers.find((s) => /^(Minh|小明)$/.test(s)) || speakers[1] || speakers[0];
+  const me = speakers.find((s) => /^(Minh|小明|Candidate)$/.test(s)) || speakers[1] || speakers[0];
   const other = speakers.find((s) => s !== me) || '';
   let live = !micOff(), note = '';
   el.innerHTML = `<p class="q">Role-play: you are ${esc(me)}</p>
@@ -477,7 +477,7 @@ R.writeTask = (el, it, api) => {
   <div class="wt-after" hidden>
     <h3>Self-check against the 4 IELTS criteria</h3>
     <div class="wt-crit">${[['Task Response', 'Every part of the task answered, clear position, ideas backed by specific examples'], ['Coherence & Cohesion', 'One main idea per paragraph, varied linkers, no repetition'], ['Lexical Resource', 'Precise vocabulary and collocations, little repetition'], ['Grammatical Range', 'A mix of complex sentences, few grammar or spelling errors']].map(([t, d], i) => `<label class="wt-c"><input type="checkbox" data-i="${i}"><span><b>${t}</b><small>${d}</small></span></label>`).join('')}</div>
-    <h3>Model answer (band 8–9)</h3>
+    <h3>Model answer (band ${esc(w.band || '8–9')})</h3>
     <div class="wt-model">${(w.model || []).map((p) => `<p>${esc(p).replace(new RegExp('\\b(' + unitWords.map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'gi'), '<mark>$1</mark>')}</p>`).join('')}</div>
     <p class="muted" style="font-size:.86rem">Highlighted words are from this unit. The model answer was written by desktopchill as a reference; it is not an official, examiner-graded script.</p>
   </div>`;
@@ -516,7 +516,7 @@ R.cue = (el, it, api) => {
     <div class="cue-clock"><svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" cx="60" cy="60" r="52"/></svg><b>1:00</b><small>prepare</small></div>
     <div class="cue-act"><button class="btn acc cue-go" type="button">${I.play} Start 1-minute preparation</button><button class="chip cue-skip" type="button">Skip prep, speak now</button></div>
   </div>
-  <div class="cue-out" hidden><div class="cue-trans"></div><div class="cue-stats"></div><h3>Model answer (band 8+)</h3><div class="wt-model">${c.model.map((p) => `<p>${esc(p)}</p>`).join('')}</div></div>`;
+  <div class="cue-out" hidden><div class="cue-trans"></div><div class="cue-stats"></div><h3>Model answer (band ${esc(c.band || '8+')})</h3><div class="wt-model">${c.model.map((p) => `<p>${esc(p)}</p>`).join('')}</div></div>`;
   const clock = el.querySelector('.cue-clock'), fg = clock.querySelector('.fg'), lab = clock.querySelector('b'), sm = clock.querySelector('small');
   const C = 2 * Math.PI * 52; fg.style.strokeDasharray = C;
   let tid = 0, phase = 'idle';
