@@ -1,16 +1,16 @@
-import { I, LOGO } from './icons.js?v=16';
-import { sound, sfx, unlockAudio } from './sound.js?v=16';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=16';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=16';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=16';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=16';
-import * as social from './social.js?v=16';
-import { setVideo, setBg } from './scene.js?v=16';
-import * as walls from './walls.js?v=16';
-import * as hub from './hub.js?v=16';
-import * as duel from './duel.js?v=16';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=16';
-import { mascot } from './mascot.js?v=16';
+import { I, LOGO } from './icons.js?v=17';
+import { sound, sfx, unlockAudio } from './sound.js?v=17';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=17';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=17';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=17';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=17';
+import * as social from './social.js?v=17';
+import { setVideo, setBg } from './scene.js?v=17';
+import * as walls from './walls.js?v=17';
+import * as hub from './hub.js?v=17';
+import * as duel from './duel.js?v=17';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=17';
+import { mascot } from './mascot.js?v=17';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -215,11 +215,6 @@ function asideHTML(c) {
     ${qs.map((q) => { const pc = Math.min(1, q.v / q.n), ok = pc >= 1; return `<div class="quest ${ok ? 'ok' : ''}"><span class="qi">${ok ? I.check : I[q.ic]}</span><div class="qb"><b>${q.t}<em>${Math.min(q.v, q.n)}/${q.n}</em></b><span class="qbar"><i style="width:${Math.round(pc * 100)}%"></i></span></div></div>`; }).join('')}
     <button class="dchest ${allDone && !opened ? 'ready' : ''} ${opened ? 'opened' : ''}" type="button" ${allDone && !opened ? '' : 'disabled'}>${chestSVG(opened)}<span>${opened ? 'Chest opened today' : allDone ? 'Open your reward chest!' : 'Finish 3 quests to open the chest'}</span></button>
   </section>
-  <section class="panel badges-mini">
-    <h3>${I.medal} Badges <em>${got.length}/${BADGES.length}</em></h3>
-    <div class="bm-row">${got.slice(-4).map(([, t, , ic]) => `<span class="bdg on" title="${esc(t)}">${I[ic]}</span>`).join('')}${next.map(([, t, d, ic]) => `<span class="bdg" title="${esc(t)}: ${esc(d)}">${I[ic]}</span>`).join('')}</div>
-    <a class="more" href="#/collection/badges">See all</a>
-  </section>
   ${walls.miniHTML()}
   ${ph ? `<section class="panel phrase">
     <h3>${I.chat} Phrase of the day</h3>
@@ -229,7 +224,12 @@ function asideHTML(c) {
     <div class="ph-act"><button class="chip ph-say" type="button">${I.speaker} Listen</button><button class="chip ph-try" type="button">${I.mic} Say it</button></div>
   </section>` : ''}
   <a class="panel mini-link" href="#/review"><span class="ml-ic">${I.cards}</span><span><b>${dueN ? `${dueN} cards due` : 'Review cards'}</b><small>${dueN ? 'Review now to remember longer' : 'Cards come back right before you forget'}</small></span>${I.chev}</a>
-  ${!acct ? `<a class="panel mini-link save" href="#/me"><span class="ml-ic">${I.cloud}</span><span><b>Save your progress</b><small>Name + PIN, continue on any device</small></span>${I.chev}</a>` : ''}`;
+  ${!acct ? `<a class="panel mini-link save" href="#/me"><span class="ml-ic">${I.cloud}</span><span><b>Save your progress</b><small>Name + PIN, continue on any device</small></span>${I.chev}</a>` : ''}
+  <section class="panel badges-mini">
+    <h3>${I.medal} Badges <em>${got.length}/${BADGES.length}</em></h3>
+    <div class="bm-row">${got.slice(-4).map(([, t, , ic]) => `<span class="bdg on" title="${esc(t)}">${I[ic]}</span>`).join('')}${next.map(([, t, d, ic]) => `<span class="bdg" title="${esc(t)}: ${esc(d)}">${I[ic]}</span>`).join('')}</div>
+    <a class="more" href="#/collection/badges">See all</a>
+  </section>`;
 }
 function micHelpSheet() {
   sheet(`<h2>Turn on the microphone</h2><p class="sub">Chrome is blocking the microphone for desktopchill.com, so speaking exercises can't hear you.</p>${MIC_HELP}<button class="btn acc wide mic-recheck" type="button" style="margin-top:14px">${I.redo} Check again</button><p class="muted mic-res" style="margin-top:8px;font-size:.88rem"></p>`, (el) => {
@@ -449,7 +449,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=16').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=17').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -494,7 +494,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=16').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=17').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -976,7 +976,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=16').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=17').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */
