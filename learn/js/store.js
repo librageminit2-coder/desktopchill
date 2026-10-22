@@ -29,6 +29,7 @@ function fresh() {
     vipSeen: 0,        // cấp VIP đã chúc mừng
     bg: 0,             // hình nền đang dùng làm nền trang (0 = rừng)
     tout: {},          // kiểm tra vượt chủ đề: "en-a1-1" → ngày trượt gần nhất
+    guide: {},         // hướng dẫn đã làm: tour (đổi nền + ảnh đại diện), friend, duel
   };
 }
 function merge(base, add) {

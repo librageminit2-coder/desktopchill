@@ -184,6 +184,11 @@
 :where(:root[data-theme="light"]) .np-brand { background: rgba(20, 44, 34, 0.088); }
 :where(:root[data-theme="light"]) .wn-logo { background: linear-gradient(140deg, rgba(255, 201, 74, .22), rgba(20, 44, 34, 0.044)); }
 :where(:root[data-theme="light"]) .wn-k { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .chat-dock { box-shadow: 0 24px 70px rgba(30, 50, 40, 0.225); }
+:where(:root[data-theme="light"]) .tr-b { background: rgba(225, 235, 229, 0.72); }
+:where(:root[data-theme="light"]) .tr-tip { box-shadow: 0 18px 50px rgba(30, 50, 40, 0.203); }
+:where(:root[data-theme="light"]) .tour.wait .tr-b { background: rgba(225, 235, 229, 0.55); }
+:where(:root[data-theme="light"]) .hint { box-shadow: 0 14px 40px rgba(30, 50, 40, 0.180); }
 
 /* ---- hand-tuned ---- */
 :root[data-theme="light"] .chip[aria-pressed="true"] { color: var(--acc-2); }

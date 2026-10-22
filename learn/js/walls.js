@@ -1,11 +1,11 @@
 // Kho hình nền: phần thưởng trong rương chủ đề và boss, bộ sưu tập, VIP, chia sẻ cho bạn bè, đặt làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=18';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=18';
-import { acct, call, push } from './account.js?v=18';
-import { sfx } from './sound.js?v=18';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=18';
+import { I } from './icons.js?v=19';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=19';
+import { acct, call, push } from './account.js?v=19';
+import { sfx } from './sound.js?v=19';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=19';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -260,7 +260,7 @@ export async function wallSheet(id) {
   const w = wallOf(id), mine = owned(id), src = mine && S.walls[id].src || '';
   const ws = whereOf(id).sort((a, b) => (a.lang === S.lang ? -1 : 0) - (b.lang === S.lang ? -1 : 0));
   const labels = await Promise.all(ws.map(slotLabel));
-  const from = src.startsWith('gift:') ? `Gift from ${src.slice(5)}` : src.startsWith('duel:') ? `Won in a duel against ${src.slice(5)}` : src.startsWith('quiz:') ? `Won in the live quiz “${src.slice(5)}”` : src.startsWith('chest:') ? 'From a chest' : src.startsWith('xp:') ? `Unlocked with ${fmt(src.slice(3))} XP` : src === 'starter' ? 'Starter wallpaper' : '';
+  const from = src.startsWith('gift:') ? `Gift from ${src.slice(5)}` : src.startsWith('duel:') ? `Won in a duel against ${src.slice(5)}` : src.startsWith('quiz:') ? `Won in the live quiz “${src.slice(5)}”` : src.startsWith('chest:') ? 'From a chest' : src.startsWith('rank:') ? `Ranking reward · ${src.slice(5)}` : src.startsWith('xp:') ? `Unlocked with ${fmt(src.slice(3))} XP` : src === 'starter' ? 'Starter wallpaper' : '';
   sheet(`<div class="ws-media r-${w.rarity}"><video src="${video(id)}" poster="${poster(id)}" muted loop playsinline autoplay ${mine ? '' : 'class="dim"'}></video>${mine ? '' : `<span class="ws-lock">${I.lock}<b>Not in your collection yet</b></span>`}</div>
     <div class="ws-h"><h2>${esc(w.name)}</h2><span class="rpill r-${w.rarity}">${RAR[w.rarity]} · #${pad(id)}</span></div>
     ${mine ? `<p class="sub">${esc(from)}${from ? ' · ' : ''}collected ${new Date(S.walls[id].at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>` : '<p class="sub">Win it from the chests below, a friend’s gift, a duel or a live quiz, or unlock it with XP.</p>'}
@@ -281,8 +281,8 @@ export async function wallSheet(id) {
 
 /* ---------- đổi XP lấy hình nền ---------- */
 // XP dùng được = tổng XP − XP đã đổi (hình có nguồn "xp:<giá>"). Cấp độ người chơi không bị giảm.
-export const PRICE = { common: 1200, rare: 2400, epic: 4800, legendary: 9600 };
-export const priceOf = (id) => PRICE[wallOf(id).rarity] || 9600;
+export const PRICE = { common: 960, rare: 1920, epic: 3840, legendary: 7680 };
+export const priceOf = (id) => PRICE[wallOf(id).rarity] || 7680;
 export const xpSpent = () => Object.values(S.walls).reduce((a, x) => a + (/^xp:\d+$/.test((x && x.src) || '') ? +x.src.slice(3) : 0), 0);
 export const xpLeft = () => Math.max(0, (S.xp || 0) - xpSpent());
 const fmt = (n) => Number(n).toLocaleString('en-US');
@@ -439,8 +439,8 @@ export function miniHTML() {
   const v = myVip();
   return `<section class="panel col-mini"><h3>${I.gallery} Collection <em>${n}/${CAT.walls.length}</em></h3>
     <a class="cm-row" href="#/collection">${last.length ? last.map((w) => `<span class="cm-th r-${wallOf(w).rarity}"><img src="${poster(w)}" alt="" loading="lazy"></span>`).join('') : [0, 1, 2].map(() => `<span class="cm-th empty">${I.lock}</span>`).join('')}</a>
-    <p class="muted cm-tx">${n ? `VIP ${v} · open a 3★ chest for 2 wallpapers.` : 'Finish a unit and open its chest to get your first wallpaper.'}</p>
-    <a class="more" href="#/collection">Open collection</a></section>`;
+    <p class="muted cm-tx">Open a wallpaper to set it as the background of this page. VIP ${v} · a 3★ chest gives 2 wallpapers.</p>
+    <a class="btn sm acc cm-go" href="#/collection">${I.gallery} Change background</a></section>`;
 }
 // trạng thái nhỏ cho rương trên bản đồ
 export function chestBadge(uid, complete) {
@@ -465,7 +465,7 @@ export function chestInfo(uid, title, onReview) {
 export function chestPreview(uid, title, done) {
   const ws = slotWalls(uid);
   sheet(`<span class="muted sk">Unit chest · locked</span><h2>${esc(title)}</h2>
-    <p class="sub">${done ? `${done}/8 lessons done.` : 'Not started yet.'} Finish all 8 lessons in order to open this chest. Score well: a 2★ chest gives the first wallpaper, a 3★ chest gives both.</p>
+    <p class="sub">${done ? `${done}/8 lessons done.` : 'Not started yet.'} Lessons are open in any order. Finish all 8 lessons of this unit to open its chest. Score well: a 2★ chest gives the first wallpaper, a 3★ chest gives both.</p>
     <div class="ci-cards">${ws.map((w, i) => card(w, { state: owned(w) ? 'got' : 'locked', lockText: `${i + 2}★ chest` })).join('')}</div>`, (el, close) => {
     wireCards(el, (id) => { close(); wallSheet(id); });
   });

@@ -1,14 +1,15 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=18';
-import { S } from './store.js?v=18';
-import { acct, call } from './account.js?v=18';
-import { sfx } from './sound.js?v=18';
-import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=18';
-import * as walls from './walls.js?v=18';
+import { I, LOGO } from './icons.js?v=19';
+import { S, save } from './store.js?v=19';
+import * as chat from './chat.js?v=19';
+import { acct, call } from './account.js?v=19';
+import { sfx } from './sound.js?v=19';
+import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=19';
+import * as walls from './walls.js?v=19';
 
 let C = null;
-export const hub = { unread: 0, requests: 0, duels: 0, items: [], friends: null, me: null, fAt: 0 };
+export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
 const pref = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v === '1'; } catch (e) { return d; } };
 const setPref = (k, v) => { try { localStorage.setItem(k, v ? '1' : '0'); } catch (e) {} };
 export const ui = { rail: pref('dcl_rail', true), hud: pref('dcl_hud', true), side: pref('dcl_side', true) };
@@ -59,16 +60,30 @@ export async function poll(first = false) {
   try {
     const j = await call('learn_me'); if (!j || !j.ok) return;
     const before = hub.unread;
-    hub.unread = j.unread || 0; hub.requests = j.requests || 0; hub.duels = j.duels || 0; hub.me = j;
+    hub.unread = j.unread || 0; hub.requests = j.requests || 0; hub.duels = j.duels || 0; hub.msgs = j.msgs || 0; hub.me = j;
     if (j.avatar !== undefined && acct) acct.avatar = j.avatar;
     Object.assign(walls.vipState, { vip: j.vip || 0, pts: j.vip_pts || 0, bonus: j.bonus || 0, server: true });
     paintBadges();
     if (first || hub.unread > before) await loadNotifs(!first);
     if (first || !hub.friends || Date.now() - hub.fAt > 120000) loadFriends();
     walls.checkVip();
+    tick();
   } catch (e) {}
 }
+// xử trận duel hết hạn, chốt bảng tuần và nhận XP thưởng từ máy chủ
+async function tick() {
+  try {
+    const j = await call('learn_tick'); if (!j || !j.ok) return;
+    const xp = (j.grants || []).reduce((a, g) => a + (g.xp || 0), 0);
+    if (xp > 0) { S.xp += xp; save(true); toast(`+${xp} XP from ranking rewards`); sfx('levelup'); document.querySelectorAll('.xp-n').forEach((x) => { x.textContent = S.xp; }); }
+  } catch (e) {}
+}
+export function paintChat() {
+  document.querySelectorAll('.chat-btn').forEach((b) => { let x = b.querySelector('.badge'); if (hub.msgs) { if (!x) { x = document.createElement('i'); x.className = 'badge'; b.appendChild(x); } x.textContent = hub.msgs > 99 ? '99+' : hub.msgs; } else if (x) x.remove(); });
+}
+chat.setOnUnread(() => { setTimeout(async () => { try { const j = await call('learn_me'); if (j && j.ok) { hub.msgs = j.msgs || 0; paintChat(); } } catch (e) {} }, 300); });
 function paintBadges() {
+  paintChat();
   document.querySelectorAll('.bell').forEach((b) => { let x = b.querySelector('.badge'); if (hub.unread) { if (!x) { x = document.createElement('i'); x.className = 'badge'; b.appendChild(x); } x.textContent = hub.unread > 99 ? '99+' : hub.unread; } else if (x) x.remove(); });
 }
 async function loadNotifs(fresh) {
@@ -83,7 +98,7 @@ async function loadNotifs(fresh) {
     document.querySelectorAll('.bell').forEach((b) => { b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); });
     toast(text(nw[0]).t);
     // nhận được hình nền (quà, thắng quiz) → đồng bộ bộ sưu tập ngay
-    if (nw.some((x) => x.kind === 'gift' || (x.kind === 'quiz_win' && x.payload && x.payload.wall))) walls.syncWalls();
+    if (nw.some((x) => x.kind === 'gift' || x.kind === 'rank_reward' || (x.kind === 'duel_done' && x.payload && x.payload.wall) || (x.kind === 'quiz_win' && x.payload && x.payload.wall))) { walls.syncWalls(); tick(); }
     const panel = document.querySelector('.np'); if (panel) drawPanel(panel);
   } catch (e) {}
 }
@@ -97,12 +112,22 @@ function text(n) {
     case 'quiz': return { t: `${n.name} invited you to a live quiz`, h: `${who} invited you to the live quiz <b>${esc(p.title || '')}</b>`, ic: 'zap', act: [['Join', 'go'], ['Later', 'read']], go: '#/play/' + p.pin };
     case 'class': return { t: `${n.name} invited you to a class`, h: `${who} invited you to the class <b>${esc(p.name || '')}</b>`, ic: 'school', act: [['Join', 'go'], ['Later', 'read']], go: '#/classes/join/' + p.code };
     case 'duel': return { t: `${n.name} challenged you to a duel`, h: `${who} challenged you to a duel. Same 10 questions, beat their score.`, ic: 'swords', act: [['Play', 'go']], go: '#/duel/' + p.duel };
-    case 'duel_done': return { t: p.draw ? `Duel with ${n.name}: draw` : p.won ? `You beat ${n.name}!` : `${n.name} won the duel`, h: p.draw ? `Your duel with ${who} ended in a draw. +2 VIP points each.` : p.won ? `You beat ${who}. Pick a wallpaper from their collection.` : `${who} won your duel. You keep everything; +1 VIP point.`, ic: 'swords', act: p.won ? [['Pick prize', 'go']] : null, go: '#/duel/' + p.duel };
+    case 'duel_done': if (p.forfeit) return p.won ? { t: `${n.name} ran out of time. You win!`, h: `${who} did not answer your duel within 24 hours, so you win${w ? ` and <b>${esc(w)}</b> was added to your collection` : ''}.`, ic: 'swords', go: '#/duel/' + p.duel, wall: p.wall } : { t: `You lost a duel to ${n.name} on time`, h: `You did not answer ${who}’s duel within 24 hours, so it counts as a loss.`, ic: 'swords', go: '#/duel/' + p.duel };
+      if (p.won && p.prize === false) return { t: `You beat ${n.name}!`, h: `You beat ${who}. You already took today’s duel prize, so this win counts for the ranking only.`, ic: 'swords', go: '#/duel/' + p.duel };
+      return { t: p.draw ? `Duel with ${n.name}: draw` : p.won ? `You beat ${n.name}!` : `${n.name} won the duel`, h: p.draw ? `Your duel with ${who} ended in a draw. +2 VIP points each.` : p.won ? `You beat ${who}. Pick a wallpaper from their collection.` : `${who} won your duel. You keep everything; +1 VIP point.`, ic: 'swords', act: p.won ? [['Pick prize', 'go']] : null, go: '#/duel/' + p.duel };
     case 'duel_declined': return { t: `${n.name} declined your duel`, h: `${who} declined your duel`, ic: 'swords', go: '#/duel' };
     case 'duel_pick': return { t: `${n.name} picked ${w} as a duel prize`, h: `${who} won your duel and copied <b>${esc(w)}</b> into their collection. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
     case 'update': return { t: `New update: ${p.added || 'many'} new units`, h: `<b>New update.</b> ${p.added || 'Many'} new units with practical, everyday topics across English, 中文 and IELTS. Your progress is safe.`, ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) };
+    case 'rank_reward': {
+      const ws = p.walls || [], wn = ws.map((x) => walls.wallOf(x).name), course = { en: 'English', zh: '中文', ielts: 'IELTS', duel: 'Duel' }[p.board] || '';
+      const gift = [wn.length ? `<b>${wn.map(esc).join('</b> and <b>')}</b>` : '', p.xp ? `<b>${p.xp} XP</b>` : ''].filter(Boolean).join(' and ');
+      return p.board === 'duel'
+        ? { t: `Top ${p.rank} in last week’s duels!`, h: `You finished <b>#${p.rank}</b> in last week’s duel ranking. Reward: ${gift}.`, ic: 'trophy', go: ws.length ? '#/collection' : '#/duel', wall: ws[0] }
+        : { t: `You reached #${p.rank} in ${course}!`, h: `You reached <b>#${p.rank}</b> in the ${esc(course)} ranking. Reward: ${gift}.`, ic: 'trophy', go: ws.length ? '#/collection' : '#/', wall: ws[0] };
+    }
+    case 'msg': return { t: `${n.name} sent you a message`, h: `${who} sent you a message`, ic: 'chat' };
     default: return { t: 'New notification', h: 'New notification', ic: 'bell' };
   }
 }
@@ -186,21 +211,77 @@ function ranked() {
   all.forEach((x, i) => { x.rank = i + 1; });
   return all;
 }
+/* ---------- bảng xếp hạng toàn máy chủ (trên danh sách bạn) ---------- */
+const RK_TABS = [['en', 'EN'], ['zh', '中文'], ['ielts', 'IELTS'], ['duel', 'Duel']];
+const rk = { tab: (() => { try { return localStorage.getItem('dcl_rk') || ''; } catch (e) { return ''; } })(), data: {}, at: {}, open: pref('dcl_rk_open', true), busy: '' };
+const rkTab = () => rk.tab || (['en', 'zh', 'ielts'].includes(S.lang) ? S.lang : 'en');
+export async function loadRank(board = rkTab(), force = false) {
+  if (rk.busy === board || (!force && rk.data[board] && Date.now() - rk.at[board] < 60000)) return;
+  rk.busy = board;
+  try { const j = await call('learn_rank_board', { p_board: board }); if (j && j.ok) { rk.data[board] = j; rk.at[board] = Date.now(); } } catch (e) {}
+  rk.busy = '';
+  document.querySelectorAll('.rk').forEach((el) => paintRank(el));
+}
+const medal = (n) => n <= 3 ? `<span class="rk-n m${n}">${n}</span>` : `<span class="rk-n">${n}</span>`;
+function rankRows(board) {
+  const d = rk.data[board];
+  if (!d) return '<p class="rk-load">Loading…</p>';
+  const duel = board === 'duel', unit = duel ? 'pts' : '★';
+  const items = d.items || [];
+  const rows = items.map((x) => `<div class="rk-i ${x.rel === 'me' ? 'me' : ''}" data-u="${x.uid}">${medal(x.rank)}<span class="rk-av">${vipAv(x.name, x.avatar, x.vip || 0)}</span>
+      <span class="rk-t"><b>${esc(x.name)}${x.rel === 'me' ? ' (you)' : ''}</b><small>${x.score} ${unit}${duel ? ` · ${x.wins}W / ${x.played}` : ''}</small></span>
+      ${x.rel === 'none' ? `<button class="icon-btn sm rk-add" type="button" title="Add ${esc(x.name)} as a friend" aria-label="Add friend">${I.plus}</button>` : x.rel === 'sent' ? '<span class="rk-s">Sent</span>' : x.rel === 'incoming' ? '<a class="rk-s acc" href="#/friends">Accept</a>' : x.rel === 'friend' ? `<span class="rk-s ok" title="Friend">${I.check}</span>` : ''}</div>`).join('');
+  const meIn = items.some((x) => x.rel === 'me');
+  const me = d.me && !meIn ? `<div class="rk-i me out">${medal(d.me.rank)}<span class="rk-av">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, walls.myVip())}</span><span class="rk-t"><b>You</b><small>${d.me.score} ${unit}</small></span></div>` : '';
+  const empty = !items.length ? `<p class="rk-load">${duel ? 'No duels finished this week yet. Win one to take #1.' : 'Nobody has stars here yet. Finish a lesson to take #1.'}</p>` : '';
+  const end = new Date(d.week_end + 'T00:00:00+07:00'), days = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
+  const got = (d.mine || []).length;
+  const note = duel ? `Win 3 pts, draw 1. Resets in ${days} day${days === 1 ? '' : 's'}. The weekly top 10 get XP and a rare wallpaper.`
+    : `Stars from every lesson in this course. Each rank you reach pays once: #1 two wallpapers, #2 a rare one, #3 a random one, #4–10 XP.${got ? ` You have collected ${got}/10.` : ''}`;
+  return `<div class="rk-list">${rows}${empty}</div>${me}<p class="rk-note">${note}</p>`;
+}
+function paintRank(el) {
+  const b = rkTab();
+  el.classList.toggle('shut', !rk.open);
+  el.querySelectorAll('.rk-tabs button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.b === b));
+  const body = el.querySelector('.rk-body'); if (body) body.innerHTML = rankRows(b);
+  el.querySelectorAll('.rk-add').forEach((btn) => btn.addEventListener('click', async (e) => {
+    e.stopPropagation(); const row = btn.closest('.rk-i'), d = rk.data[b], x = d && d.items.find((i) => String(i.uid) === row.dataset.u); if (!x) return;
+    btn.disabled = true;
+    try {
+      const j = await call('learn_friend_request', { p_who: x.name });
+      if (j && j.ok) { x.rel = j.accepted ? 'friend' : 'sent'; sfx('ok'); toast(j.accepted ? `You and ${x.name} are friends now` : `Friend request sent to ${x.name}`); Object.values(rk.data).forEach((dd) => (dd.items || []).forEach((i) => { if (i.uid === x.uid) i.rel = x.rel; })); paintRank(el); if (j.accepted) loadFriends(); }
+      else { toast({ pending: 'Request already sent.', already: 'You are already friends.', limit: 'Friend list is full.' }[j && j.error] || 'Could not send the request.'); btn.disabled = false; }
+    } catch (er) { toast(er.message); btn.disabled = false; }
+  }));
+}
+function rankHTML() {
+  return `<section class="rk ${rk.open ? '' : 'shut'}"><button class="rk-h" type="button" aria-expanded="${rk.open}"><span class="rk-ic">${I.trophy}</span><b>Ranking</b><small>Top 10 · all learners</small>${I.chevDown}</button>
+    <div class="rk-tabs seg" role="tablist">${RK_TABS.map(([k, l]) => `<button type="button" data-b="${k}" class="${k === 'zh' ? 'zh' : ''}" aria-pressed="${rkTab() === k}">${l}</button>`).join('')}</div>
+    <div class="rk-body">${rankRows(rkTab())}</div></section>`;
+}
+function wireRank(r) {
+  const el = r.querySelector('.rk'); if (!el) return;
+  paintRank(el);
+  el.querySelector('.rk-h').addEventListener('click', () => { rk.open = !rk.open; setPref('dcl_rk_open', rk.open); sfx('tap'); el.classList.toggle('shut', !rk.open); el.querySelector('.rk-h').setAttribute('aria-expanded', rk.open); });
+  el.querySelectorAll('.rk-tabs button').forEach((b) => b.addEventListener('click', () => { rk.tab = b.dataset.b; try { localStorage.setItem('dcl_rk', rk.tab); } catch (e) {} sfx('tap'); paintRank(el); loadRank(rk.tab); }));
+  loadRank(rkTab());
+}
 function railInner() {
   if (!acct) return `<div class="rl-h"><b>Friends</b></div><div class="rl-empty">${I.users}<p>Sign in to see friends, who is online and the weekly ranking.</p><button class="btn sm acc rl-in" type="button">Sign in</button></div>`;
   const d = hub.friends;
   if (!d) return `<div class="rl-h"><b>Friends</b></div><p class="muted" style="padding:14px">Loading…</p>`;
   const all = ranked(), on = all.filter((x) => !x.me && online(x.last_seen)), inc = (d.items || []).filter((x) => x.incoming);
   const sorted = [...all].sort((a, b) => (a.me ? -1 : b.me ? 1 : 0) || (online(b.last_seen) - online(a.last_seen)) || a.rank - b.rank);
-  return `<div class="rl-h"><b>Friends</b><span class="rl-on"><i></i>${on.length} online</span><button class="icon-btn rl-x" type="button" title="Hide friends">${I.chev}</button></div>
+  return `${rankHTML()}<div class="rl-h"><b>Friends</b><span class="rl-on"><i></i>${on.length} online</span><button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}</button><button class="icon-btn rl-x" type="button" title="Hide friends">${I.chev}</button></div>
     ${inc.length ? `<a class="rl-req" href="#/friends">${I.users}<span>${inc.length} friend request${inc.length > 1 ? 's' : ''}</span>${I.chev}</a>` : ''}
     <div class="rl-list">${sorted.map((x) => `<div class="rl-i ${x.me ? 'me' : ''} ${online(x.last_seen) ? 'on' : ''}" data-u="${x.uid}">
       <span class="rl-rk ${x.rank <= 3 ? 'top t' + x.rank : ''}">${x.rank}</span>
       <span class="rl-av">${vipAv(x.name, x.avatar, x.vip || 0)}${!x.me && online(x.last_seen) ? '<i class="dot"></i>' : ''}</span>
       <span class="rl-n"><b>${esc(x.name)}${x.me ? ' (you)' : ''}</b><small>${x.week_xp || 0} XP this week${x.me ? '' : online(x.last_seen) ? ' · online' : ` · ${ago(x.last_seen).replace(' ago', '')}`}</small></span>
-      ${x.me ? '' : `<span class="rl-a"><button class="icon-btn sm rl-duel" type="button" title="Challenge to a duel">${I.swords}</button><button class="icon-btn sm rl-gift" type="button" title="Share a wallpaper">${I.gift}</button></span>`}</div>`).join('')}</div>
+      ${x.me ? '' : `<span class="rl-a"><button class="icon-btn sm rl-chat" type="button" title="Send a message">${I.chat}</button><button class="icon-btn sm rl-duel" type="button" title="Challenge to a duel">${I.swords}</button><button class="icon-btn sm rl-gift" type="button" title="Share a wallpaper">${I.gift}</button></span>`}</div>`).join('')}</div>
     ${all.length < 2 ? `<div class="rl-empty"><p>No friends yet. Share your code <b>${esc(d.me && d.me.code || '')}</b> or add someone.</p></div>` : ''}
-    <div class="rl-f"><a class="btn sm ghost" href="#/friends">${I.plus} Add friends</a><a class="btn sm ghost" href="#/duel">${I.swords} Duels</a></div>`;
+    <div class="rl-f"><a class="btn sm ghost rl-addf" href="#/friends">${I.plus} Add friends</a><a class="btn sm ghost rl-duels" href="#/duel">${I.swords} Duels</a></div>`;
 }
 // cột bạn bè nằm trong bố cục trang (cùng khoảng cách với các cột khác)
 export function renderRail() {
@@ -212,6 +293,9 @@ function wireRail(r) {
   const si = r.querySelector('.rl-in'); if (si) si.addEventListener('click', () => C.authSheet('login'));
   r.querySelectorAll('.rl-duel').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('sheet-root').innerHTML = ''; location.hash = '#/duel/new/' + b.closest('.rl-i').dataset.u; }));
   r.querySelectorAll('.rl-gift').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); walls.shareSheet(); }));
+  r.querySelectorAll('.rl-chat').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); const f = ranked().find((x) => String(x.uid) === b.closest('.rl-i').dataset.u); if (f) { document.getElementById('sheet-root').innerHTML = ''; chat.openDM(f); } }));
+  const rm = r.querySelector('.rl-msg'); if (rm) rm.addEventListener('click', () => { document.getElementById('sheet-root').innerHTML = ''; chat.openChats(); });
+  wireRank(r);
 }
 function railSheet() {
   if (!acct) { C.authSheet('login'); return; }

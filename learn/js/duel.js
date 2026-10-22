@@ -1,20 +1,20 @@
 // Khiêu chiến 1-1 không cần online cùng lúc: người A làm 10 câu (dễ → rất khó, 20 giây mỗi câu), kết quả lưu trên máy chủ,
 // người B nhận thông báo và làm cùng đề. Người thắng chọn 1 hình nền trong bộ sưu tập của người thua (người thua không mất gì).
-// Mỗi ngày: 1 lượt khiêu chiến + 1 lần chọn hình. Ghép ngẫu nhiên chỉ với người online trong 3 ngày gần đây.
-import { I } from './icons.js?v=18';
-import { S, save } from './store.js?v=18';
-import { acct, call } from './account.js?v=18';
-import { sfx, unlockAudio } from './sound.js?v=18';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=18';
-import * as walls from './walls.js?v=18';
-import { hub, loadFriends } from './hub.js?v=18';
+// v19: mỗi ngày 10 lượt khiêu chiến; chỉ trận thắng đầu tiên trong ngày có quà. Người nhận có 24 giờ, quá hạn bị xử thua và quà tự chuyển cho người thắng.
+import { I } from './icons.js?v=19';
+import { S, save } from './store.js?v=19';
+import { acct, call } from './account.js?v=19';
+import { sfx, unlockAudio } from './sound.js?v=19';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=19';
+import * as walls from './walls.js?v=19';
+import { hub, loadFriends } from './hub.js?v=19';
 
 let C = null;
 export function init(ctx) { C = ctx; }
 const app = document.getElementById('app');
 const QMS = 20000;
 const DIFF = ['Easy', 'Medium', 'Hard', 'Very hard', 'Expert'];
-const ERR = { duel_today: 'You already started a duel today. One challenge per day; answering challenges is unlimited.', noone: 'Nobody else has been online in the last 3 days. Challenge a friend instead.', notfriend: 'You can only pick a friend here, or choose a random opponent.', duel_open: 'You already have an open duel with this friend. Finish it first.', noquestions: 'Could not build questions for this course.', self: 'You cannot duel yourself.', expired: 'This duel expired (3 days without an answer).', notyourturn: 'It is not your turn.', noduel: 'Duel not found.', pick_today: 'You already picked a prize today. This one waits for you until tomorrow.', picked: 'Prize already picked.', youhave: 'You already have that wallpaper.', notowned: 'They no longer have that wallpaper.', notwinner: 'Only the winner picks a prize.' };
+const ERR = { duel_today: 'You used all 10 challenges for today. Answering challenges sent to you is unlimited.', noprize: 'This win counts for the ranking only. You already took today’s prize.', noone: 'Nobody else has been online in the last 3 days. Challenge a friend instead.', notfriend: 'You can only pick a friend here, or choose a random opponent.', duel_open: 'You already have an open duel with this friend. Finish it first.', noquestions: 'Could not build questions for this course.', self: 'You cannot duel yourself.', expired: 'This duel expired (3 days without an answer).', notyourturn: 'It is not your turn.', noduel: 'Duel not found.', pick_today: 'You already picked a prize today. This one waits for you until tomorrow.', picked: 'Prize already picked.', youhave: 'You already have that wallpaper.', notowned: 'They no longer have that wallpaper.', notwinner: 'Only the winner picks a prize.' };
 addEventListener('hashchange', () => { const st = document.querySelector('.du-stage'); if (st && !location.hash.startsWith('#/duel')) { st.remove(); document.body.classList.remove('quizzing'); } });
 const em = (j) => ERR[j && j.error] || (j && j.error) || 'Something went wrong.';
 
@@ -52,7 +52,7 @@ let pickLang = null;
 export async function duelPage(args = []) {
   const route = '#/duel';
   if (!acct) {
-    C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>Challenge a friend or a random learner. You both answer the same 10 questions, from easy to very hard. The winner picks one wallpaper from the loser’s collection, and the loser keeps it too.</p></div></div>
+    C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>Challenge a friend or a random learner. You both answer the same 10 questions, from easy to very hard. The winner of the day’s first duel picks one wallpaper from the loser’s collection, and the loser keeps it too.</p></div></div>
     <div class="panel empty"><span class="e-ic">${I.swords}</span><h2>Sign in to duel</h2><p>A name and a 4–6 digit PIN is all it takes.</p><div class="foot-row" style="max-width:420px;width:100%"><button class="btn acc mk" type="button">Create account</button><button class="btn ghost lg" type="button">Sign in</button></div></div>`, null, { noCourse: true });
     app.querySelector('.mk').addEventListener('click', () => C.authSheet('new')); app.querySelector('.lg').addEventListener('click', () => C.authSheet('login'));
     return;
@@ -74,11 +74,11 @@ export async function duelPage(args = []) {
     const sc = d.me && d.me.score != null ? `${d.me.score}${d.them && d.them.score != null ? ' – ' + d.them.score : ''}` : '';
     return `<a class="row du-row" href="#/duel/${d.id}">${vipAv(d.opp ? d.opp.name : '?', d.opp && d.opp.avatar, d.opp ? d.opp.vip : 0)}<span class="grow"><b>${esc(d.opp ? d.opp.name : 'Opponent')}${d.random ? ' <small class="muted">· random</small>' : ''}</b><small>${esc(d.title)} · ${ago(d.created_at)}${sc ? ' · ' + sc : ''}</small></span>${res}</a>`;
   };
-  C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>You both answer the same 10 questions, from easy to very hard, 20 seconds each. Faster correct answers score more. The winner copies one wallpaper from the loser’s collection; the loser loses nothing.</p></div></div>
+  C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>You both answer the same 10 questions, from easy to very hard, 20 seconds each. Faster correct answers score more. Up to 10 challenges a day. <b>Your first win each day</b> copies one wallpaper from the loser’s collection; later wins count for the weekly ranking. Your opponent has 24 hours to answer, or they lose.</p></div></div>
   <div class="du-grid">
     <section class="panel pad du-new">
-      <h3 class="sec-h">${I.swords} New challenge <em>${L.duel_today ? 'Used today' : '1 per day'}</em></h3>
-      ${L.duel_today ? `<p class="du-used">You already started today’s duel. Come back tomorrow, or answer challenges sent to you. Those are unlimited.</p>` : `
+      <h3 class="sec-h">${I.swords} New challenge <em>${L.today || 0}/${L.per_day || 10} today</em></h3>
+      ${L.duel_today ? `<p class="du-used">You used all ${L.per_day || 10} challenges for today. Come back tomorrow, or answer challenges sent to you. Those are unlimited.</p>` : `
       <div class="field"><label>Course</label><div class="seg du-lang">${C.AVAIL.map((l) => `<button type="button" data-l="${l}" aria-pressed="${pickLang === l}" class="${l === 'zh' ? 'zh' : ''}">${esc(C.COURSES[l].short)}</button>`).join('')}</div></div>
       <div class="field"><label>Opponent</label><div class="du-opp">
         <button type="button" class="du-o rnd" data-u="" aria-pressed="${!preFriend}"><span class="du-dice">${I.dice}</span><b>Random</b><small>${L.pool || 0} learners active in the last 3 days, close to your VIP</small></button>
@@ -86,12 +86,12 @@ export async function duelPage(args = []) {
       </div></div>
       <p class="err du-err"></p>
       <button class="btn acc wide du-go" type="button">${I.swords} Start the duel</button>`}
-      <div class="du-stats"><span><b>${L.wins || 0}</b>wins</span><span><b>${L.played || 0}</b>finished</span><span><b>${L.pick_today ? 0 : 1}</b>prize pick left today</span></div>
+      <div class="du-stats"><span><b>${L.wins || 0}</b>wins</span><span><b>${L.played || 0}</b>finished</span><span><b>${L.prize_today ? 0 : 1}</b>prize left today</span><span><b>${(L.week && L.week.pts) || 0}</b>pts this week</span></div>
     </section>
     <div class="du-lists">
       ${prize.length ? `<section class="panel pad"><h3 class="sec-h">${I.gift} Pick your prize <em>${prize.length}</em></h3><div class="list">${prize.map(row).join('')}</div></section>` : ''}
       <section class="panel pad"><h3 class="sec-h">${I.play} Your turn <em>${mine.length}</em></h3>${mine.length ? `<div class="list">${mine.map(row).join('')}</div>` : '<p class="muted">No challenges waiting for you.</p>'}</section>
-      ${wait.length ? `<section class="panel pad"><h3 class="sec-h">${I.timer} Waiting for them <em>${wait.length}</em></h3><div class="list">${wait.map(row).join('')}</div><p class="muted" style="font-size:.84rem;margin-top:8px">They have 3 days to answer. You get a notification with the result.</p></section>` : ''}
+      ${wait.length ? `<section class="panel pad"><h3 class="sec-h">${I.timer} Waiting for them <em>${wait.length}</em></h3><div class="list">${wait.map(row).join('')}</div><p class="muted" style="font-size:.84rem;margin-top:8px">They have 24 hours to answer. If they don’t, you win and the prize comes to you automatically.</p></section>` : ''}
       <section class="panel pad"><h3 class="sec-h">${I.trophy} History</h3>${past.length ? `<div class="list">${past.slice(0, 15).map(row).join('')}</div>` : '<p class="muted">No finished duels yet.</p>'}</section>
     </div>
   </div>`, null, { noCourse: true });
@@ -123,7 +123,7 @@ async function openDuel(id) {
     C.shell('#/duel', `<div class="panel empty du-ready">${vipAv(d.opp.name, d.opp.avatar, d.opp.vip, 'xl')}<h2>${d.role === 'b' ? `${esc(d.opp.name)} challenged you` : 'Finish your duel'}</h2>
       <p>${d.role === 'b' ? `They already played. Beat <b>${d.them ? d.them.score : '?'}</b> points. ` : ''}10 questions, 20 seconds each, from easy to very hard. Once you start, leaving counts the remaining answers as wrong.</p>
       <div class="foot-row" style="max-width:440px;width:100%">${d.role === 'b' ? '<button class="btn ghost du-no" type="button">Decline</button>' : '<a class="btn ghost" href="#/duel">Later</a>'}<button class="btn acc du-play" type="button">${I.swords} Play now</button></div>
-      <small class="muted">Expires ${new Date(d.expires_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></div>`, null, { noCourse: true });
+      <small class="muted">Answer before ${new Date(d.expires_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></div>`, null, { noCourse: true });
     app.querySelector('.du-play').addEventListener('click', async () => { unlockAudio(); await versus(d.opp, d.title); play(d, j.questions); });
     const no = app.querySelector('.du-no'); if (no) no.addEventListener('click', async () => { if (!(await confirmBox('Decline this duel?', `${d.opp.name} will be told you declined. Nobody gets points.`, 'Decline', true))) return; await call('learn_duel_decline', { p_id: id }); location.hash = '#/duel'; });
     return;
@@ -194,7 +194,7 @@ function play(d, questions) {
 function sentScreen(d, questions, det) {
   const me = d.me || {};
   C.shell('#/duel', `<div class="panel du-res">
-    <div class="du-banner wait"><small>Challenge sent</small><h2>${me.score || 0} points</h2><p>${me.correct || 0}/${me.n || questions.length} correct in ${Math.round((me.ms || 0) / 1000)} s. ${esc(d.opp.name)} has 3 days to beat it. You will get a notification.</p></div>
+    <div class="du-banner wait"><small>Challenge sent</small><h2>${me.score || 0} points</h2><p>${me.correct || 0}/${me.n || questions.length} correct in ${Math.round((me.ms || 0) / 1000)} s. ${esc(d.opp.name)} has 24 hours to beat it, or they lose. You will get a notification.</p></div>
     ${review(questions, det, null)}
     <div class="foot-row"><a class="btn ghost" href="#/duel">All duels</a><a class="btn acc" href="#/">Back to learning</a></div></div>`, null, { noCourse: true });
 }
@@ -204,7 +204,7 @@ function result(d, questions, myDet, theirDet, fresh = false) {
   const me = d.me || {}, them = d.them || {}, draw = d.state === 'done' && d.winner == null;
   const ban = d.state === 'done' ? (draw ? 'draw' : d.won ? 'win' : 'lose') : d.state;
   const head = { win: 'You win!', lose: `${d.opp.name} wins`, draw: 'Draw', expired: 'Expired', declined: 'Declined', a_play: 'Not finished', b_turn: `Waiting for ${d.opp.name}` }[ban];
-  const sub = { win: d.can_pick ? 'Pick one wallpaper from their collection. They keep it too.' : d.pick_wall ? `You took ${walls.wallOf(d.pick_wall).name}.` : d.pick_wall === 0 ? 'They had nothing you lack, so you got +10 VIP points instead.' : '', lose: 'You lose nothing. +1 VIP point for playing. Ask for a rematch tomorrow.', draw: 'Same score and same time. +2 VIP points each.', expired: 'Nobody answered within 3 days.', declined: 'Your opponent declined this duel.', a_play: '', b_turn: 'They have 3 days to answer. You will get a notification.' }[ban];
+  const sub = { win: d.forfeit ? (d.pick_wall ? `They did not answer within 24 hours. ${walls.wallOf(d.pick_wall).name} was added to your collection.` : d.prize ? 'They did not answer within 24 hours. +10 VIP points instead of a wallpaper.' : 'They did not answer within 24 hours. You win; today’s prize was already taken.') : d.can_pick ? 'Pick one wallpaper from their collection. They keep it too.' : !d.prize ? 'You already took today’s prize, so this win counts for the weekly ranking only.' : d.pick_wall ? `You took ${walls.wallOf(d.pick_wall).name}.` : d.pick_wall === 0 ? 'They had nothing you lack, so you got +10 VIP points instead.' : '', lose: d.forfeit ? 'You did not answer within 24 hours, so this counts as a loss. You keep all your wallpapers.' : 'You lose nothing. Ask for a rematch!', draw: 'Same score and same time. +2 VIP points each.', expired: 'This duel was never finished.', declined: 'Your opponent declined this duel.', a_play: '', b_turn: 'They have 24 hours to answer, or they lose.' }[ban];
   C.shell('#/duel', `<div class="panel du-res">
     <div class="du-banner ${ban}"><div class="du-face">${vipAv(acct.name, acct.avatar, walls.myVip(), 'lg')}<b>${me.score ?? '–'}</b><small>You · ${me.correct ?? 0}/${me.n ?? 10} · ${Math.round((me.ms || 0) / 1000)} s</small></div>
       <div class="du-mid"><h2>${esc(head)}</h2><p>${esc(sub)}</p></div>
@@ -233,11 +233,11 @@ async function prizeSheet(d) {
   if (!j.ok) { toast(em(j)); return; }
   await walls.loadCat();
   const ws = j.walls || [];
-  sheet(`<h2>Pick your prize</h2><p class="sub">${ws.length ? `One wallpaper from ${esc(d.opp.name)}’s collection that you don’t have yet. They keep it too.` : 'They have nothing you are missing.'}${j.pick_today ? ' <b>You already picked a prize today</b>; this one waits until tomorrow.' : ''}</p>
+  sheet(`<h2>Pick your prize</h2><p class="sub">${ws.length ? `One wallpaper from ${esc(d.opp.name)}’s collection that you don’t have yet. They keep it too.` : 'They have nothing you are missing.'}</p>
     <div class="wgrid sm pz">${ws.map((w) => walls.card(w)).join('')}</div>
     <p class="err pz-err"></p><button class="btn gold wide pz-go" type="button" disabled>${I.gift} Take it</button>`, (el, close) => {
     let pick = 0; const go = el.querySelector('.pz-go');
-    walls.wireCards(el.querySelector('.pz'), (w, c) => { pick = w; el.querySelectorAll('.pz .wcard').forEach((k) => k.classList.toggle('picked', k === c)); go.disabled = !!j.pick_today; sfx('tap'); });
+    walls.wireCards(el.querySelector('.pz'), (w, c) => { pick = w; el.querySelectorAll('.pz .wcard').forEach((k) => k.classList.toggle('picked', k === c)); go.disabled = false; sfx('tap'); });
     go.addEventListener('click', async () => {
       go.disabled = true;
       try {

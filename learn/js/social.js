@@ -1,12 +1,13 @@
 // Học cùng nhau: bạn bè, lớp học (giáo viên / trợ giảng / học viên), quiz trực tiếp kiểu “nhập PIN cùng chơi” và báo cáo.
 // Mọi dữ liệu đi qua các hàm RPC trên Supabase (xem learn/setup/learn_social.sql).
-import { I } from './icons.js?v=18';
-import { S, save, LN, unitProgress } from './store.js?v=18';
-import { acct, call, rpc, ensureToken } from './account.js?v=18';
-import { sfx, unlockAudio } from './sound.js?v=18';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=18';
-import * as hub from './hub.js?v=18';
-import * as walls from './walls.js?v=18';
+import { I } from './icons.js?v=19';
+import { S, save, LN, unitProgress } from './store.js?v=19';
+import { acct, call, rpc, ensureToken } from './account.js?v=19';
+import { sfx, unlockAudio } from './sound.js?v=19';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=19';
+import * as hub from './hub.js?v=19';
+import * as chat from './chat.js?v=19';
+import * as walls from './walls.js?v=19';
 
 let C = null; // ngữ cảnh từ app.js
 export const counts = { get requests() { return hub.hub.requests || 0; }, set requests(v) { hub.hub.requests = v; }, rooms: 0 };
@@ -178,7 +179,7 @@ export async function classPage(id, tab = 'stream') {
   roomCache = d;
   const r = d.room, role = d.role, staff = role !== 'student', isOwner = r.owner === d.me;
   const students = d.members.filter((m) => m.role === 'student');
-  const tabs = [['stream', 'Stream', 'chat'], ['tasks', 'Assignments', 'flag'], ['members', 'People', 'users'], ['quizzes', 'Quizzes', 'zap'], ...(staff ? [['report', 'Report', 'chart']] : [])];
+  const tabs = [['stream', 'Stream', 'flag'], ['chat', 'Chat', 'chat'], ['tasks', 'Assignments', 'list'], ['members', 'People', 'users'], ['quizzes', 'Quizzes', 'zap'], ...(staff ? [['report', 'Report', 'chart']] : [])];
   if (!tabs.some((t) => t[0] === tab)) tab = 'stream';
   const link = `${SITE}#/classes/join/${r.code}`;
   C.shell(route, `<section class="panel cl-hero">
@@ -202,6 +203,7 @@ export async function classPage(id, tab = 'stream') {
   });
   const body = app.querySelector('.cl-body');
   if (tab === 'stream') return classStream(d, body, id);
+  if (tab === 'chat') { body.innerHTML = '<div class="cl-chat"></div>'; return chat.openRoom(r, body.querySelector('.cl-chat')); }
   if (tab === 'tasks') return classTasks(d, body, id);
   if (tab === 'members') return classPeople(d, body, id);
   if (tab === 'quizzes') return classQuizzes(d, body);
@@ -542,7 +544,8 @@ export async function hostPage(key) {
   const doAct = async (a, arg = {}) => { try { const j = await rpc('learn_quiz_host_action', { p_key: key, p_action: a, p_arg: arg }); if (j && j.ok) { apply(j); } else toast(errMsg(j)); } catch (e) { toast(e.message); } };
   const leftMs = () => g && g.time ? g.time * 1000 - (base + (performance.now() - baseAt)) : 0;
   const drawTop = () => {
-    top.innerHTML = `<span class="ttl">${esc(g.title)}</span>${g.state !== 'lobby' && g.state !== 'ended' ? `<span class="tag-s">Question ${g.q_index + 1} / ${g.total}</span>` : ''}<span class="pl-count">${I.users}${g.players.length}</span><span class="tag-s acc">PIN ${g.pin}</span><button class="icon-btn q-x" type="button" title="Close">${I.x}</button>`;
+    top.innerHTML = `<span class="ttl">${esc(g.title)}</span>${g.state !== 'lobby' && g.state !== 'ended' ? `<span class="tag-s">Question ${g.q_index + 1} / ${g.total}</span>` : ''}<span class="pl-count">${I.users}${g.players.length}</span><span class="tag-s acc">PIN ${g.pin}</span><button class="icon-btn q-chat" type="button" title="Game chat" aria-label="Game chat">${I.chat}</button><button class="icon-btn q-x" type="button" title="Close">${I.x}</button>`;
+    top.querySelector('.q-chat').addEventListener('click', () => { sfx('tap'); chat.openGame({ host: key, title: g.title + ' · chat' }); });
     top.querySelector('.q-x').addEventListener('click', async () => {
       if (g.state !== 'ended' && !(await confirmBox('End this game?', 'Players will see the final results. You can open the report afterwards.', 'End game', true))) return;
       if (g.state !== 'ended') await doAct('end');
@@ -584,7 +587,7 @@ export async function hostPage(key) {
         : `<div class="lb-empty"><span class="lb-dots"><i></i><i></i><i></i></span><p>Players appear here as soon as they enter the PIN.</p></div>`}
       </section>
     </div>`;
-    if (!qrMod) import('./qr.js?v=18').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
+    if (!qrMod) import('./qr.js?v=19').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
     const cp = inner.querySelector('.lb-copy');
     cp.addEventListener('click', async () => { await copyText(link, 'Join link copied'); cp.classList.add('done'); cp.querySelector('span').textContent = 'Copied'; setTimeout(() => { cp.classList.remove('done'); cp.querySelector('span').textContent = 'Copy join link'; }, 1600); });
     inner.querySelector('.lb-lock').addEventListener('click', () => doAct('lock'));
@@ -694,7 +697,8 @@ function joinForm(pin) {
   });
 }
 function playStage(pin, me) {
-  const el = stage(`<div class="qz-top"><span class="ttl">Joining…</span><span class="tag-s">PIN ${esc(pin)}</span></div><div class="qz-body"><div class="qz-in"></div></div><div class="pl-bar"><b class="grow nkn">${esc(me.nick)}</b><span class="sc">0</span></div>`);
+  const el = stage(`<div class="qz-top"><span class="ttl">Joining…</span><span class="tag-s">PIN ${esc(pin)}</span></div><div class="qz-body"><div class="qz-in"></div></div><div class="pl-bar"><button class="icon-btn pl-chat" type="button" title="Game chat" aria-label="Game chat">${I.chat}</button><b class="grow nkn">${esc(me.nick)}</b><span class="sc">0</span></div>`);
+  el.querySelector('.pl-chat').addEventListener('click', () => { sfx('tap'); chat.openGame({ pin, pkey: me.pkey, title: 'Game chat' }); });
   const top = el.querySelector('.ttl'), inner = el.querySelector('.qz-in'), sc = el.querySelector('.sc');
   let st = null, phase = '', qi = -2, sent = null, base = 0, baseAt = 0, prevScore = 0, endPolls = 0;
   const pads = (n, showText) => `<div class="pl-pads ${n === 2 ? 'n2' : ''} ${showText ? 'txt' : ''}">${[...Array(n)].map((_, i) => `<button class="qa c${i} ${showText && /[㐀-鿿]/.test(st.opts[i]) ? 'zh' : ''}" data-i="${i}" type="button">${shp(i)}${showText ? `<span>${esc(st.opts[i])}</span>` : ''}</button>`).join('')}</div>`;

@@ -1,16 +1,18 @@
-import { I, LOGO } from './icons.js?v=18';
-import { sound, sfx, unlockAudio } from './sound.js?v=18';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=18';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=18';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=18';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=18';
-import * as social from './social.js?v=18';
-import { setVideo, setBg } from './scene.js?v=18';
-import * as walls from './walls.js?v=18';
-import * as hub from './hub.js?v=18';
-import * as duel from './duel.js?v=18';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=18';
-import { mascot } from './mascot.js?v=18';
+import { I, LOGO } from './icons.js?v=19';
+import { sound, sfx, unlockAudio } from './sound.js?v=19';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=19';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=19';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=19';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=19';
+import * as social from './social.js?v=19';
+import { setVideo, setBg } from './scene.js?v=19';
+import * as walls from './walls.js?v=19';
+import * as hub from './hub.js?v=19';
+import * as duel from './duel.js?v=19';
+import * as chat from './chat.js?v=19';
+import * as guide from './guide.js?v=19';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=19';
+import { mascot } from './mascot.js?v=19';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -144,7 +146,7 @@ function shell(route, inner, aside, opts = {}) {
       <span class="chipx fire ${lit ? 'lit' : ''}" title="Day streak">${I.flame}<b>${st}</b></span>
       <span class="chipx gem" title="Total XP">${I.gem}<b class="xp-n">${S.xp}</b></span>
       ${vipChip()}
-      ${hub.bellHTML()}${acct ? `<button class="icon-btn rail-btn" type="button" title="Friends" aria-label="Friends">${I.users}${reqN ? `<i class="badge">${reqN}</i>` : ''}</button>` : ''}
+      ${acct ? `<button class="icon-btn chat-btn" type="button" title="Messages" aria-label="Messages">${I.chat}${hub.hub.msgs ? `<i class="badge">${hub.hub.msgs > 99 ? '99+' : hub.hub.msgs}</i>` : ''}</button>` : ''}${hub.bellHTML()}${acct ? `<button class="icon-btn rail-btn" type="button" title="Friends" aria-label="Friends">${I.users}${reqN ? `<i class="badge">${reqN}</i>` : ''}</button>` : ''}
       <div class="mi me-mi"><a class="hud-me" href="#/me" title="Profile and settings">${meAv(40)}${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
         <div class="dd right" role="menu"><div class="dd-in panel solid">
           <div class="dd-me">${acct ? `<b>${esc(acct.name)}</b><small>Level ${playerLevel().lv} · VIP ${walls.myVip()}</small>` : '<b>Guest</b><small>Progress is saved on this device</small>'}</div>
@@ -173,6 +175,7 @@ function shell(route, inner, aside, opts = {}) {
   const sx = app.querySelector('.side-x'); if (sx) sx.addEventListener('click', () => hub.toggleSide(false));
   hub.wireBell(app);
   const rb = app.querySelector('.rail-btn'); if (rb) rb.addEventListener('click', () => hub.toggleRail());
+  const cb = app.querySelector('.chat-btn'); if (cb) cb.addEventListener('click', () => { sfx('tap'); chat.openChats(); });
   hub.renderRail();
   if (aside) wireAside();
 }
@@ -203,19 +206,18 @@ function asideHTML(c) {
   const qs = quests(), dueN = due(S.lang).length, allDone = qs.every((q) => q.v >= q.n), opened = S.dchest === today();
   const ph = phraseOfDay(c); phraseRef = ph;
   const zh = isZh(), p = playerLevel();
-  const got = BADGES.filter(([id]) => S.badges[id]), next = BADGES.filter(([id]) => !S.badges[id]).slice(0, 3);
   return `
   <div class="mic-slot"></div>
   <section class="panel lvcard">
     ${lvRing(64)}
     <div><small>Player level</small><b>Level ${p.lv}</b><span class="bar"><i style="width:${Math.round(p.cur / p.need * 100)}%"></i></span><em>${p.cur} / ${p.need} XP · today ${todayXP()} XP</em></div>
   </section>
+  ${walls.miniHTML()}
   <section class="panel quests">
     <h3>${I.target} Daily quests</h3>
     ${qs.map((q) => { const pc = Math.min(1, q.v / q.n), ok = pc >= 1; return `<div class="quest ${ok ? 'ok' : ''}"><span class="qi">${ok ? I.check : I[q.ic]}</span><div class="qb"><b>${q.t}<em>${Math.min(q.v, q.n)}/${q.n}</em></b><span class="qbar"><i style="width:${Math.round(pc * 100)}%"></i></span></div></div>`; }).join('')}
     <button class="dchest ${allDone && !opened ? 'ready' : ''} ${opened ? 'opened' : ''}" type="button" ${allDone && !opened ? '' : 'disabled'}>${chestSVG(opened)}<span>${opened ? 'Chest opened today' : allDone ? 'Open your reward chest!' : 'Finish 3 quests to open the chest'}</span></button>
   </section>
-  ${walls.miniHTML()}
   ${ph ? `<section class="panel phrase">
     <h3>${I.chat} Phrase of the day</h3>
     <p class="ph-t ${zh ? 'zh' : ''}">${esc(textOf(S.lang, ph.l))}</p>
@@ -225,11 +227,7 @@ function asideHTML(c) {
   </section>` : ''}
   <a class="panel mini-link" href="#/review"><span class="ml-ic">${I.cards}</span><span><b>${dueN ? `${dueN} cards due` : 'Review cards'}</b><small>${dueN ? 'Review now to remember longer' : 'Cards come back right before you forget'}</small></span>${I.chev}</a>
   ${!acct ? `<a class="panel mini-link save" href="#/me"><span class="ml-ic">${I.cloud}</span><span><b>Save your progress</b><small>Name + PIN, continue on any device</small></span>${I.chev}</a>` : ''}
-  <section class="panel badges-mini">
-    <h3>${I.medal} Badges <em>${got.length}/${BADGES.length}</em></h3>
-    <div class="bm-row">${got.slice(-4).map(([, t, , ic]) => `<span class="bdg on" title="${esc(t)}">${I[ic]}</span>`).join('')}${next.map(([, t, d, ic]) => `<span class="bdg" title="${esc(t)}: ${esc(d)}">${I[ic]}</span>`).join('')}</div>
-    <a class="more" href="#/collection/badges">See all</a>
-  </section>`;
+`;
 }
 function micHelpSheet() {
   sheet(`<h2>Turn on the microphone</h2><p class="sub">Chrome is blocking the microphone for desktopchill.com, so speaking exercises can't hear you.</p>${MIC_HELP}<button class="btn acc wide mic-recheck" type="button" style="margin-top:14px">${I.redo} Check again</button><p class="muted mic-res" style="margin-top:8px;font-size:.88rem"></p>`, (el) => {
@@ -308,10 +306,8 @@ function currentPos(c) {
   return { L, u, k };
 }
 // học tuần tự: chỉ mở bài đã học hoặc bài kế tiếp (không học vượt để mở rương)
-function canStart(c, uid, k) {
-  if ((S.done[uid] || [])[k]) return true;
-  const cur = currentPos(c); return !!(cur.u && cur.u.id === uid && cur.k === k);
-}
+// v19: mọi bài và mọi chủ đề đều mở; rương chỉ mở khi xong cả 8 bài của chủ đề
+function canStart() { return true; }
 function curveSegs(Q) {
   const f = (n) => Math.round(n * 10) / 10, out = [];
   for (let i = 0; i < Q.length - 1; i++) {
@@ -338,8 +334,8 @@ function pathHTML(c, W) {
     const nodes = LESSONS.map((ls) => {
       const pt = P[ls.k], dn = !!d[ls.k], isCur = cur.u === u && cur.k === ls.k, stars = starsOf(u.id, ls.k);
       const pop = justBuilt && justBuilt.unit === u.id && justBuilt.k === ls.k;
-      return `<button class="node ${dn ? 'done' : isCur ? 'cur' : 'todo locked'} ${pop ? 'pop-in' : ''} ${ls.k === 7 ? 'test' : ''}" style="left:${pt.x}px;top:${pt.y}px" data-u="${u.id}" data-k="${ls.k}" aria-label="${esc(u.title)}: ${esc(lessonName(lang, ls.k))}${dn ? `, ${stars} stars` : isCur ? '' : ', locked'}">
-        ${isCur ? '<span class="tip">Start</span>' : ''}<span class="face">${I[ls.icon]}</span>${!dn && !isCur ? `<span class="nlock">${I.lock}</span>` : ''}${dn ? starRow(stars) : ''}</button>`;
+      return `<button class="node ${dn ? 'done' : isCur ? 'cur' : 'todo'} ${pop ? 'pop-in' : ''} ${ls.k === 7 ? 'test' : ''}" style="left:${pt.x}px;top:${pt.y}px" data-u="${u.id}" data-k="${ls.k}" aria-label="${esc(u.title)}: ${esc(lessonName(lang, ls.k))}${dn ? `, ${stars} stars` : ''}">
+        ${isCur ? '<span class="tip">Start</span>' : ''}<span class="face">${I[ls.icon]}</span>${dn ? starRow(stars) : ''}</button>`;
     }).join('');
     const cp = P[LN], opened = !!S.chests[u.id], ready = p === LN && !opened;
     const upg = opened && p === LN && walls.CAT && walls.canUpgrade(u.id, walls.chestStars(u.id));
@@ -449,7 +445,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=18').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=19').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -494,7 +490,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=18').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=19').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -976,7 +972,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=18').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=19').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */
@@ -1011,6 +1007,7 @@ async function render() {
   }
   window.scrollTo(0, 0);
   hub.applyChrome();
+  guide.maybeStart();
 }
 lvBefore = playerLevel().lv;
 // đi tới một chủ đề / level (từ bộ sưu tập)
