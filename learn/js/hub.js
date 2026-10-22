@@ -1,13 +1,13 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=20';
-import { S, save } from './store.js?v=20';
-import * as chat from './chat.js?v=20';
-import * as acctui from './acctui.js?v=20';
-import { acct, call } from './account.js?v=20';
-import { sfx } from './sound.js?v=20';
-import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=20';
-import * as walls from './walls.js?v=20';
+import { I, LOGO } from './icons.js?v=21';
+import { S, save } from './store.js?v=21';
+import * as chat from './chat.js?v=21';
+import * as acctui from './acctui.js?v=21';
+import { acct, call } from './account.js?v=21';
+import { sfx } from './sound.js?v=21';
+import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=21';
+import * as walls from './walls.js?v=21';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -121,7 +121,8 @@ function text(n) {
     case 'duel_pick': return { t: `${n.name} picked ${w} as a duel prize`, h: `${who} won your duel and copied <b>${esc(w)}</b> into their collection. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
-    case 'update': return { t: `New update: ${p.added || 'many'} new units`, h: `<b>New update.</b> ${p.added || 'Many'} new units with practical, everyday topics across English, 中文 and IELTS. Your progress is safe.`, ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) };
+    case 'update': return +p.v >= 21 ? { t: 'New: English B1+ and B2+', h: '<b>New update.</b> Two new English levels (24 units) for engineering and office life, 22 new wallpapers and cheaper XP prices. Your progress is safe.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
+      : { t: `New update: ${p.added || 'many'} new units`, h: `<b>New update.</b> ${p.added || 'Many'} new units with practical, everyday topics across English, 中文 and IELTS. Your progress is safe.`, ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) };
     case 'rank_reward': {
       const ws = p.walls || [], wn = ws.map((x) => walls.wallOf(x).name), course = { en: 'English', zh: '中文', ielts: 'IELTS', duel: 'Duel' }[p.board] || '';
       const gift = [wn.length ? `<b>${wn.map(esc).join('</b> and <b>')}</b>` : '', p.xp ? `<b>${p.xp} XP</b>` : ''].filter(Boolean).join(' and ');
@@ -175,10 +176,9 @@ function drawPanel(p) {
 }
 
 /* ---------- có gì mới (hiện 1 lần mỗi bản cập nhật nội dung) ---------- */
-const NEWS = { v: 18, added: 106, lessons: 848, courses: [
-  { lang: 'en', name: 'English', from: 60, to: 100, topics: ['At a café', 'Taking a taxi', 'Booking a hotel', 'Paying bills and the ATM', 'Complaints and refunds', 'Emergencies and accidents', 'Housing and the property market', 'Difficult conversations'] },
-  { lang: 'zh', name: '中文', from: 61, to: 97, topics: ['Buying fruit', 'Making plans with friends', 'At the hairdresser’s', 'Ordering food delivery', 'Taking the high-speed train', 'Sorting rubbish', 'Online scams', 'Moving to the city'] },
-  { lang: 'ielts', name: 'IELTS', from: 52, to: 82, topics: ['Neighbours & community', 'Online shopping & delivery', 'The gig economy', 'Personal finance & debt', 'Remote work & the future of offices', 'Loneliness in modern society', 'Universal basic income', 'Generational fairness'] },
+const NEWS = { v: 21, levels: [
+  { lv: 'b1p', name: 'English B1+', sub: 'English for our engineering office', topics: ['Reading construction drawings', 'Beams, columns and loads', 'Timber trusses and wall panels', 'QA and QC checks', 'Daily stand-up with an overseas team', 'Timesheets, overtime and leave', 'Showing visitors around Ho Chi Minh City', 'Vietnamese food and culture explained'] },
+  { lv: 'b2p', name: 'English B2+', sub: 'Leading projects and people', topics: ['Steel moment connections', 'RFIs and design changes', 'Client kick-off meetings', 'Presenting your project to your boss', 'Recruitment and interviewing', 'Performance reviews and feedback', 'Pitching Vietnam to overseas clients', 'Cross-cultural communication'] },
 ] };
 const NEWS_KEY = 'dcl_news_' + NEWS.v;
 const seenNews = () => { try { return localStorage.getItem(NEWS_KEY) === '1'; } catch (e) { return true; } };
@@ -190,15 +190,16 @@ export function whatsNew(force) {
   if (acct) call('learn_notifs_read_kind', { p_kind: 'update' }).then(() => { hub.items.forEach((x) => { if (x.kind === 'update' && !x.read) { x.read = true; hub.unread = Math.max(0, hub.unread - 1); } }); paintBadges(); }).catch(() => {});
   sfx('quest');
   sheet(`<div class="wn">
-    <div class="wn-h"><span class="wn-logo">${LOGO}</span><div><h2>${NEWS.added} new units</h2><p class="sub">Practical, everyday topics in all three courses: ${NEWS.lessons} new lessons, each with its own chest. Your progress and wallpapers are untouched.</p></div></div>
-    <div class="wn-c">${NEWS.courses.map((c) => `<section class="wn-k" data-l="${c.lang}">
-      <div class="wn-kh"><b>${c.name}</b><span class="wn-n"><s>${c.from}</s>${I.chev}<em>${c.to}</em> units</span></div>
+    <div class="wn-h"><span class="wn-logo">${LOGO}</span><div><h2>Two new English levels</h2><p class="sub">B1+ and B2+: 24 units (192 lessons) built around an engineering office — drawings, steel and timber, client meetings, presenting to your boss, HR, and showing Vietnam to overseas visitors. Your progress and wallpapers are untouched.</p></div></div>
+    <div class="wn-c">${NEWS.levels.map((c) => `<section class="wn-k" data-l="en">
+      <div class="wn-kh"><b>${c.name}</b><span class="wn-n"><em>12</em> units</span></div>
+      <p class="muted" style="margin:0 0 6px">${esc(c.sub)}</p>
       <ul>${c.topics.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-      <button class="btn sm ${c.lang === S.lang ? 'acc' : 'ghost'} wn-go" type="button" data-l="${c.lang}">${c.lang === S.lang ? 'Keep learning' : 'Open ' + c.name}</button>
+      <button class="btn sm ${S.lang === 'en' ? 'acc' : 'ghost'} wn-go" type="button" data-lv="${c.lv}">Open ${c.name.replace('English ', '')}</button>
     </section>`).join('')}</div>
-    <p class="wn-note">${I.sparkle}<span>New units sit at the end of each level, so levels you already finished have a few fresh topics waiting.</span></p>
+    <p class="wn-note">${I.sparkle}<span>Also new: 22 wallpapers (72–93) in the B1+ and B2+ chests and bosses, wallpapers cost 40% less XP, duels now go from easy to expert with general-knowledge questions, and the phone layout is easier to use.</span></p>
   </div>`, (el, close) => {
-    el.querySelectorAll('.wn-go').forEach((b) => b.addEventListener('click', () => { close(); const l = b.dataset.l; if (l === S.lang) { if (location.hash !== '#/' && location.hash !== '') location.hash = '#/'; } else C.goTo(l); }));
+    el.querySelectorAll('.wn-go').forEach((b) => b.addEventListener('click', () => { close(); C.goTo('en', b.dataset.lv); }));
   }, 'wide');
 }
 
@@ -305,7 +306,7 @@ function wireRail(r) {
   const rm = r.querySelector('.rl-msg'); if (rm) rm.addEventListener('click', () => { document.getElementById('sheet-root').innerHTML = ''; chat.openChats(); });
   wireRank(r);
 }
-function railSheet() {
+export function railSheet() {
   if (!acct) { C.authSheet('login'); return; }
   sheet('<div class="rail in-sheet"></div>', (el) => { const r = el.querySelector('.rail'); r.innerHTML = railInner(); wireRail(r); const x = r.querySelector('.rl-x'); if (x) x.remove(); });
   loadFriends();

@@ -1,11 +1,11 @@
 // Kho hình nền: phần thưởng trong rương chủ đề và boss, bộ sưu tập, VIP, chia sẻ cho bạn bè, đặt làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=20';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=20';
-import { acct, call, push } from './account.js?v=20';
-import { sfx } from './sound.js?v=20';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=20';
+import { I } from './icons.js?v=21';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=21';
+import { acct, call, push } from './account.js?v=21';
+import { sfx } from './sound.js?v=21';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=21';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -13,7 +13,7 @@ export let CAT = null;
 const BYID = {};
 export async function loadCat() {
   if (CAT) return CAT;
-  const r = await fetch('data/walls.json?v=3'); CAT = await r.json();
+  const r = await fetch('data/walls.json?v=4'); CAT = await r.json();
   CAT.walls.forEach((w) => { BYID[w.id] = w; });
   ensureStarters();
   return CAT;
@@ -281,8 +281,8 @@ export async function wallSheet(id) {
 
 /* ---------- đổi XP lấy hình nền ---------- */
 // XP dùng được = tổng XP − XP đã đổi (hình có nguồn "xp:<giá>"). Cấp độ người chơi không bị giảm.
-export const PRICE = { common: 960, rare: 1920, epic: 3840, legendary: 7680 };
-export const priceOf = (id) => PRICE[wallOf(id).rarity] || 7680;
+export const PRICE = { common: 576, rare: 1152, epic: 2304, legendary: 4608 };
+export const priceOf = (id) => PRICE[wallOf(id).rarity] || 4608;
 export const xpSpent = () => Object.values(S.walls).reduce((a, x) => a + (/^xp:\d+$/.test((x && x.src) || '') ? +x.src.slice(3) : 0), 0);
 export const xpLeft = () => Math.max(0, (S.xp || 0) - xpSpent());
 const fmt = (n) => Number(n).toLocaleString('en-US');
@@ -381,7 +381,7 @@ export async function collectionPage(args = []) {
     if (colTab === 'badges') body = C.badgesHTML();
     else if (colTab === 'all') body = allTab();
     else body = await courseTab(colTab);
-    C.shell('#/collection', `<div class="page-h"><div><h1>Collection</h1><p>${total()} animated wallpapers. You start with ${(CAT.starters || []).length}; the rest hide in unit chests and level bosses. A 2★ chest gives 1, a 3★ chest gives 2, a boss gives up to 3. English, 中文 and IELTS each hold all of them, in a different order.</p></div></div>
+    C.shell('#/collection', `<div class="page-h"><div><h1>Collection</h1><p>${total()} animated wallpapers. You start with ${(CAT.starters || []).length}; the rest hide in unit chests and level bosses. A 2★ chest gives 1, a 3★ chest gives 2, a boss gives up to 3. Wallpapers 72–93 are new: find them in the English B1+ and B2+ chests and bosses, or unlock any wallpaper with XP.</p></div></div>
     <section class="col-top">
       <div class="panel col-count"><div class="cc-n"><b>${n}</b><span>/ ${CAT.walls.length}</span></div><small>wallpapers collected</small>
         <div class="cc-xp">${I.gem}<span><b>${fmt(xpLeft())} XP to spend</b><small>Tap any wallpaper to unlock it with XP: common ${fmt(PRICE.common)}, rare ${fmt(PRICE.rare)}, epic ${fmt(PRICE.epic)}, legendary ${fmt(PRICE.legendary)}.</small></span></div>
