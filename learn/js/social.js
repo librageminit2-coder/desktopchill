@@ -1,13 +1,13 @@
 // Học cùng nhau: bạn bè, lớp học (giáo viên / trợ giảng / học viên), quiz trực tiếp kiểu “nhập PIN cùng chơi” và báo cáo.
 // Mọi dữ liệu đi qua các hàm RPC trên Supabase (xem learn/setup/learn_social.sql).
-import { I } from './icons.js?v=19';
-import { S, save, LN, unitProgress } from './store.js?v=19';
-import { acct, call, rpc, ensureToken } from './account.js?v=19';
-import { sfx, unlockAudio } from './sound.js?v=19';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=19';
-import * as hub from './hub.js?v=19';
-import * as chat from './chat.js?v=19';
-import * as walls from './walls.js?v=19';
+import { I } from './icons.js?v=20';
+import { S, save, LN, unitProgress } from './store.js?v=20';
+import { acct, call, rpc, ensureToken } from './account.js?v=20';
+import { sfx, unlockAudio } from './sound.js?v=20';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=20';
+import * as hub from './hub.js?v=20';
+import * as chat from './chat.js?v=20';
+import * as walls from './walls.js?v=20';
 
 let C = null; // ngữ cảnh từ app.js
 export const counts = { get requests() { return hub.hub.requests || 0; }, set requests(v) { hub.hub.requests = v; }, rooms: 0 };
@@ -587,7 +587,7 @@ export async function hostPage(key) {
         : `<div class="lb-empty"><span class="lb-dots"><i></i><i></i><i></i></span><p>Players appear here as soon as they enter the PIN.</p></div>`}
       </section>
     </div>`;
-    if (!qrMod) import('./qr.js?v=19').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
+    if (!qrMod) import('./qr.js?v=20').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
     const cp = inner.querySelector('.lb-copy');
     cp.addEventListener('click', async () => { await copyText(link, 'Join link copied'); cp.classList.add('done'); cp.querySelector('span').textContent = 'Copied'; setTimeout(() => { cp.classList.remove('done'); cp.querySelector('span').textContent = 'Copy join link'; }, 1600); });
     inner.querySelector('.lb-lock').addEventListener('click', () => doAct('lock'));

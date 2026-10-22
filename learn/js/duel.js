@@ -1,20 +1,20 @@
 // Khiêu chiến 1-1 không cần online cùng lúc: người A làm 10 câu (dễ → rất khó, 20 giây mỗi câu), kết quả lưu trên máy chủ,
 // người B nhận thông báo và làm cùng đề. Người thắng chọn 1 hình nền trong bộ sưu tập của người thua (người thua không mất gì).
 // v19: mỗi ngày 10 lượt khiêu chiến; chỉ trận thắng đầu tiên trong ngày có quà. Người nhận có 24 giờ, quá hạn bị xử thua và quà tự chuyển cho người thắng.
-import { I } from './icons.js?v=19';
-import { S, save } from './store.js?v=19';
-import { acct, call } from './account.js?v=19';
-import { sfx, unlockAudio } from './sound.js?v=19';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=19';
-import * as walls from './walls.js?v=19';
-import { hub, loadFriends } from './hub.js?v=19';
+import { I } from './icons.js?v=20';
+import { S, save } from './store.js?v=20';
+import { acct, call } from './account.js?v=20';
+import { sfx, unlockAudio } from './sound.js?v=20';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=20';
+import * as walls from './walls.js?v=20';
+import { hub, loadFriends } from './hub.js?v=20';
 
 let C = null;
 export function init(ctx) { C = ctx; }
 const app = document.getElementById('app');
 const QMS = 20000;
 const DIFF = ['Easy', 'Medium', 'Hard', 'Very hard', 'Expert'];
-const ERR = { duel_today: 'You used all 10 challenges for today. Answering challenges sent to you is unlimited.', noprize: 'This win counts for the ranking only. You already took today’s prize.', noone: 'Nobody else has been online in the last 3 days. Challenge a friend instead.', notfriend: 'You can only pick a friend here, or choose a random opponent.', duel_open: 'You already have an open duel with this friend. Finish it first.', noquestions: 'Could not build questions for this course.', self: 'You cannot duel yourself.', expired: 'This duel expired (3 days without an answer).', notyourturn: 'It is not your turn.', noduel: 'Duel not found.', pick_today: 'You already picked a prize today. This one waits for you until tomorrow.', picked: 'Prize already picked.', youhave: 'You already have that wallpaper.', notowned: 'They no longer have that wallpaper.', notwinner: 'Only the winner picks a prize.' };
+const ERR = { duel_today: 'You used all 10 challenges for today. Answering challenges sent to you is unlimited.', noprize: 'This win counts for the ranking only. You already took today’s prize.', noone: 'Nobody else has been online in the last 3 days. Challenge a friend instead.', notfriend: 'You can only pick a friend here, or choose a random opponent.', nouser: 'This learner is not available for duels.', duel_open: 'You already have an open duel with this friend. Finish it first.', noquestions: 'Could not build questions for this course.', self: 'You cannot duel yourself.', expired: 'This duel expired (3 days without an answer).', notyourturn: 'It is not your turn.', noduel: 'Duel not found.', pick_today: 'You already picked a prize today. This one waits for you until tomorrow.', picked: 'Prize already picked.', youhave: 'You already have that wallpaper.', notowned: 'They no longer have that wallpaper.', notwinner: 'Only the winner picks a prize.' };
 addEventListener('hashchange', () => { const st = document.querySelector('.du-stage'); if (st && !location.hash.startsWith('#/duel')) { st.remove(); document.body.classList.remove('quizzing'); } });
 const em = (j) => ERR[j && j.error] || (j && j.error) || 'Something went wrong.';
 
@@ -64,6 +64,8 @@ export async function duelPage(args = []) {
   let L, F;
   try { [L] = await Promise.all([call('learn_duel_list'), hub.friends ? null : loadFriends()]); } catch (e) { toast(e.message); return; }
   F = ((hub.friends && hub.friends.items) || []).filter((x) => x.status === 'accepted');
+  // người được chọn từ bảng xếp hạng (có thể chưa là bạn)
+  if (preFriend && !F.some((f) => f.uid === preFriend)) { try { const t = JSON.parse(sessionStorage.getItem('dcl_duel_target') || 'null'); if (t && t.uid === preFriend) F = [{ ...t, ranked: true }, ...F]; } catch (e) {} }
   if (!location.hash.startsWith('#/duel')) return;
   pickLang = pickLang || S.lang;
   const items = L.items || [];
@@ -82,7 +84,7 @@ export async function duelPage(args = []) {
       <div class="field"><label>Course</label><div class="seg du-lang">${C.AVAIL.map((l) => `<button type="button" data-l="${l}" aria-pressed="${pickLang === l}" class="${l === 'zh' ? 'zh' : ''}">${esc(C.COURSES[l].short)}</button>`).join('')}</div></div>
       <div class="field"><label>Opponent</label><div class="du-opp">
         <button type="button" class="du-o rnd" data-u="" aria-pressed="${!preFriend}"><span class="du-dice">${I.dice}</span><b>Random</b><small>${L.pool || 0} learners active in the last 3 days, close to your VIP</small></button>
-        ${F.map((f) => `<button type="button" class="du-o" data-u="${f.uid}" aria-pressed="${preFriend === f.uid}">${vipAv(f.name, f.avatar, f.vip || 0)}<b>${esc(f.name)}</b><small>${f.walls || 0}/${walls.total()} wallpapers</small></button>`).join('')}
+        ${F.map((f) => `<button type="button" class="du-o" data-u="${f.uid}" aria-pressed="${preFriend === f.uid}">${vipAv(f.name, f.avatar, f.vip || 0)}<b>${esc(f.name)}</b><small>${f.ranked ? 'From the ranking' : `${f.walls || 0}/${walls.total()} wallpapers`}</small></button>`).join('')}
       </div></div>
       <p class="err du-err"></p>
       <button class="btn acc wide du-go" type="button">${I.swords} Start the duel</button>`}

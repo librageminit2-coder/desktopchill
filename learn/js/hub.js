@@ -1,12 +1,13 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=19';
-import { S, save } from './store.js?v=19';
-import * as chat from './chat.js?v=19';
-import { acct, call } from './account.js?v=19';
-import { sfx } from './sound.js?v=19';
-import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=19';
-import * as walls from './walls.js?v=19';
+import { I, LOGO } from './icons.js?v=20';
+import { S, save } from './store.js?v=20';
+import * as chat from './chat.js?v=20';
+import * as acctui from './acctui.js?v=20';
+import { acct, call } from './account.js?v=20';
+import { sfx } from './sound.js?v=20';
+import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=20';
+import * as walls from './walls.js?v=20';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -68,6 +69,7 @@ export async function poll(first = false) {
     if (first || !hub.friends || Date.now() - hub.fAt > 120000) loadFriends();
     walls.checkVip();
     tick();
+    acctui.checkAccount(j);
   } catch (e) {}
 }
 // xử trận duel hết hạn, chốt bảng tuần và nhận XP thưởng từ máy chủ
@@ -127,6 +129,7 @@ function text(n) {
         ? { t: `Top ${p.rank} in last week’s duels!`, h: `You finished <b>#${p.rank}</b> in last week’s duel ranking. Reward: ${gift}.`, ic: 'trophy', go: ws.length ? '#/collection' : '#/duel', wall: ws[0] }
         : { t: `You reached #${p.rank} in ${course}!`, h: `You reached <b>#${p.rank}</b> in the ${esc(course)} ranking. Reward: ${gift}.`, ic: 'trophy', go: ws.length ? '#/collection' : '#/', wall: ws[0] };
     }
+    case 'security': return p.what === 'pin' ? { t: 'Your PIN was changed', h: '<b>Your PIN was changed.</b> If this was not you, use “Forgot your PIN?” on the sign-in screen right away.', ic: 'lock' } : { t: 'Your email or phone was changed', h: '<b>Your email or phone number was changed.</b> If this was not you, use “Forgot your PIN?” on the sign-in screen right away.', ic: 'lock' };
     case 'msg': return { t: `${n.name} sent you a message`, h: `${who} sent you a message`, ic: 'chat' };
     default: return { t: 'New notification', h: 'New notification', ic: 'bell' };
   }
@@ -230,7 +233,7 @@ function rankRows(board) {
   const items = d.items || [];
   const rows = items.map((x) => `<div class="rk-i ${x.rel === 'me' ? 'me' : ''}" data-u="${x.uid}">${medal(x.rank)}<span class="rk-av">${vipAv(x.name, x.avatar, x.vip || 0)}</span>
       <span class="rk-t"><b>${esc(x.name)}${x.rel === 'me' ? ' (you)' : ''}</b><small>${x.score} ${unit}${duel ? ` · ${x.wins}W / ${x.played}` : ''}</small></span>
-      ${x.rel === 'none' ? `<button class="icon-btn sm rk-add" type="button" title="Add ${esc(x.name)} as a friend" aria-label="Add friend">${I.plus}</button>` : x.rel === 'sent' ? '<span class="rk-s">Sent</span>' : x.rel === 'incoming' ? '<a class="rk-s acc" href="#/friends">Accept</a>' : x.rel === 'friend' ? `<span class="rk-s ok" title="Friend">${I.check}</span>` : ''}</div>`).join('');
+      ${x.rel !== 'me' ? `<button class="icon-btn sm rk-duel" type="button" title="Challenge ${esc(x.name)} to a duel" aria-label="Duel">${I.swords}</button>` : ''}${x.rel === 'none' ? `<button class="icon-btn sm rk-add" type="button" title="Add ${esc(x.name)} as a friend" aria-label="Add friend">${I.plus}</button>` : x.rel === 'sent' ? '<span class="rk-s">Sent</span>' : x.rel === 'incoming' ? '<a class="rk-s acc" href="#/friends">Accept</a>' : x.rel === 'friend' ? `<span class="rk-s ok" title="Friend">${I.check}</span>` : ''}</div>`).join('');
   const meIn = items.some((x) => x.rel === 'me');
   const me = d.me && !meIn ? `<div class="rk-i me out">${medal(d.me.rank)}<span class="rk-av">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, walls.myVip())}</span><span class="rk-t"><b>You</b><small>${d.me.score} ${unit}</small></span></div>` : '';
   const empty = !items.length ? `<p class="rk-load">${duel ? 'No duels finished this week yet. Win one to take #1.' : 'Nobody has stars here yet. Finish a lesson to take #1.'}</p>` : '';
@@ -245,6 +248,11 @@ function paintRank(el) {
   el.classList.toggle('shut', !rk.open);
   el.querySelectorAll('.rk-tabs button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.b === b));
   const body = el.querySelector('.rk-body'); if (body) body.innerHTML = rankRows(b);
+  el.querySelectorAll('.rk-duel').forEach((btn) => btn.addEventListener('click', (e) => {
+    e.stopPropagation(); const row = btn.closest('.rk-i'), d = rk.data[b], x = d && d.items.find((i) => String(i.uid) === row.dataset.u); if (!x) return;
+    try { sessionStorage.setItem('dcl_duel_target', JSON.stringify({ uid: x.uid, name: x.name, avatar: x.avatar, vip: x.vip, rel: x.rel })); } catch (er) {}
+    sfx('tap'); document.getElementById('sheet-root').innerHTML = ''; location.hash = '#/duel/new/' + x.uid;
+  }));
   el.querySelectorAll('.rk-add').forEach((btn) => btn.addEventListener('click', async (e) => {
     e.stopPropagation(); const row = btn.closest('.rk-i'), d = rk.data[b], x = d && d.items.find((i) => String(i.uid) === row.dataset.u); if (!x) return;
     btn.disabled = true;

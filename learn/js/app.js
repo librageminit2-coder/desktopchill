@@ -1,18 +1,19 @@
-import { I, LOGO } from './icons.js?v=19';
-import { sound, sfx, unlockAudio } from './sound.js?v=19';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=19';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=19';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=19';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=19';
-import * as social from './social.js?v=19';
-import { setVideo, setBg } from './scene.js?v=19';
-import * as walls from './walls.js?v=19';
-import * as hub from './hub.js?v=19';
-import * as duel from './duel.js?v=19';
-import * as chat from './chat.js?v=19';
-import * as guide from './guide.js?v=19';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=19';
-import { mascot } from './mascot.js?v=19';
+import { I, LOGO } from './icons.js?v=20';
+import { sound, sfx, unlockAudio } from './sound.js?v=20';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=20';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=20';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=20';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=20';
+import * as social from './social.js?v=20';
+import { setVideo, setBg } from './scene.js?v=20';
+import * as walls from './walls.js?v=20';
+import * as hub from './hub.js?v=20';
+import * as duel from './duel.js?v=20';
+import * as chat from './chat.js?v=20';
+import * as guide from './guide.js?v=20';
+import * as acctui from './acctui.js?v=20';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=20';
+import { mascot } from './mascot.js?v=20';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -445,7 +446,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=19').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=20').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -490,7 +491,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=19').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=20').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -791,8 +792,8 @@ async function me() {
     <div class="row"><span class="grow"><b>Background brightness</b><small>Darker makes text easier to read</small></span><select class="input dim" style="width:auto;height:42px">${[['0', 'Bright'], ['1', 'Dim'], ['2', 'Dark']].map(([v, l]) => `<option value="${v}" ${dim === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
   </div>
   <div class="list">
-    ${acct ? `<div class="panel pad"><h3>Account</h3><p class="muted" style="margin:6px 0 12px">Sign in with <b>${esc(acct.name)}</b> and your PIN on another device to continue.${acct.code ? ` Your friend code is <b style="letter-spacing:.12em;color:var(--ink)">${esc(acct.code)}</b>.` : ''}</p><div class="foot-row"><button class="btn ghost syncnow">${I.cloud} Save now</button><button class="btn ghost out">${I.logout} Sign out</button></div></div>`
-      : `<div class="panel pad"><h3>Save your progress</h3><p class="muted" style="margin:6px 0 12px">Just a name and a 4–6 digit PIN. No email or phone number.</p><button class="btn acc wide mk">Create account</button><button class="btn ghost wide lg" style="margin-top:10px">I already have an account</button></div>`}
+    ${acct ? `${acctui.accountPanelHTML()}<div class="foot-row"><button class="btn ghost syncnow">${I.cloud} Save now</button><button class="btn ghost out">${I.logout} Sign out</button></div>`
+      : `<div class="panel pad"><h3>Save your progress</h3><p class="muted" style="margin:6px 0 12px">A name, your email, your phone number and a 4–6 digit PIN. Sign in on any device with any of them.</p><button class="btn acc wide mk">Create account</button><button class="btn ghost wide lg" style="margin-top:10px">I already have an account</button></div>`}
     <div class="panel pad"><h3>About</h3><p class="muted" style="font-size:.9rem;margin-top:6px">English A1–C1, Chinese HSK1–HSK6 and an IELTS path by band. 8 lessons per unit. Voices and speech scoring use your browser's built-in features; character writing uses the open-source Hanzi Writer library. Content written by desktopchill and not yet reviewed by native speakers.</p><button class="btn ghost wide wipe" style="margin-top:12px">Erase progress on this device</button></div>
   </div></div>`, null);
   const q = (s) => app.querySelector(s);
@@ -810,6 +811,7 @@ async function me() {
   app.querySelectorAll('.mc-grid').forEach((g) => walls.wireCards(g, (id) => { sfx('open'); walls.wallSheet(id); }));
   q('.dim').addEventListener('change', (e) => { const v = e.target.value; if (v === '0') delete document.documentElement.dataset.dim; else document.documentElement.dataset.dim = v; try { localStorage.setItem('dcl_dim', v === '0' ? '' : v); } catch (er) {} });
   const ap = q('.av-pick'); if (ap) ap.addEventListener('click', avatarSheet);
+  if (acct) acctui.wireAccountPanel(app, () => me());
   q('.wipe').addEventListener('click', () => { if (confirm('Erase all progress on this device?' + (acct ? ' Your online account stays as it is.' : ''))) { logout(); reset(); location.hash = '#/'; render(); } });
   if (acct) {
     q('.syncnow').addEventListener('click', async () => { await push(); toast(sync.state === 'ok' ? 'Saved to your account' : 'Could not save. Check your connection.'); me(); });
@@ -890,18 +892,21 @@ function micTest() {
 function authForm(mode) {
   return `<div class="tabs2" role="group"><button data-m="new" aria-pressed="${mode === 'new'}">Create account</button><button data-m="login" aria-pressed="${mode === 'login'}">Sign in</button></div>
   <form class="authf" style="margin-top:14px" novalidate>
-    <div class="field"><label for="an">Your name</label><input class="input" id="an" autocomplete="username" maxlength="24" placeholder="e.g. tuan.mitek" required /><small class="nchk" aria-live="polite"></small></div>
-    <div class="field"><label for="ap">PIN (4–6 digits)</label><input class="input pin" id="ap" type="password" inputmode="numeric" autocomplete="${mode === 'new' ? 'new-password' : 'current-password'}" maxlength="6" placeholder="••••" required /></div>
+    <div class="field"><label for="an">${mode === 'new' ? 'Your name' : 'Name, email or phone'}</label><input class="input" id="an" autocomplete="username" maxlength="${mode === 'new' ? 24 : 120}" placeholder="${mode === 'new' ? 'e.g. tuan.mitek' : 'tuan.mitek or tuan@mii.com'}" required /><small class="nchk" aria-live="polite"></small></div>
+    ${mode === 'new' ? acctui.contactFields() : ''}
+    <div class="field"><label for="ap">PIN (4–6 digits)</label><input class="input pin" id="ap" type="password" inputmode="numeric" autocomplete="${mode === 'new' ? 'new-password' : 'current-password'}" maxlength="6" placeholder="••••" required />${mode === 'login' ? '<button class="linkb fgt" type="button">Forgot your PIN?</button>' : ''}</div>
     <label class="remember"><input type="checkbox" class="rem" checked><span>Remember me on this device</span></label>
     <p class="err" role="alert"></p>
     <button class="btn acc wide sub" type="submit">${mode === 'new' ? 'Create account' : 'Sign in'}</button>
-    <p class="muted" style="font-size:.84rem;margin-top:10px">${mode === 'new' ? 'Remember your name and PIN to sign in again. The PIN is only used for this learning site.' : 'Your saved progress will be loaded onto this device.'}</p>
+    <p class="muted" style="font-size:.84rem;margin-top:10px">${mode === 'new' ? 'Sign in later with your name, email or phone and your PIN. The PIN is only used for this learning site.' : 'Your saved progress will be loaded onto this device.'}</p>
   </form>`;
 }
 function wireAuth(el, mode, done) {
   el.querySelectorAll('.tabs2 button').forEach((b) => b.addEventListener('click', () => { const m = b.dataset.m; el.querySelector('.authwrap').innerHTML = authForm(m); wireAuth(el, m, done); }));
   const f = el.querySelector('.authf'), err = el.querySelector('.err'), sub = el.querySelector('.sub');
   el.querySelector('#ap').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, ''); });
+  if (mode === 'new') acctui.wireContact(el);
+  const fg = el.querySelector('.fgt'); if (fg) fg.addEventListener('click', () => acctui.forgotSheet(el.querySelector('#an').value.trim()));
   // kiểm tra trùng tên ngay khi gõ (chỉ khi tạo tài khoản)
   let taken = false, nt = 0;
   const nIn = el.querySelector('#an'), nChk = el.querySelector('.nchk');
@@ -915,12 +920,15 @@ function wireAuth(el, mode, done) {
   f.addEventListener('submit', async (e) => {
     e.preventDefault(); err.textContent = '';
     const n = el.querySelector('#an').value, p = el.querySelector('#ap').value;
-    if (!validName(n)) { err.textContent = 'Name must be 3–24 characters: letters, numbers, dots or dashes.'; return; }
+    if (mode === 'new' && (!validName(n) || /^[\d ._-]+$/.test(n.trim()))) { err.textContent = 'Name must be 3–24 characters with at least one letter: letters, numbers, dots or dashes.'; return; }
+    if (mode === 'login' && n.trim().length < 3) { err.textContent = 'Enter your account name, email or phone.'; return; }
+    const ct = mode === 'new' ? acctui.readContact(el) : {};
+    if (ct.err) { err.textContent = ct.err; return; }
     if (!validPin(p)) { err.textContent = 'PIN must be 4 to 6 digits.'; return; }
     if (mode === 'new' && taken) { err.textContent = 'This account name already exists. Choose another name or sign in.'; nIn.focus(); return; }
     sub.disabled = true; sub.textContent = 'Working…';
     const rem = el.querySelector('.rem') ? el.querySelector('.rem').checked : true;
-    try { if (mode === 'new') await register(n, p, rem); else await login(n, p, rem); sfx('ok'); hub.start(); walls.syncWalls().then(() => walls.checkVip()); done(mode); }
+    try { if (mode === 'new') await register(n, p, rem, ct.email, ct.phone); else await login(n, p, rem); sfx('ok'); hub.start(); walls.syncWalls().then(() => walls.checkVip()); done(mode); }
     catch (x) { err.textContent = x.message; sub.disabled = false; sub.textContent = mode === 'new' ? 'Create account' : 'Sign in'; sfx('bad'); }
   });
 }
@@ -972,7 +980,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=19').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=20').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */

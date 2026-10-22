@@ -1,12 +1,12 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=19';
-import { mascot } from './mascot.js?v=19';
-import { sfx } from './sound.js?v=19';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=19';
+import { I } from './icons.js?v=20';
+import { mascot } from './mascot.js?v=20';
+import { sfx } from './sound.js?v=20';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=20';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
-import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=19';
+import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=20';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -228,10 +228,10 @@ R.listenLine = (el, it, api) => {
   if (audioOff()) return R.order(el, { s: it.s }, api);
   const { s } = it, zh = api.lang === 'zh';
   const others = pick(it.pool.filter((x) => x !== s), 2), opts = shuffle([s, ...others]);
-  el.innerHTML = `<p class="q">What did you hear?</p><div class="listen-big">${sayBtn()}${sayBtn('slow')}</div>${optsHTML(opts.map((o) => esc(o.vi)), api.lang)}`;
+  el.innerHTML = `<p class="q">What did you hear?</p><div class="listen-big">${sayBtn()}${sayBtn('slow')}</div>${optsHTML(opts.map((o) => esc(textOf(api.lang, o))), api.lang, zh)}`;
   wireSay(el, textOf(api.lang, s), api.lang); setTimeout(() => speak(textOf(api.lang, s), api.lang, { btn: el.querySelector('.say') }), 250);
   const done = single(el, api, opts.indexOf(s));
-  return { check: () => ({ ok: done(), answer: `${zh ? strip(s.t) : s.t}` }) };
+  return { check: () => ({ ok: done(), answer: `${zh ? strip(s.t) : s.t}`, mean: meaningOf(api, s) }) };
 };
 R.dictation = (el, it, api) => {
   if (audioOff()) return R.order(el, it, api);

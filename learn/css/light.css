@@ -189,6 +189,7 @@
 :where(:root[data-theme="light"]) .tr-tip { box-shadow: 0 18px 50px rgba(30, 50, 40, 0.203); }
 :where(:root[data-theme="light"]) .tour.wait .tr-b { background: rgba(225, 235, 229, 0.55); }
 :where(:root[data-theme="light"]) .hint { box-shadow: 0 14px 40px rgba(30, 50, 40, 0.180); }
+:where(:root[data-theme="light"]) .gate { background: rgba(225, 235, 229, 0.75); }
 
 /* ---- hand-tuned ---- */
 :root[data-theme="light"] .chip[aria-pressed="true"] { color: var(--acc-2); }

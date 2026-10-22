@@ -1,16 +1,16 @@
 // Hướng dẫn bắt buộc 1 lần cho mỗi tài khoản: đổi hình nền trong Collection, rồi đổi ảnh đại diện.
 // Sau đó là 2 gợi ý (Add friends, Duels): không chặn màn hình, chỉ tắt khi người dùng bấm đúng nút đó.
 // Lưu trong tiến trình (S.guide) nên đồng bộ theo tài khoản: làm xong một lần thì máy khác cũng không hiện lại.
-import { S, save } from './store.js?v=19';
-import { acct } from './account.js?v=19';
-import { sfx } from './sound.js?v=19';
-import { toast } from './ui.js?v=19';
+import { S, save } from './store.js?v=20';
+import { acct } from './account.js?v=20';
+import { sfx } from './sound.js?v=20';
+import { toast } from './ui.js?v=20';
 
 const g = () => { if (!S.guide || typeof S.guide !== 'object') S.guide = {}; return S.guide; };
 const vis = (el) => { if (!el || !el.isConnected) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 4 && r.height > 4 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
 const first = (sels) => { for (const s of sels) { const el = [...document.querySelectorAll(s)].find(vis); if (el) return el; } return null; };
 const route = () => location.hash || '#/';
-const blocked = () => !!document.querySelector('.player, .ovl, .qz-stage, .du-stage, .du-vs') || route().startsWith('#/play') || route().startsWith('#/host');
+const blocked = () => !!document.querySelector('.player, .ovl, .gate, .qz-stage, .du-stage, .du-vs') || route().startsWith('#/play') || route().startsWith('#/host');
 
 /* ---------- các bước ---------- */
 const flags = { bg: false, av: false };
@@ -97,7 +97,7 @@ export function maybeStart() {
   startT = setTimeout(function check() {
     startT = 0;
     if (!acct || g().tour || cur >= 0) return;
-    if (blocked() || document.querySelector('.sheet, .chat-dock:not(.inline)')) { startT = setTimeout(check, 2000); return; }
+    if (blocked() || document.querySelector('.sheet, .gate, .chat-dock:not(.inline)')) { startT = setTimeout(check, 2000); return; }
     cur = route().startsWith('#/collection') ? 1 : 0; miss = 0; flags.bg = false; flags.av = false;
     document.addEventListener('keydown', onKey, true); document.addEventListener('click', onClick, true); document.addEventListener('change', onChange, true);
     mount(); ui.root.classList.add('wait'); sfx('quest');

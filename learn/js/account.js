@@ -1,6 +1,6 @@
 // Tài khoản đơn giản: tên + mã PIN. Tiến trình lưu lên Supabase qua các hàm RPC.
 // Sau khi đăng nhập, máy chủ cấp một "token phiên" để dùng cho bạn bè, lớp học và quiz (không gửi PIN mỗi lần).
-import { S, onSave, replace } from './store.js?v=19';
+import { S, onSave, replace } from './store.js?v=20';
 const URL = 'https://phcmbgaozkaibqsttonc.supabase.co/rest/v1/rpc/';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoY21iZ2FvemthaWJxc3R0b25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODk3NTgsImV4cCI6MjEwNDk2NTc1OH0.Hvs0Gxebog5gcKILnSdT3g6nz6-GI0CEepmMJM0gCxo';
 const AKEY = 'dcl_account';
@@ -59,10 +59,14 @@ export async function call(fn, body = {}) {
   catch (e) { if (!e.auth) throw e; acct.token = null; const t2 = await auth(); return rpc(fn, { p_token: t2, ...body }); }
 }
 
-export async function register(name, pin, remember = true) {
+const REG_ERR = { badname: 'Name must be 3–24 characters with at least one letter: letters, numbers, dots or dashes.', badpin: 'PIN must be 4 to 6 digits.', bademail: 'Enter a valid email address.', badphone: 'Enter a valid phone number, e.g. 0912 345 678.', emailtaken: 'This email is already used by another account. Sign in, or use Forgot PIN.', phonetaken: 'This phone number is already used by another account. Sign in, or use Forgot PIN.', toobig: 'Your progress is too large to save. Please contact desktopchill.' };
+export const acctErr = (e, fallback = 'Something went wrong.') => REG_ERR[e] || { badpin: 'Wrong PIN.', locked: 'Too many wrong PINs. Try again in 10 minutes.', taken: 'That name is already taken.', renamelimit: 'You can change your name 3 times in 30 days.', samepin: 'Choose a PIN different from the current one.' }[e] || fallback;
+export const validEmail = (e) => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test((e || '').trim());
+export const validPhone = (p) => { const d = (p || '').replace(/\D/g, ''); return d.length >= 9 && d.length <= 15; };
+export async function register(name, pin, remember = true, email = '', phone = '') {
   name = clean(name);
-  const j = await rpc('learn_register', { p_name: name, p_pin: pin, p_data: S });
-  if (!j || !j.ok) throw new Error(j && j.error === 'taken' ? `“${name}” is already taken. Try another name, or sign in if it’s yours.` : (j && j.error) || 'Could not create the account');
+  const j = await rpc('learn_register2', { p_name: name, p_pin: pin, p_data: S, p_email: email.trim(), p_phone: phone.trim() });
+  if (!j || !j.ok) throw new Error(j && j.error === 'taken' ? `“${name}” is already taken. Try another name, or sign in if it’s yours.` : acctErr(j && j.error, 'Could not create the account'));
   setAcct({ name, pin, remember }); sync.at = Date.now(); sync.state = 'ok'; emit();
   try { await auth(); } catch (e) {}
 }
@@ -80,6 +84,19 @@ export async function login(name, pin, remember = true) {
   sync.at = Date.now(); sync.state = 'ok'; emit();
   try { await auth(); } catch (e) {}
 }
+// đổi PIN (cần PIN hiện tại); máy này giữ phiên, các máy khác bị đăng xuất
+export async function changePin(oldPin, newPin) {
+  const j = await call('learn_change_pin', { p_old: oldPin, p_new: newPin });
+  if (j && j.ok) { acct.pin = newPin; store(); emit(); }
+  return j;
+}
+// đổi tên tài khoản (tên đăng nhập + tên hiển thị)
+export async function rename(pin, name) {
+  const j = await call('learn_rename', { p_pin: pin, p_name: clean(name) });
+  if (j && j.ok) { acct.name = j.name; store(); emit(); }
+  return j;
+}
+export const forgot = (ident, contact, note) => rpc('learn_forgot', { p_ident: clean(ident), p_contact: (contact || '').trim(), p_note: (note || '').trim() });
 export function logout() { if (acct && acct.token) rpc('learn_logout', { p_token: acct.token }).catch(() => {}); setAcct(null); }
 export async function setAvatar(a) {
   if (!acct) return;
