@@ -58,7 +58,6 @@ export const avatar = (name, emo, cls = '') => isImg(emo) ? `<span class="av img
 // ảnh đại diện có vòng VIP (1–10). Không có VIP thì trả về ảnh thường.
 export const vipAv = (name, emo, vip = 0, cls = '') => {
   const v = Math.max(0, Math.min(10, vip | 0));
-  if (!v) return avatar(name, emo, cls);
   return `<span class="vav v${v} ${cls}" title="VIP ${v}"><i class="vr" aria-hidden="true"></i>${v >= 7 ? '<i class="vr2" aria-hidden="true"></i>' : ''}${v >= 9 ? '<i class="vsp" aria-hidden="true"><b></b><b></b><b></b></i>' : ''}${avatar(name, emo, cls)}<b class="vb">V${v}</b></span>`;
 };
 export function ago(t) {

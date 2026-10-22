@@ -5,6 +5,7 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const conn = navigator.connection || {};
 let off = false; try { off = localStorage.getItem('dcl_video') === 'off'; } catch (e) {}
 let bg = 0; try { bg = +(localStorage.getItem('dcl_bg') || 0) || 0; } catch (e) {}
+if (bg === 71) bg = 0; // 71 = rừng sương (nền mặc định, bản 1080p)
 const posterOf = () => (bg ? `media/walls/${bg}.jpg` : 'media/forest-poster.jpg');
 function srcOf() {
   if (bg) return `media/walls/${bg}.mp4`;
@@ -20,7 +21,7 @@ export function setVideo(on) {
 }
 // đổi nền sang hình nền đã sưu tập (id) hoặc về rừng (0)
 export function setBg(id) {
-  bg = +id || 0;
+  bg = +id === 71 ? 0 : +id || 0;
   try { localStorage.setItem('dcl_bg', bg ? String(bg) : ''); } catch (e) {}
   paintPoster();
   if (!v) return;

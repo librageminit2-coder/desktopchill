@@ -42,10 +42,14 @@ const ANDROID = /Android/i.test(navigator.userAgent);
 let rec = null, stream = null, mctx = null, raf = 0;
 // trạng thái quyền micro: granted | denied | prompt | unknown
 export async function micState() {
+  if (micPolicyBlocked()) return 'policy';
   try { const p = await navigator.permissions.query({ name: 'microphone' }); return p.state; } catch (e) { return 'unknown'; }
 }
 // theo dõi quyền micro: báo ngay khi người dùng đổi trong cài đặt trình duyệt (không cần tải lại trang)
+// máy chủ web có thể chặn micro bằng header Permissions-Policy (vd. Cloudflare "microphone=()"): khi đó cài đặt Chrome không giúp được gì
+export function micPolicyBlocked() { try { const p = document.permissionsPolicy || document.featurePolicy; return !!(p && p.allowsFeature && !p.allowsFeature('microphone')); } catch (e) { return false; } }
 export async function watchMic(cb) {
+  if (micPolicyBlocked()) { cb('policy'); return null; }
   try { const p = await navigator.permissions.query({ name: 'microphone' }); cb(p.state); p.addEventListener('change', () => cb(p.state)); return p; } catch (e) { cb('unknown'); return null; }
 }
 // thử xin quyền trực tiếp (nếu trình duyệt còn cho hỏi thì sẽ hiện hộp thoại)

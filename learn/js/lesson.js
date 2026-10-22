@@ -2,7 +2,7 @@
 import { I } from './icons.js?v=12';
 import { mascot } from './mascot.js?v=12';
 import { sfx } from './sound.js?v=12';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong } from './speech.js?v=12';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=12';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
@@ -30,7 +30,7 @@ export const lessonName = (lang, k) => (lang === 'ielts' ? IELTS_NAMES[k] : LESS
 export const lessonDesc = (lang, k) => (lang === 'ielts' ? IELTS_DESC[k] : LESSONS[k].desc);
 // tạm tắt bài nói / nghe khi người học đang ở nơi không tiện
 const pause = { mic: 0, audio: 0 };
-const micOff = () => Date.now() < pause.mic || !canListen();
+const micOff = () => Date.now() < pause.mic || !canListen() || micPolicyBlocked();
 const audioOff = () => Date.now() < pause.audio || !canSpeak();
 
 /* ---------------- dựng hàng đợi bài tập ---------------- */

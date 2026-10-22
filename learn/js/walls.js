@@ -15,7 +15,15 @@ export async function loadCat() {
   if (CAT) return CAT;
   const r = await fetch('data/walls.json?v=1'); CAT = await r.json();
   CAT.walls.forEach((w) => { BYID[w.id] = w; });
+  ensureStarters();
   return CAT;
+}
+export const total = () => (CAT ? CAT.walls.length : 71);
+// 3 hình mặc định ai cũng có (5, 41, 71) để đổi nền ngay từ đầu
+export function ensureStarters() {
+  if (!CAT) return; let ch = false;
+  (CAT.starters || []).forEach((w, i) => { if (!S.walls[w]) { S.walls[w] = { at: i, src: 'starter' }; ch = true; } });
+  if (ch) save();
 }
 export const wallOf = (id) => BYID[id] || { id, name: 'Wallpaper ' + id, rarity: 'common' };
 export const owned = (id) => !!S.walls[id];
@@ -77,6 +85,7 @@ export function syncWalls() {
       if (todo.length) j = await call('learn_walls_mine');
       (j.walls || []).forEach((x) => { if (!S.walls[x.w]) S.walls[x.w] = { at: new Date(x.at).getTime(), src: x.src }; else S.walls[x.w].src = x.src; });
       Object.entries(j.claims || {}).forEach(([k, v]) => { if ((S.wclaims[k] || 0) < v) S.wclaims[k] = v; });
+      ensureStarters();
       Object.assign(vipState, { vip: j.vip || 0, pts: j.vip_pts || 0, bonus: j.bonus || 0, share: j.share, server: true, duel_today: j.duel_today, pick_today: j.pick_today });
       save();
     } catch (e) { /* bỏ qua, thử lại lần sau */ } finally { syncing = null; }
@@ -124,27 +133,35 @@ export function card(id, o = {}) {
   const tag = o.tag ? `<span class="wc-tag">${o.tag}</span>` : '';
   return `<button class="wcard r-${w.rarity} s-${st} ${o.cls || ''}" type="button" data-w="${id}" ${o.style ? `style="${o.style}"` : ''} aria-label="${esc(w.name)}, ${RAR[w.rarity]}${st === 'got' ? '' : ', not collected'}">
     <span class="wc-in"><span class="wc-media"><img src="${poster(id)}" alt="" loading="lazy" decoding="async"></span><span class="wc-foil"></span><span class="wc-glare"></span>
-    ${st !== 'got' ? `<span class="wc-lock">${I.lock}${o.lockText ? `<small>${o.lockText}</small>` : ''}</span>` : ''}
+    ${st !== 'got' ? `<span class="wc-lock">${I.lock}${o.lockText ? `<small>${o.lockText}</small>` : ''}</span>` : ''}${o.starter ? '<span class="wc-tag st">Starter</span>' : ''}
     <span class="wc-cap"><b>${st === 'locked' && o.hideName ? '???' : esc(w.name)}</b><small><i class="rd"></i>${RAR[w.rarity]} · #${pad(id)}</small></span>${tag}</span></button>`;
 }
 const fine = matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches;
-// nghiêng 3D + phát video khi rê chuột (giống thẻ hình nền ở desktopchill.com)
-export function wireCards(root, onOpen) {
+// nghiêng 3D theo chuột; video tự phát khi thẻ hiện trên màn hình (giống bộ sưu tập ở desktopchill.com), dừng khi cuộn qua
+let io = null;
+const watched = new Set();
+const vidOf = (c) => {
+  let v = c.querySelector('video');
+  if (!v) { v = document.createElement('video'); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'none'; v.src = video(c.dataset.w); c.querySelector('.wc-media').appendChild(v); v.addEventListener('playing', () => v.classList.add('on')); }
+  return v;
+};
+const playC = (c) => { const p = vidOf(c).play(); if (p && p.catch) p.catch(() => {}); };
+const stopC = (c) => { const v = c.querySelector('video'); if (v) v.pause(); };
+export function wireCards(root, onOpen, o = {}) {
+  const auto = o.play !== false && !matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator.connection && navigator.connection.saveData);
+  if (auto && !io && 'IntersectionObserver' in window) io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) playC(e.target); else stopC(e.target); }), { rootMargin: '80px', threshold: 0.2 });
+  if (io) watched.forEach((c) => { if (!c.isConnected) { io.unobserve(c); watched.delete(c); } });
   root.querySelectorAll('.wcard').forEach((c) => {
     if (onOpen) c.addEventListener('click', () => onOpen(+c.dataset.w, c));
+    if (auto && io && !c.classList.contains('tiny') && c.dataset.w !== '0') { io.observe(c); watched.add(c); }
     if (!fine) return;
-    let vid = null;
     c.addEventListener('pointermove', (e) => {
       const r = c.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
       c.style.setProperty('--ry', ((px - 0.5) * 14).toFixed(2) + 'deg'); c.style.setProperty('--rx', ((0.5 - py) * 14).toFixed(2) + 'deg');
       c.style.setProperty('--mx', (px * 100).toFixed(1) + '%'); c.style.setProperty('--my', (py * 100).toFixed(1) + '%');
     });
-    c.addEventListener('pointerenter', () => {
-      if (!c.classList.contains('s-got')) return;
-      if (!vid) { vid = document.createElement('video'); vid.muted = true; vid.loop = true; vid.playsInline = true; vid.preload = 'none'; vid.src = video(c.dataset.w); c.querySelector('.wc-media').appendChild(vid); vid.addEventListener('playing', () => vid.classList.add('on')); }
-      const p = vid.play(); if (p && p.catch) p.catch(() => {});
-    });
-    c.addEventListener('pointerleave', () => { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); if (vid) { vid.pause(); vid.classList.remove('on'); } });
+    if (!auto || c.classList.contains('tiny')) { c.addEventListener('pointerenter', () => { if (c.dataset.w !== '0') playC(c); }); c.addEventListener('pointerleave', () => stopC(c)); }
+    c.addEventListener('pointerleave', () => { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); });
   });
 }
 
@@ -243,18 +260,19 @@ export async function wallSheet(id) {
   sheet(`<div class="ws-media r-${w.rarity}"><video src="${video(id)}" poster="${poster(id)}" muted loop playsinline autoplay ${mine ? '' : 'class="dim"'}></video>${mine ? '' : `<span class="ws-lock">${I.lock}<b>Not in your collection yet</b></span>`}</div>
     <div class="ws-h"><h2>${esc(w.name)}</h2><span class="rpill r-${w.rarity}">${RAR[w.rarity]} · #${pad(id)}</span></div>
     ${mine ? `<p class="sub">${esc(from)}${from ? ' · ' : ''}collected ${new Date(S.walls[id].at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>` : '<p class="sub">Win it from any of the chests below, from a friend’s gift, a duel or a live quiz.</p>'}
-    ${mine ? `<div class="foot-row ws-acts"><button class="btn ${S.bg === id ? 'ghost' : 'acc'} use-bg" type="button">${I.sparkle} ${S.bg === id ? 'Current background' : 'Use as background'}</button><button class="btn ghost share" type="button">${I.gift} Share</button></div>` : ''}
+    ${mine ? `<div class="foot-row ws-acts"><button class="btn ${isBg(id) ? 'ghost' : 'acc'} use-bg" type="button" ${isBg(id) ? 'disabled' : ''}>${I.sparkle} ${isBg(id) ? 'Current background' : 'Use as background'}</button><button class="btn ghost share" type="button">${I.gift} Share</button></div>` : ''}
     <h3 class="gh">Where to find it</h3>
     <div class="list ws-where">${labels.map((l, k) => { const e = ws[k], has = (S.wclaims[e.slot] || 0) >= e.need; return `<button class="row" type="button" data-k="${k}" style="text-align:left;width:100%"><span class="ws-c c-${e.lang}">${e.lang === 'zh' ? '中' : e.lang === 'ielts' ? 'IE' : 'EN'}</span><span class="grow"><b>${esc(l.t)}</b><small>${esc(l.s)}</small></span>${has ? `<span class="tag-s acc">${I.check} Opened</span>` : I.chev}</button>`; }).join('')}</div>`, (el, close) => {
-    const u = el.querySelector('.use-bg'); if (u) u.addEventListener('click', () => { setBg(S.bg === id ? 0 : id); close(); toast(S.bg ? 'Background changed' : 'Back to the forest'); });
+    const u = el.querySelector('.use-bg'); if (u) u.addEventListener('click', () => { setBg(id); close(); toast('Background changed'); });
     const sh = el.querySelector('.share'); if (sh) sh.addEventListener('click', () => { close(); shareSheet(id); });
     el.querySelectorAll('.ws-where .row').forEach((b) => b.addEventListener('click', () => { const l = labels[+b.dataset.k], e = ws[+b.dataset.k]; close(); C.goTo(e.lang, l.lv, l.unit); }));
   }, 'wide ws-sheet');
 }
 
 /* ---------- nền trang bằng hình đã sưu tập ---------- */
+export const isBg = (id) => S.bg === id || (id === 71 && !S.bg);
 export function setBg(id) {
-  S.bg = id && owned(id) ? id : 0; save();
+  S.bg = id && id !== 71 && owned(id) ? id : 0; save();
   try { localStorage.setItem('dcl_bg', S.bg ? String(S.bg) : ''); } catch (e) {}
   if (C && C.applyBg) C.applyBg(S.bg);
 }
@@ -274,7 +292,7 @@ export async function shareSheet(pre = 0) {
     <div class="sh-quota">${vipAv(acct.name, acct.avatar, v, 'lg')}<div><b>VIP ${v}</b><small>${v ? `${sh.used} of ${sh.quota} shares used at this rank · 1 per day · 1 per friend per rank` : 'Sharing unlocks at VIP 1'}</small><span class="qdots">${[...Array(Math.max(1, v))].map((_, i) => `<i class="${i < sh.used ? 'on' : ''}"></i>`).join('')}</span></div></div>
     ${block ? `<p class="sh-block">${esc(block)}</p>` : `
     <h3 class="gh">1 · Pick a friend</h3>
-    <div class="sh-fr">${friends.map((f) => `<button type="button" class="sh-f" data-u="${f.uid}" ${gotAtLv.has(f.uid) ? 'disabled title="Already got one from you at this rank"' : ''}>${vipAv(f.name, f.avatar, f.vip)}<b>${esc(f.name)}</b><small>${gotAtLv.has(f.uid) ? 'Shared this rank' : `${f.walls || 0}/70`}</small></button>`).join('')}</div>
+    <div class="sh-fr">${friends.map((f) => `<button type="button" class="sh-f" data-u="${f.uid}" ${gotAtLv.has(f.uid) ? 'disabled title="Already got one from you at this rank"' : ''}>${vipAv(f.name, f.avatar, f.vip)}<b>${esc(f.name)}</b><small>${gotAtLv.has(f.uid) ? 'Shared this rank' : `${f.walls || 0}/${total()}`}</small></button>`).join('')}</div>
     <h3 class="gh">2 · Pick a wallpaper they don’t have</h3>
     <div class="sh-walls"><p class="muted">Pick a friend first.</p></div>
     <p class="err sh-err"></p>
@@ -324,7 +342,7 @@ export async function collectionPage(args = []) {
     if (colTab === 'badges') body = C.badgesHTML();
     else if (colTab === 'all') body = allTab();
     else body = await courseTab(colTab);
-    C.shell('#/collection', `<div class="page-h"><div><h1>Collection</h1><p>70 animated wallpapers hide in unit chests and level bosses. A 2★ chest gives 1, a 3★ chest gives 2, a boss gives up to 3. English, 中文 and IELTS each hold all 70, in a different order.</p></div></div>
+    C.shell('#/collection', `<div class="page-h"><div><h1>Collection</h1><p>${total()} animated wallpapers. You start with ${(CAT.starters || []).length}; the rest hide in unit chests and level bosses. A 2★ chest gives 1, a 3★ chest gives 2, a boss gives up to 3. English, 中文 and IELTS each hold all of them, in a different order.</p></div></div>
     <section class="col-top">
       <div class="panel col-count"><div class="cc-n"><b>${n}</b><span>/ ${CAT.walls.length}</span></div><small>wallpapers collected</small>
         <div class="cc-r">${byR.map((x) => `<span class="r-${x.r}"><i class="rd"></i>${RAR[x.r]}<b>${x.n}/${x.t}</b></span>`).join('')}</div></div>
@@ -346,10 +364,11 @@ export async function collectionPage(args = []) {
 let UL = {};
 function allTab() {
   const list = CAT.walls.slice().sort((a, b) => RORD.indexOf(a.rarity) - RORD.indexOf(b.rarity) || a.id - b.id).filter((w) => colFilter === 'all' || (colFilter === 'got') === owned(w.id));
-  const flt = `<div class="col-flt">${[['all', 'All 70'], ['got', 'Collected'], ['miss', 'Still hidden']].map(([k, l]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${colFilter === k}">${l}</button>`).join('')}</div>`;
+  const flt = `<div class="col-flt">${[['all', `All ${total()}`], ['got', 'Collected'], ['miss', 'Still hidden']].map(([k, l]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${colFilter === k}">${l}</button>`).join('')}</div>`;
   return flt + `<div class="wgrid">${list.map((w) => {
     if (owned(w.id)) return card(w.id);
     const e = whereOf(w.id).filter((x) => x.lang === S.lang).sort((a, b) => a.need - b.need)[0];
+    if (!e) return card(w.id);
     return card(w.id, { lockText: e ? `${COURSE_N[e.lang]} ${UL[e.slot] || (isBoss(e.slot) ? e.slot.split('|')[2].toUpperCase() + ' boss' : 'unit chest')} · ${e.need}★` : '' });
   }).join('') || '<p class="muted">Nothing here yet.</p>'}</div>`;
 }
@@ -400,5 +419,14 @@ export function chestInfo(uid, title, onReview) {
     <div class="foot-row" style="margin-top:16px"><a class="btn ghost" href="#/collection/${uid.split('-')[0]}">${I.gallery} Collection</a><button class="btn acc ci-rv" type="button">${I.redo} Review this unit</button></div>`, (el, close) => {
     wireCards(el, (id) => { close(); wallSheet(id); });
     el.querySelector('.ci-rv').addEventListener('click', () => { close(); onReview(); });
+  });
+}
+// xem trước rương chưa tới: chỉ hiện phần thưởng, chưa mở được
+export function chestPreview(uid, title, done) {
+  const ws = slotWalls(uid);
+  sheet(`<span class="muted sk">Unit chest · locked</span><h2>${esc(title)}</h2>
+    <p class="sub">${done ? `${done}/8 lessons done.` : 'Not started yet.'} Finish all 8 lessons in order to open this chest. Score well: a 2★ chest gives the first wallpaper, a 3★ chest gives both.</p>
+    <div class="ci-cards">${ws.map((w, i) => card(w, { state: owned(w) ? 'got' : 'locked', lockText: `${i + 2}★ chest` })).join('')}</div>`, (el, close) => {
+    wireCards(el, (id) => { close(); wallSheet(id); });
   });
 }

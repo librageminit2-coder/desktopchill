@@ -175,6 +175,9 @@
 :where(:root[data-theme="light"]) .tp { background: rgba(20, 44, 34, 0.044); }
 :where(:root[data-theme="light"]) .fb .mean { background: rgba(20, 44, 34, 0.066); }
 :where(:root[data-theme="light"]) .mean-w span { background: rgba(20, 44, 34, 0.077); }
+:where(:root[data-theme="light"]) .dd .dd-in { background: rgba(250, 253, 251, 0.97); }
+:where(:root[data-theme="light"]) .vipc .bg { stroke: rgba(20, 44, 34, 0.132); }
+:where(:root[data-theme="light"]) .nlock { background: rgba(250, 253, 251, 0.90); }
 
 /* ---- hand-tuned ---- */
 :root[data-theme="light"] .chip[aria-pressed="true"] { color: var(--acc-2); }

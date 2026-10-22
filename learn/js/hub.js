@@ -11,7 +11,7 @@ let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, items: [], friends: null, me: null, fAt: 0 };
 const pref = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v === '1'; } catch (e) { return d; } };
 const setPref = (k, v) => { try { localStorage.setItem(k, v ? '1' : '0'); } catch (e) {} };
-export const ui = { rail: pref('dcl_rail', true), hud: pref('dcl_hud', true) };
+export const ui = { rail: pref('dcl_rail', true), hud: pref('dcl_hud', true), side: pref('dcl_side', true) };
 
 export function init(ctx) {
   C = ctx;
@@ -35,13 +35,22 @@ export function applyChrome() {
   b.classList.toggle('hud-off', !ui.hud);
   b.classList.toggle('has-acct', !!acct);
   b.classList.toggle('rail-on', !!acct && ui.rail && wide());
-  if (acct && wide() && !document.querySelector('.rail')) renderRail();
+  b.classList.toggle('side-off', !ui.side);
+  paintTabs();
 }
+// thẻ dọc ở mép phải để mở lại cột Today / danh sách bạn
+function paintTabs() {
+  const mk = (cls, html, fn) => { let t = document.querySelector('.' + cls); if (!t) { t = document.createElement('button'); t.type = 'button'; t.className = 'edge-tab ' + cls; t.addEventListener('click', fn); document.body.appendChild(t); } t.innerHTML = html; return t; };
+  const on = ranked().filter((x) => !x.me && online(x.last_seen)).length;
+  mk('rail-tab', `${I.users}<span>Friends${on ? ` · ${on}` : ''}</span>`, () => toggleRail(true));
+  mk('side-tab', `${I.target}<span>Today</span>`, () => toggleSide(true));
+  document.body.classList.toggle('has-side', !!document.querySelector('.layout > .side'));
+}
+export function toggleSide(v = !ui.side) { ui.side = v; setPref('dcl_side', v); applyChrome(); sfx('tap'); }
 export function toggleHud(v = !ui.hud) { ui.hud = v; setPref('dcl_hud', v); applyChrome(); sfx('tap'); }
 export function toggleRail(v) {
   if (!wide()) { railSheet(); return; }
   ui.rail = v === undefined ? !ui.rail : v; setPref('dcl_rail', ui.rail); applyChrome(); sfx('tap');
-  if (ui.rail) renderRail();
 }
 
 /* ---------- hỏi máy chủ ---------- */
@@ -163,14 +172,10 @@ function railInner() {
     ${all.length < 2 ? `<div class="rl-empty"><p>No friends yet. Share your code <b>${esc(d.me && d.me.code || '')}</b> or add someone.</p></div>` : ''}
     <div class="rl-f"><a class="btn sm ghost" href="#/friends">${I.plus} Add friends</a><a class="btn sm ghost" href="#/duel">${I.swords} Duels</a></div>`;
 }
+// cột bạn bè nằm trong bố cục trang (cùng khoảng cách với các cột khác)
 export function renderRail() {
-  let r = document.querySelector('.rail');
-  if (!r) { r = document.createElement('aside'); r.className = 'rail panel solid'; r.setAttribute('aria-label', 'Friends'); document.body.appendChild(r); }
-  r.innerHTML = railInner(); wireRail(r);
-  let tab = document.querySelector('.rail-tab');
-  if (!tab) { tab = document.createElement('button'); tab.type = 'button'; tab.className = 'rail-tab'; tab.addEventListener('click', () => toggleRail(true)); document.body.appendChild(tab); }
-  const on = ranked().filter((x) => !x.me && online(x.last_seen)).length;
-  tab.innerHTML = `${I.users}<span>Friends${on ? ` · ${on}` : ''}</span>`;
+  document.querySelectorAll('.layout > .rail').forEach((r) => { r.innerHTML = railInner(); wireRail(r); });
+  applyChrome();
 }
 function wireRail(r) {
   const x = r.querySelector('.rl-x'); if (x) x.addEventListener('click', () => toggleRail(false));

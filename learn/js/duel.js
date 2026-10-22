@@ -82,7 +82,7 @@ export async function duelPage(args = []) {
       <div class="field"><label>Course</label><div class="seg du-lang">${C.AVAIL.map((l) => `<button type="button" data-l="${l}" aria-pressed="${pickLang === l}" class="${l === 'zh' ? 'zh' : ''}">${esc(C.COURSES[l].short)}</button>`).join('')}</div></div>
       <div class="field"><label>Opponent</label><div class="du-opp">
         <button type="button" class="du-o rnd" data-u="" aria-pressed="${!preFriend}"><span class="du-dice">${I.dice}</span><b>Random</b><small>${L.pool || 0} learners active in the last 3 days, close to your VIP</small></button>
-        ${F.map((f) => `<button type="button" class="du-o" data-u="${f.uid}" aria-pressed="${preFriend === f.uid}">${vipAv(f.name, f.avatar, f.vip || 0)}<b>${esc(f.name)}</b><small>${f.walls || 0}/70 wallpapers</small></button>`).join('')}
+        ${F.map((f) => `<button type="button" class="du-o" data-u="${f.uid}" aria-pressed="${preFriend === f.uid}">${vipAv(f.name, f.avatar, f.vip || 0)}<b>${esc(f.name)}</b><small>${f.walls || 0}/${walls.total()} wallpapers</small></button>`).join('')}
       </div></div>
       <p class="err du-err"></p>
       <button class="btn acc wide du-go" type="button">${I.swords} Start the duel</button>`}

@@ -1,6 +1,6 @@
 import { I, LOGO } from './icons.js?v=12';
 import { sound, sfx, unlockAudio } from './sound.js?v=12';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic } from './speech.js?v=12';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=12';
 import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=12';
 import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=12';
 import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=12';
@@ -84,7 +84,13 @@ function checkBadges() {
 }
 
 /* ---------- khung trang: thanh HUD, menu, cột phải ---------- */
-const NAV = [['#/', 'Learn', 'home'], ['#/review', 'Review', 'cards'], ['#/practice', 'Practice', 'target'], ['#/collection', 'Collection', 'gallery'], ['#/duel', 'Duels', 'swords'], ['#/quiz', 'Live quiz', 'zap'], ['#/classes', 'Classes', 'school'], ['#/friends', 'Friends', 'users']];
+// menu kiểu Steam: mục chính, rê chuột thì hiện menu con
+const MENU = [
+  { label: 'Learn', href: '#/', ic: 'home', match: ['#/', '#/roadmap', '#/review', '#/practice'], items: [['#/', 'Journey map', 'home', 'Your lessons, chests and bosses'], ['#/roadmap', 'Roadmap', 'list', 'Every level and unit at a glance'], ['#/review', 'Review', 'cards', 'Word cards due today'], ['#/practice', 'Practice', 'target', 'Speed rounds, speaking, dictation']] },
+  { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All wallpapers', 'gallery', 'Everything you own and can still win'], ['#/collection/en', 'English chests', 'book', 'Where each wallpaper hides'], ['#/collection/zh', '中文 chests', 'book', 'Where each wallpaper hides'], ['#/collection/ielts', 'IELTS chests', 'book', 'Where each wallpaper hides'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
+  { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel', '#/quiz'], items: [['#/duel', 'Duels', 'swords', 'Same 10 questions, winner takes a wallpaper'], ['#/quiz', 'Live quiz', 'zap', 'Join with a PIN or host by topic']] },
+  { label: 'Classes', href: '#/classes', ic: 'school', match: ['#/classes', '#/class'], items: [['#/classes', 'My classes', 'school', 'Assignments, stream and reports'], ['#/classes', 'Join a class', 'plus', 'Enter the code from your teacher']] },
+];
 const TABS = [['#/', 'Learn', 'home'], ['#/practice', 'Practice', 'target'], ['#/collection', 'Collection', 'gallery'], ['#/quiz', 'Quiz', 'zap'], ['#/me', 'Me', 'user']];
 /* ---------- giao diện sáng / tối ---------- */
 const theme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
@@ -111,23 +117,42 @@ function courseTabs() {
   return `<div class="seg course-pick" role="group" aria-label="Course">${AVAIL.map((k) => `<button class="ctab" data-l="${k}" aria-pressed="${S.lang === k}"><span class="${k === 'zh' ? 'zh' : ''}">${esc(COURSES[k].short)}</span></button>`).join('')}</div>`;
 }
 const routeOf = (r) => r === '#/' ? '#/' : '#/' + (r.split('/')[1] || '');
+// chip VIP: vòng tiến độ tới cấp VIP tiếp theo
+function vipChip() {
+  const v = walls.myVip(), pts = walls.vipPoints(), next = walls.VIP_T[v] || 1000, prev = v ? walls.VIP_T[v - 1] : 0;
+  const p = v >= 10 ? 1 : Math.max(0, Math.min(1, (pts - prev) / (next - prev))), C = 2 * Math.PI * 17;
+  return `<a class="vipc v${v}" href="#/collection" title="VIP ${v}: ${v >= 10 ? 'top rank' : `${pts} / ${next} points to VIP ${v + 1}`}"><svg viewBox="0 0 40 40" aria-hidden="true"><circle class="bg" cx="20" cy="20" r="17"/><circle class="fg" cx="20" cy="20" r="17" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - p)).toFixed(1)}"/></svg><b>V${v}</b><span class="vipc-t">VIP</span></a>`;
+}
 function shell(route, inner, aside, opts = {}) {
   const dueN = due(S.lang).length, reqN = social.counts.requests || 0, cur = routeOf(route);
   const duN = hub.hub.duels || 0;
-  const link = ([href, label, ic]) => `<a href="${href}" ${cur === href || (href === '#/classes' && cur === '#/class') ? 'aria-current="page"' : ''}>${I[ic]}<span>${label}</span>${href === '#/review' && dueN ? `<i class="badge">${dueN > 99 ? '99+' : dueN}</i>` : ''}${href === '#/friends' && reqN ? `<i class="badge">${reqN}</i>` : ''}${href === '#/me' && reqN ? `<i class="badge">${reqN}</i>` : ''}${href === '#/duel' && duN ? `<i class="badge">${duN}</i>` : ''}</a>`;
+  const tab = ([href, label, ic]) => `<a href="${href}" ${cur === href || (href === '#/classes' && cur === '#/class') ? 'aria-current="page"' : ''}>${I[ic]}<span>${label}</span>${href === '#/me' && reqN ? `<i class="badge">${reqN}</i>` : ''}</a>`;
+  const badgeOf = (href) => href === '#/review' && dueN ? dueN : href === '#/duel' && duN ? duN : 0;
+  const menu = MENU.map((m) => {
+    const on = m.match.includes(cur), n = m.items.reduce((a, it) => a + badgeOf(it[0]), 0);
+    return `<div class="mi ${on ? 'on' : ''}"><a class="mt" href="${m.href}" ${on ? 'aria-current="page"' : ''}>${I[m.ic]}<span>${m.label}</span>${n ? `<i class="badge">${n > 99 ? '99+' : n}</i>` : ''}${I.chevDown}</a>
+      <div class="dd" role="menu"><div class="dd-in panel solid">${m.items.map(([h, l, ic, d]) => `<a href="${h}" role="menuitem" class="${l === 'Join a class' ? 'dd-join' : ''}">${I[ic]}<span><b class="${/中文/.test(l) ? 'zhl' : ''}">${l}</b><small>${d}</small></span>${badgeOf(h) && l !== 'Join a class' ? `<i class="badge">${badgeOf(h)}</i>` : ''}</a>`).join('')}</div></div></div>`;
+  }).join('');
   const st = streakNow(), lit = todayXP() > 0;
   const left = opts.left || '', lay = left && aside ? 'three' : aside ? 'two' : 'one';
   app.innerHTML = `
   <header class="hud"><div class="hud-in">
     <a class="brand" href="#/" aria-label="desktopchill learn">${LOGO}<span>desktop<b>chill</b><small>learn</small></span></a>
-    <nav class="nav" aria-label="Main">${NAV.map(link).join('')}</nav>
+    <nav class="nav menu" aria-label="Main">${menu}</nav>
     <div class="hud-r">
       ${opts.noCourse ? '' : courseTabs()}
       <span class="chipx fire ${lit ? 'lit' : ''}" title="Day streak">${I.flame}<b>${st}</b></span>
       <span class="chipx gem" title="Total XP">${I.gem}<b class="xp-n">${S.xp}</b></span>
-      ${hub.bellHTML()}${acct ? `<button class="icon-btn rail-btn" type="button" title="Friends online" aria-label="Friends online">${I.users}</button>` : ''}
+      ${vipChip()}
+      ${hub.bellHTML()}${acct ? `<button class="icon-btn rail-btn" type="button" title="Friends" aria-label="Friends">${I.users}${reqN ? `<i class="badge">${reqN}</i>` : ''}</button>` : ''}
       <button class="icon-btn theme-t" type="button" title="${theme() === 'light' ? 'Dark mode' : 'Light mode'}">${theme() === 'light' ? I.moon : I.sun}</button>
-      <a class="hud-me" href="#/me" title="Profile">${meAv(40)}${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
+      <div class="mi me-mi"><a class="hud-me" href="#/me" title="Profile and settings">${meAv(40)}${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
+        <div class="dd right" role="menu"><div class="dd-in panel solid">
+          <div class="dd-me">${acct ? `<b>${esc(acct.name)}</b><small>Level ${playerLevel().lv} · VIP ${walls.myVip()}</small>` : '<b>Guest</b><small>Progress is saved on this device</small>'}</div>
+          <a href="#/me" role="menuitem">${I.gear}<span><b>Profile & settings</b><small>Avatar, theme, background, voice</small></span></a>
+          <a href="#/friends" role="menuitem">${I.users}<span><b>Friends</b><small>Requests, codes and leaderboard</small></span>${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
+          ${acct ? `<button type="button" class="dd-out" role="menuitem">${I.logout}<span><b>Sign out</b><small>Your progress stays on this device</small></span></button>` : `<button type="button" class="dd-in-btn" role="menuitem">${I.cloud}<span><b>Sign in or create account</b><small>Save progress to the cloud</small></span></button>`}
+        </div></div></div>
     </div>
     <button class="hud-hide" type="button" title="Hide the menu" aria-label="Hide the menu">${I.chevUp}</button>
   </div></header>
@@ -135,16 +160,22 @@ function shell(route, inner, aside, opts = {}) {
   <div class="layout ${lay}">
     ${left ? `<aside class="lcol" aria-label="Levels">${left}</aside>` : ''}
     <main class="main" id="main">${inner}</main>
-    ${aside ? `<aside class="side" aria-label="Today">${aside}</aside>` : ''}
+    ${aside ? `<aside class="side" aria-label="Today"><div class="col-h"><b>Today</b><button class="icon-btn sm side-x" type="button" title="Hide this panel" aria-label="Hide this panel">${I.chev}</button></div>${aside}</aside>` : ''}
+    ${acct ? '<aside class="rail panel solid" aria-label="Friends"></aside>' : ''}
   </div>
-  <nav class="tabbar" aria-label="Main">${TABS.map(link).join('')}</nav>`;
+  <nav class="tabbar" aria-label="Main">${TABS.map(tab).join('')}</nav>`;
   app.querySelectorAll('.ctab').forEach((b) => b.addEventListener('click', () => switchCourse(b.dataset.l)));
-  app.querySelectorAll('.nav a, .tabbar a').forEach((a) => a.addEventListener('click', () => sfx('tap')));
+  app.querySelectorAll('.nav a, .tabbar a, .dd a').forEach((a) => a.addEventListener('click', () => { sfx('tap'); a.blur(); }));
   app.querySelector('.theme-t').addEventListener('click', () => { sfx('tap'); setTheme(theme() === 'light' ? 'dark' : 'light'); });
   app.querySelector('.hud-hide').addEventListener('click', () => hub.toggleHud(false));
   app.querySelector('.hud-show').addEventListener('click', () => hub.toggleHud(true));
+  const dj = app.querySelector('.dd-join'); if (dj) dj.addEventListener('click', () => setTimeout(() => { const i = document.querySelector('.jc'); if (i) i.focus(); }, 600));
+  const out = app.querySelector('.dd-out'); if (out) out.addEventListener('click', () => { if (confirm('Sign out? Your progress stays on this device.')) { logout(); hub.start(); render(); } });
+  const sin = app.querySelector('.dd-in-btn'); if (sin) sin.addEventListener('click', () => authSheet('login'));
+  const sx = app.querySelector('.side-x'); if (sx) sx.addEventListener('click', () => hub.toggleSide(false));
   hub.wireBell(app);
   const rb = app.querySelector('.rail-btn'); if (rb) rb.addEventListener('click', () => hub.toggleRail());
+  hub.renderRail();
   if (aside) wireAside();
 }
 async function switchCourse(l) {
@@ -278,6 +309,11 @@ function currentPos(c) {
   const d = S.done[u.id] || []; let k = LESSONS.map((x) => x.k).find((i) => !d[i]); if (k === undefined) k = 0;
   return { L, u, k };
 }
+// học tuần tự: chỉ mở bài đã học hoặc bài kế tiếp (không học vượt để mở rương)
+function canStart(c, uid, k) {
+  if ((S.done[uid] || [])[k]) return true;
+  const cur = currentPos(c); return !!(cur.u && cur.u.id === uid && cur.k === k);
+}
 function curveSegs(Q) {
   const f = (n) => Math.round(n * 10) / 10, out = [];
   for (let i = 0; i < Q.length - 1; i++) {
@@ -304,8 +340,8 @@ function pathHTML(c, W) {
     const nodes = LESSONS.map((ls) => {
       const pt = P[ls.k], dn = !!d[ls.k], isCur = cur.u === u && cur.k === ls.k, stars = starsOf(u.id, ls.k);
       const pop = justBuilt && justBuilt.unit === u.id && justBuilt.k === ls.k;
-      return `<button class="node ${dn ? 'done' : isCur ? 'cur' : 'todo'} ${pop ? 'pop-in' : ''} ${ls.k === 7 ? 'test' : ''}" style="left:${pt.x}px;top:${pt.y}px" data-u="${u.id}" data-k="${ls.k}" aria-label="${esc(u.title)}: ${esc(lessonName(lang, ls.k))}${dn ? `, ${stars} stars` : ''}">
-        ${isCur ? '<span class="tip">Start</span>' : ''}<span class="face">${I[ls.icon]}</span>${dn ? starRow(stars) : ''}</button>`;
+      return `<button class="node ${dn ? 'done' : isCur ? 'cur' : 'todo locked'} ${pop ? 'pop-in' : ''} ${ls.k === 7 ? 'test' : ''}" style="left:${pt.x}px;top:${pt.y}px" data-u="${u.id}" data-k="${ls.k}" aria-label="${esc(u.title)}: ${esc(lessonName(lang, ls.k))}${dn ? `, ${stars} stars` : isCur ? '' : ', locked'}">
+        ${isCur ? '<span class="tip">Start</span>' : ''}<span class="face">${I[ls.icon]}</span>${!dn && !isCur ? `<span class="nlock">${I.lock}</span>` : ''}${dn ? starRow(stars) : ''}</button>`;
     }).join('');
     const cp = P[LN], opened = !!S.chests[u.id], ready = p === LN && !opened;
     const upg = opened && p === LN && walls.CAT && walls.canUpgrade(u.id, walls.chestStars(u.id));
@@ -328,9 +364,9 @@ function bossHTML(c, L) {
   return `<div class="boss panel ${beat ? 'beat' : all ? 'ready' : ''}">
     <span class="boss-ic">${beat ? I.crown : I.shield}</span>
     <div><small>End of ${esc(L.name)}</small><h3>${beat ? `${esc(L.name)} boss defeated` : `${esc(L.name)} boss challenge`}</h3>
-    <p class="muted">${beat ? `You passed the final test of this level. Best: ${S.bossStars[S.lang + '|' + L.id] || 1}★.` : `20 mixed questions from every unit. Score 80% or more to win the crown${all ? '' : '. Best tried after finishing the units'}.`} Boss chest: 80% / 88% / 95% for 1 / 2 / 3 wallpapers.</p>
+    <p class="muted">${beat ? `You passed the final test of this level. Best: ${S.bossStars[S.lang + '|' + L.id] || 1}★.` : `20 mixed questions from every unit. Score 80% or more to win the crown${all ? '' : '. Opens when every unit in this level is done'}.`} Boss chest: 80% / 88% / 95% for 1 / 2 / 3 wallpapers.</p>
     ${walls.CAT ? `<div class="boss-walls">${walls.slotView(`boss|${S.lang}|${L.id}`, beat).map((x, i) => walls.card(x.w, { state: x.have ? 'got' : x.state, cls: 'mini', hideName: x.state === 'locked', lockText: ['80%', '88%', '95%'][i] })).join('')}</div>` : ''}</div>
-    <div class="boss-act"><button class="btn ${all && !beat ? 'gold' : 'ghost'} boss-go" type="button" ${started ? '' : 'disabled'}>${beat ? 'Try again' : 'Fight'}</button>
+    <div class="boss-act"><button class="btn ${all && !beat ? 'gold' : 'ghost'} boss-go" type="button" ${all || beat ? '' : 'disabled'}>${beat ? 'Try again' : all ? 'Fight' : `${I.lock} Finish every unit first`}</button>
     ${nx ? `<button class="btn ${beat ? 'acc' : 'ghost'} next-lv" type="button" data-lv="${nx.id}">${beat ? 'Go to ' : 'Preview '}${esc(nx.name)}</button>` : ''}</div>
   </div>`;
 }
@@ -344,13 +380,14 @@ function openPop(c, btn) {
   pop.className = 'pop'; pop.style.cssText = `left:${left}px;top:${y + 50}px;width:${pw}px;--ax:${x - left}px`;
   pop.innerHTML = `<span class="pk">${esc(L.name)} · ${esc(u.title)}</span><b>${esc(lessonName(S.lang, k))}</b><p>${esc(lessonDesc(S.lang, k))}</p>
     ${d[k] ? `<div class="pop-st">${starRow(st)}<small>${st < 3 ? 'Score 95% for 3 stars' : 'Max stars'}</small></div>` : ''}
-    <button class="btn pop-go" type="button">${d[k] ? `${I.redo} Replay` : `${I.play} Start · +10 XP`}</button>`;
+    ${canStart(c, u.id, k) ? `<button class="btn pop-go" type="button">${d[k] ? `${I.redo} Replay` : `${I.play} Start · +10 XP`}</button>` : `<p class="pop-lock">${I.lock} Locked. Lessons open one by one: finish the glowing lesson first.</p><button class="btn ghost pop-cur" type="button">Show me the next lesson</button>`}`;
   span.appendChild(pop); sfx('open');
   btn.classList.add('open');
   const off = (e) => { if (!pop.contains(e.target) && e.target !== btn && !btn.contains(e.target)) popClose(); };
   popClose = () => { pop.classList.add('out'); btn.classList.remove('open'); setTimeout(() => pop.remove(), 160); document.removeEventListener('pointerdown', off); popClose = null; };
   setTimeout(() => document.addEventListener('pointerdown', off), 0);
-  pop.querySelector('.pop-go').addEventListener('click', () => { popClose(); start(c, u.id, k); });
+  const pg = pop.querySelector('.pop-go'); if (pg) pg.addEventListener('click', () => { popClose(); start(c, u.id, k); });
+  const pc = pop.querySelector('.pop-cur'); if (pc) pc.addEventListener('click', () => { popClose(); const n = document.querySelector('.node.cur'); if (n) n.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
   const r = pop.getBoundingClientRect(); if (r.bottom > innerHeight - 80) window.scrollBy({ top: r.bottom - innerHeight + 100, behavior: 'smooth' });
 }
 function guidebook(c, uid) {
@@ -469,6 +506,7 @@ async function home() {
       const uid = b.dataset.u;
       if (b.classList.contains('ready')) openUnitChest(c, uid, b);
       else if (S.chests[uid] && walls.CAT) { sfx('open'); walls.chestInfo(uid, findUnit(c, uid).u.title, () => unitReview(c, uid)); }
+      else if (walls.CAT) { sfx('open'); walls.chestPreview(uid, findUnit(c, uid).u.title, unitProgress(uid)); }
       else { sfx('tap'); unitReview(c, uid); }
     }));
     pEl.querySelectorAll('.guide').forEach((b) => b.addEventListener('click', () => { sfx('open'); guidebook(c, b.dataset.u); }));
@@ -488,6 +526,7 @@ async function home() {
   checkBadges();
 }
 function start(c, uid, k) {
+  if (!canStart(c, uid, k)) { toast('Lessons open one by one. Finish the glowing lesson first.'); return; }
   unlockAudio();
   const { u } = findUnit(c, uid);
   const before = questDone(), lv0 = playerLevel().lv;
@@ -684,7 +723,7 @@ async function me() {
     <div class="row"><span class="grow"><b>Microphone & speech</b><small class="micst">Test your mic before studying</small></span><button class="btn ghost mtest" type="button" style="min-height:42px">${I.mic} Test</button></div>
     <label class="row"><span class="grow"><b>Show pinyin</b><small>Romanisation under Chinese characters</small></span><span class="switch"><input type="checkbox" class="pyx" ${S.settings.pinyin ? 'checked' : ''}><span></span></span></label>
     <label class="row"><span class="grow"><b>Light mode</b><small>Bright glass over the forest. Dark mode is easier at night</small></span><span class="switch"><input type="checkbox" class="thm" ${theme() === 'light' ? 'checked' : ''}><span></span></span></label>
-    <div class="row"><span class="grow"><b>Background</b><small>${S.bg ? `Wallpaper: ${esc(walls.wallOf(S.bg).name)}` : 'Forest'} · use any wallpaper you collected</small></span><button class="btn ghost bgpick" type="button" style="min-height:42px">${I.gallery} Choose</button></div>
+    <div class="row"><span class="grow"><b>Background</b><small>${esc(walls.wallOf(S.bg || 71).name)} · use any wallpaper you collected</small></span><button class="btn ghost bgpick" type="button" style="min-height:42px">${I.gallery} Choose</button></div>
     <label class="row"><span class="grow"><b>Moving background</b><small>The forest video. Turn off to save battery or data</small></span><span class="switch"><input type="checkbox" class="vid" ${vidOn ? 'checked' : ''}><span></span></span></label>
     <div class="row"><span class="grow"><b>Background brightness</b><small>Darker makes text easier to read</small></span><select class="input dim" style="width:auto;height:42px">${[['0', 'Bright'], ['1', 'Dim'], ['2', 'Dark']].map(([v, l]) => `<option value="${v}" ${dim === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
   </div>
@@ -699,7 +738,7 @@ async function me() {
   q('.rate').addEventListener('change', (e) => { S.settings.rate = +e.target.value; save(); applySettings(); speak(S.lang === 'zh' ? '你好，我们开始吧。' : "Hello, let's get started.", S.lang); });
   const ve = q('.vEn'); if (ve) ve.addEventListener('change', (e) => { S.settings.voice.en = e.target.value; save(); applySettings(); speak('This is my voice.', 'en'); });
   const vz = q('.vZh'); if (vz) vz.addEventListener('change', (e) => { S.settings.voice.zh = e.target.value; save(); applySettings(); speak('这是我的声音。', 'zh'); });
-  watchMic((st) => { const el = q('.micst'); if (!el) return; if (st === 'denied') el.innerHTML = '<span style="color:var(--bad);font-weight:700">Chrome is blocking the mic for this site.</span> <a href="#" class="mhelp">How to fix</a>'; else if (st === 'granted') el.textContent = 'Microphone allowed'; else el.textContent = 'Test your mic before studying'; const h = el.querySelector('.mhelp'); if (h) h.addEventListener('click', (e) => { e.preventDefault(); micHelpSheet(); }); });
+  watchMic((st) => { const el = q('.micst'); if (!el) return; if (st === 'policy') el.innerHTML = '<span style="color:var(--warn);font-weight:700">Speaking practice is paused on this website.</span> Lessons swap speaking for listening until it is back.'; else if (st === 'denied') el.innerHTML = '<span style="color:var(--bad);font-weight:700">Chrome is blocking the mic for this site.</span> <a href="#" class="mhelp">How to fix</a>'; else if (st === 'granted') el.textContent = 'Microphone allowed'; else el.textContent = 'Test your mic before studying'; const h = el.querySelector('.mhelp'); if (h) h.addEventListener('click', (e) => { e.preventDefault(); micHelpSheet(); }); });
   q('.mtest').addEventListener('click', micTest);
   q('.pyx').addEventListener('change', (e) => { S.settings.pinyin = e.target.checked; save(); });
   q('.vid').addEventListener('change', (e) => setVideo(e.target.checked));
@@ -764,8 +803,8 @@ function meCollection() {
 function bgSheet() {
   const mine = Object.keys(S.walls).map(Number);
   sheet(`<h2>Page background</h2><p class="sub">Play any wallpaper you collected behind the lessons. ${mine.length ? '' : 'Open a unit chest to get your first one.'}</p>
-    <div class="wgrid sm bgs"><button class="wcard s-got forest ${S.bg ? '' : 'picked'}" type="button" data-w="0"><span class="wc-in"><span class="wc-media"><img src="media/forest-poster.jpg" alt=""></span><span class="wc-cap"><b>Forest</b><small>Default</small></span></span></button>${mine.map((w) => walls.card(w, { cls: S.bg === w ? 'picked' : '' })).join('')}</div>`, (el, close) => {
-    walls.wireCards(el.querySelector('.bgs'), (id) => { walls.setBg(id); sfx('ok'); close(); toast(id ? 'Background changed' : 'Back to the forest'); if (location.hash.startsWith('#/me')) me(); });
+    <div class="wgrid sm bgs">${mine.map((w) => walls.card(w, { cls: walls.isBg(w) ? 'picked' : '' })).join('')}</div>`, (el, close) => {
+    walls.wireCards(el.querySelector('.bgs'), (id) => { walls.setBg(id); sfx('ok'); close(); toast('Background changed'); if (location.hash.startsWith('#/me')) me(); });
   }, 'wide');
 }
 function micTest() {
