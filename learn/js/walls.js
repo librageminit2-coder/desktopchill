@@ -1,11 +1,11 @@
 // Kho hình nền: phần thưởng trong rương chủ đề và boss, bộ sưu tập, VIP, chia sẻ cho bạn bè, đặt làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=12';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=12';
-import { acct, call } from './account.js?v=12';
-import { sfx } from './sound.js?v=12';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText } from './ui.js?v=12';
+import { I } from './icons.js?v=13';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=13';
+import { acct, call } from './account.js?v=13';
+import { sfx } from './sound.js?v=13';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText } from './ui.js?v=13';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -13,7 +13,7 @@ export let CAT = null;
 const BYID = {};
 export async function loadCat() {
   if (CAT) return CAT;
-  const r = await fetch('data/walls.json?v=1'); CAT = await r.json();
+  const r = await fetch('data/walls.json?v=2'); CAT = await r.json();
   CAT.walls.forEach((w) => { BYID[w.id] = w; });
   ensureStarters();
   return CAT;
