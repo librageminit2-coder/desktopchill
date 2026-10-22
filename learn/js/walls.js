@@ -1,11 +1,11 @@
 // Kho hình nền: phần thưởng trong rương chủ đề và boss, bộ sưu tập, VIP, chia sẻ cho bạn bè, đặt làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=17';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=17';
-import { acct, call, push } from './account.js?v=17';
-import { sfx } from './sound.js?v=17';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=17';
+import { I } from './icons.js?v=18';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=18';
+import { acct, call, push } from './account.js?v=18';
+import { sfx } from './sound.js?v=18';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=18';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -13,7 +13,7 @@ export let CAT = null;
 const BYID = {};
 export async function loadCat() {
   if (CAT) return CAT;
-  const r = await fetch('data/walls.json?v=2'); CAT = await r.json();
+  const r = await fetch('data/walls.json?v=3'); CAT = await r.json();
   CAT.walls.forEach((w) => { BYID[w.id] = w; });
   ensureStarters();
   return CAT;
@@ -97,7 +97,7 @@ export function syncWalls() {
   return syncing;
 }
 
-/* ---------- VIP: điểm từ chủ đề đã học xong (EN cả khoá 600, 中文 1000, IELTS 1000) + điểm thưởng (tối đa 150) ---------- */
+/* ---------- VIP: điểm từ chủ đề đã học xong (EN 600, 中文 1000, IELTS 1000, đạt tối đa khi xong số chủ đề mốc trong CAT.units) + điểm thưởng (tối đa 150) ---------- */
 export const VIP_T = [20, 60, 120, 200, 300, 420, 560, 720, 860, 1000];
 export const vipLevel = (p) => VIP_T.filter((t) => t <= p).length;
 export function unitsFull() {
@@ -108,7 +108,7 @@ export function unitsFull() {
 export function vipPoints(bonus = vipState.bonus) {
   if (!CAT) return vipState.pts || 0;
   const u = unitsFull(), U = CAT.units;
-  return Math.round(600 * u.en / U.en) + Math.round(1000 * u.zh / U.zh) + Math.round(1000 * u.ielts / U.ielts) + Math.min(150, Math.max(0, bonus || 0));
+  return Math.round(600 * Math.min(u.en, U.en) / U.en) + Math.round(1000 * Math.min(u.zh, U.zh) / U.zh) + Math.round(1000 * Math.min(u.ielts, U.ielts) / U.ielts) + Math.min(150, Math.max(0, bonus || 0));
 }
 export const myVip = () => Math.max(vipState.vip || 0, vipLevel(vipPoints()));
 export const unitPts = () => (CAT ? { en: 600 / CAT.units.en, zh: 1000 / CAT.units.zh, ielts: 1000 / CAT.units.ielts } : { en: 10, zh: 16, ielts: 19 });

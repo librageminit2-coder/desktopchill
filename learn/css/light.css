@@ -181,6 +181,9 @@
 :where(:root[data-theme="light"]) .lb-qr svg { box-shadow: 0 10px 30px rgba(30, 50, 40, 0.158); }
 :where(:root[data-theme="light"]) .lb-room { background: rgba(250, 253, 251, 0.72); }
 :where(:root[data-theme="light"]) .nudge { background: linear-gradient(110deg, rgba(255, 201, 74, .14), rgba(250, 253, 251, 0.72) 55%); }
+:where(:root[data-theme="light"]) .np-brand { background: rgba(20, 44, 34, 0.088); }
+:where(:root[data-theme="light"]) .wn-logo { background: linear-gradient(140deg, rgba(255, 201, 74, .22), rgba(20, 44, 34, 0.044)); }
+:where(:root[data-theme="light"]) .wn-k { background: rgba(20, 44, 34, 0.044); }
 
 /* ---- hand-tuned ---- */
 :root[data-theme="light"] .chip[aria-pressed="true"] { color: var(--acc-2); }

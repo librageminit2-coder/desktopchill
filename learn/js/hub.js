@@ -1,11 +1,11 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I } from './icons.js?v=17';
-import { S } from './store.js?v=17';
-import { acct, call } from './account.js?v=17';
-import { sfx } from './sound.js?v=17';
-import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=17';
-import * as walls from './walls.js?v=17';
+import { I, LOGO } from './icons.js?v=18';
+import { S } from './store.js?v=18';
+import { acct, call } from './account.js?v=18';
+import { sfx } from './sound.js?v=18';
+import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=18';
+import * as walls from './walls.js?v=18';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -102,6 +102,7 @@ function text(n) {
     case 'duel_pick': return { t: `${n.name} picked ${w} as a duel prize`, h: `${who} won your duel and copied <b>${esc(w)}</b> into their collection. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
+    case 'update': return { t: `New update: ${p.added || 'many'} new units`, h: `<b>New update.</b> ${p.added || 'Many'} new units with practical, everyday topics across English, 中文 and IELTS. Your progress is safe.`, ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) };
     default: return { t: 'New notification', h: 'New notification', ic: 'bell' };
   }
 }
@@ -126,7 +127,7 @@ function drawPanel(p) {
   const items = hub.items;
   p.innerHTML = `<div class="np-h"><b>Notifications</b>${hub.unread ? `<button class="np-all" type="button">Mark all read</button>` : ''}</div>
     <div class="np-list">${items.length ? items.map((n) => { const t = text(n); return `<div class="np-i ${n.read ? '' : 'new'}" data-id="${n.id}">
-      <span class="np-av">${vipAv(n.name || '?', n.avatar, n.vip || 0)}<span class="np-k">${I[t.ic]}</span></span>
+      <span class="np-av">${n.kind === 'update' ? `<span class="np-brand">${LOGO}</span>` : vipAv(n.name || '?', n.avatar, n.vip || 0)}<span class="np-k">${I[t.ic]}</span></span>
       <div class="np-b"><p>${t.h}</p>${t.wall ? `<img class="np-w" src="${walls.poster(t.wall)}" alt="">` : ''}<small>${ago(n.at)}</small>
       ${t.act && !n.read ? `<div class="np-a">${t.act.map(([l, a], k) => `<button class="btn sm ${k ? 'ghost' : 'acc'}" type="button" data-a="${a}">${l}</button>`).join('')}</div>` : ''}</div></div>`; }).join('') : `<div class="np-empty">${I.bell}<p>Nothing new. Friend requests, invites, duels and gifts show up here.</p></div>`}</div>`;
   const all = p.querySelector('.np-all'); if (all) all.addEventListener('click', async () => { hub.items.forEach((x) => { x.read = true; }); hub.unread = 0; paintBadges(); drawPanel(p); try { await call('learn_notifs_read', { p_ids: null }); } catch (e) {} });
@@ -137,11 +138,40 @@ function drawPanel(p) {
       e.stopPropagation(); const a = b.dataset.a;
       if (a === 'fr-ok' || a === 'fr-no') { try { await call('learn_friend_respond', { p_uid: n.actor, p_accept: a === 'fr-ok' }); toast(a === 'fr-ok' ? `You and ${n.name} are friends now` : 'Request declined'); sfx(a === 'fr-ok' ? 'ok' : 'tap'); n.read = true; hub.unread = Math.max(0, hub.unread - 1); paintBadges(); drawPanel(p); loadFriends(); } catch (er) { toast(er.message); } return; }
       mark();
+      if (a === 'new' && t.fn) { if (panelOff) panelOff(); t.fn(); return; }
       if (a === 'go' && t.go) { if (panelOff) panelOff(); document.getElementById('sheet-root').innerHTML = ''; location.hash = t.go; }
       else drawPanel(p);
     }));
-    row.addEventListener('click', () => { if (t.act && !n.read) return; mark(); if (t.go) { if (panelOff) panelOff(); document.getElementById('sheet-root').innerHTML = ''; location.hash = t.go; } });
+    row.addEventListener('click', () => { if (t.act && !n.read) return; mark(); if (t.fn) { if (panelOff) panelOff(); t.fn(); return; } if (t.go) { if (panelOff) panelOff(); document.getElementById('sheet-root').innerHTML = ''; location.hash = t.go; } });
   });
+}
+
+/* ---------- có gì mới (hiện 1 lần mỗi bản cập nhật nội dung) ---------- */
+const NEWS = { v: 18, added: 106, lessons: 848, courses: [
+  { lang: 'en', name: 'English', from: 60, to: 100, topics: ['At a café', 'Taking a taxi', 'Booking a hotel', 'Paying bills and the ATM', 'Complaints and refunds', 'Emergencies and accidents', 'Housing and the property market', 'Difficult conversations'] },
+  { lang: 'zh', name: '中文', from: 61, to: 97, topics: ['Buying fruit', 'Making plans with friends', 'At the hairdresser’s', 'Ordering food delivery', 'Taking the high-speed train', 'Sorting rubbish', 'Online scams', 'Moving to the city'] },
+  { lang: 'ielts', name: 'IELTS', from: 52, to: 82, topics: ['Neighbours & community', 'Online shopping & delivery', 'The gig economy', 'Personal finance & debt', 'Remote work & the future of offices', 'Loneliness in modern society', 'Universal basic income', 'Generational fairness'] },
+] };
+const NEWS_KEY = 'dcl_news_' + NEWS.v;
+const seenNews = () => { try { return localStorage.getItem(NEWS_KEY) === '1'; } catch (e) { return true; } };
+const markNews = () => { try { localStorage.setItem(NEWS_KEY, '1'); } catch (e) {} };
+export function whatsNew(force) {
+  if (!force && (seenNews() || !S.onboarded)) { if (!S.onboarded) markNews(); return; }
+  if (!force && document.querySelector('.ovl, .player, .sheet')) return;
+  markNews();
+  if (acct) call('learn_notifs_read_kind', { p_kind: 'update' }).then(() => { hub.items.forEach((x) => { if (x.kind === 'update' && !x.read) { x.read = true; hub.unread = Math.max(0, hub.unread - 1); } }); paintBadges(); }).catch(() => {});
+  sfx('quest');
+  sheet(`<div class="wn">
+    <div class="wn-h"><span class="wn-logo">${LOGO}</span><div><h2>${NEWS.added} new units</h2><p class="sub">Practical, everyday topics in all three courses: ${NEWS.lessons} new lessons, each with its own chest. Your progress and wallpapers are untouched.</p></div></div>
+    <div class="wn-c">${NEWS.courses.map((c) => `<section class="wn-k" data-l="${c.lang}">
+      <div class="wn-kh"><b>${c.name}</b><span class="wn-n"><s>${c.from}</s>${I.chev}<em>${c.to}</em> units</span></div>
+      <ul>${c.topics.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+      <button class="btn sm ${c.lang === S.lang ? 'acc' : 'ghost'} wn-go" type="button" data-l="${c.lang}">${c.lang === S.lang ? 'Keep learning' : 'Open ' + c.name}</button>
+    </section>`).join('')}</div>
+    <p class="wn-note">${I.sparkle}<span>New units sit at the end of each level, so levels you already finished have a few fresh topics waiting.</span></p>
+  </div>`, (el, close) => {
+    el.querySelectorAll('.wn-go').forEach((b) => b.addEventListener('click', () => { close(); const l = b.dataset.l; if (l === S.lang) { if (location.hash !== '#/' && location.hash !== '') location.hash = '#/'; } else C.goTo(l); }));
+  }, 'wide');
 }
 
 /* ---------- danh sách bạn (cạnh phải) ---------- */
