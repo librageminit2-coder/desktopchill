@@ -1,16 +1,16 @@
-import { I, LOGO } from './icons.js?v=13';
-import { sound, sfx, unlockAudio } from './sound.js?v=13';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=13';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=13';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=13';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=13';
-import * as social from './social.js?v=13';
-import { setVideo, setBg } from './scene.js?v=13';
-import * as walls from './walls.js?v=13';
-import * as hub from './hub.js?v=13';
-import * as duel from './duel.js?v=13';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=13';
-import { mascot } from './mascot.js?v=13';
+import { I, LOGO } from './icons.js?v=14';
+import { sound, sfx, unlockAudio } from './sound.js?v=14';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=14';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=14';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=14';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=14';
+import * as social from './social.js?v=14';
+import { setVideo, setBg } from './scene.js?v=14';
+import * as walls from './walls.js?v=14';
+import * as hub from './hub.js?v=14';
+import * as duel from './duel.js?v=14';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=14';
+import { mascot } from './mascot.js?v=14';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -121,7 +121,7 @@ const routeOf = (r) => r === '#/' ? '#/' : '#/' + (r.split('/')[1] || '');
 function vipChip() {
   const v = walls.myVip(), pts = walls.vipPoints(), next = walls.VIP_T[v] || 1000, prev = v ? walls.VIP_T[v - 1] : 0;
   const p = v >= 10 ? 1 : Math.max(0, Math.min(1, (pts - prev) / (next - prev))), C = 2 * Math.PI * 17;
-  return `<a class="vipc v${v}" href="#/collection" title="VIP ${v}: ${v >= 10 ? 'top rank' : `${pts} / ${next} points to VIP ${v + 1}`}"><svg viewBox="0 0 40 40" aria-hidden="true"><circle class="bg" cx="20" cy="20" r="17"/><circle class="fg" cx="20" cy="20" r="17" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - p)).toFixed(1)}"/></svg><b>V${v}</b><span class="vipc-t">VIP</span></a>`;
+  return `<a class="vipc v${v}" href="#/collection" title="VIP ${v}: ${v >= 10 ? 'top rank' : `${pts} / ${next} points to VIP ${v + 1}`}"><svg viewBox="0 0 40 40" aria-hidden="true"><circle class="bg" cx="20" cy="20" r="17"/><circle class="fg" cx="20" cy="20" r="17" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - p)).toFixed(1)}"/></svg><span class="vipc-t">VIP</span><b>${v}</b></a>`;
 }
 function shell(route, inner, aside, opts = {}) {
   const dueN = due(S.lang).length, reqN = social.counts.requests || 0, cur = routeOf(route);
@@ -145,7 +145,6 @@ function shell(route, inner, aside, opts = {}) {
       <span class="chipx gem" title="Total XP">${I.gem}<b class="xp-n">${S.xp}</b></span>
       ${vipChip()}
       ${hub.bellHTML()}${acct ? `<button class="icon-btn rail-btn" type="button" title="Friends" aria-label="Friends">${I.users}${reqN ? `<i class="badge">${reqN}</i>` : ''}</button>` : ''}
-      <button class="icon-btn theme-t" type="button" title="${theme() === 'light' ? 'Dark mode' : 'Light mode'}">${theme() === 'light' ? I.moon : I.sun}</button>
       <div class="mi me-mi"><a class="hud-me" href="#/me" title="Profile and settings">${meAv(40)}${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
         <div class="dd right" role="menu"><div class="dd-in panel solid">
           <div class="dd-me">${acct ? `<b>${esc(acct.name)}</b><small>Level ${playerLevel().lv} · VIP ${walls.myVip()}</small>` : '<b>Guest</b><small>Progress is saved on this device</small>'}</div>
@@ -166,7 +165,6 @@ function shell(route, inner, aside, opts = {}) {
   <nav class="tabbar" aria-label="Main">${TABS.map(tab).join('')}</nav>`;
   app.querySelectorAll('.ctab').forEach((b) => b.addEventListener('click', () => switchCourse(b.dataset.l)));
   app.querySelectorAll('.nav a, .tabbar a, .dd a').forEach((a) => a.addEventListener('click', () => { sfx('tap'); a.blur(); }));
-  app.querySelector('.theme-t').addEventListener('click', () => { sfx('tap'); setTheme(theme() === 'light' ? 'dark' : 'light'); });
   app.querySelector('.hud-hide').addEventListener('click', () => hub.toggleHud(false));
   app.querySelector('.hud-show').addEventListener('click', () => hub.toggleHud(true));
   const dj = app.querySelector('.dd-join'); if (dj) dj.addEventListener('click', () => setTimeout(() => { const i = document.querySelector('.jc'); if (i) i.focus(); }, 600));
@@ -435,7 +433,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=13').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=14').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -908,7 +906,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=13').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=14').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */

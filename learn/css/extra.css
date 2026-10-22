@@ -597,3 +597,12 @@ body.quizzing .edge-tab, body.playing .edge-tab { display: none !important; }
 @container (max-width: 900px) { .du-grid { grid-template-columns: 1fr; } }
 @container (max-width: 700px) { .col-top { grid-template-columns: 1fr; } .drop { grid-template-columns: minmax(0, 1fr) auto; } .dr-c { grid-column: 1 / -1; grid-row: 2; grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1181px) { .nav.menu .mi .mt span { display: inline; } }
+/* nền rõ hơn: lớp phủ nhẹ hơn ở giữa màn hình */
+.veil { background: linear-gradient(180deg, rgba(4, 9, 8, .42) 0%, rgba(4, 9, 8, .10) 28%, rgba(4, 9, 8, .22) 70%, rgba(4, 9, 8, .62) 100%); }
+.scene { background-size: cover; image-rendering: auto; }
+/* chip VIP: chữ VIP ở trên, số ở dưới */
+.vipc { flex-direction: column; gap: 0; }
+.vipc { display: flex; align-items: center; justify-content: center; }
+.vipc .vipc-t { position: relative; bottom: auto; font-size: .5rem; line-height: 1; color: var(--muted); letter-spacing: .06em; margin-bottom: 1px; }
+.vipc b { margin: 0; font-size: .82rem; line-height: 1; }
+@media (max-width: 860px) { .vipc-t { display: block !important; font-size: .44rem !important; } .vipc b { font-size: .74rem; } }

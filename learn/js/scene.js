@@ -6,11 +6,12 @@ const conn = navigator.connection || {};
 let off = false; try { off = localStorage.getItem('dcl_video') === 'off'; } catch (e) {}
 let bg = 0; try { bg = +(localStorage.getItem('dcl_bg') || 0) || 0; } catch (e) {}
 if (bg === 71) bg = 0; // 71 = rừng sương (nền mặc định, bản 1080p)
-const posterOf = () => (bg ? `media/walls/${bg}.jpg` : 'media/forest-poster.jpg');
+// màn lớn dùng bản 1080p (rõ nét), màn nhỏ / mạng yếu dùng bản 720p
+const big = () => Math.max(innerWidth, innerHeight) * (devicePixelRatio || 1) > 1500 && !conn.saveData && !/2g/.test(conn.effectiveType || '');
+const posterOf = () => (bg ? `media/walls/hd/${bg}.jpg` : 'media/forest-poster.jpg');
 function srcOf() {
-  if (bg) return `media/walls/${bg}.mp4`;
-  const big = Math.max(innerWidth, innerHeight) * (devicePixelRatio || 1) > 1500 && !conn.saveData && !/2g/.test(conn.effectiveType || '');
-  return big ? 'media/forest-1080.mp4' : 'media/forest-720.mp4';
+  if (bg) return big() ? `media/walls/hd/${bg}.mp4` : `media/walls/${bg}.mp4`;
+  return big() ? 'media/forest-1080.mp4' : 'media/forest-720.mp4';
 }
 function paintPoster() { if (sc) sc.style.backgroundImage = `url("${posterOf()}")`; if (v) v.poster = posterOf(); }
 export function setVideo(on) {
