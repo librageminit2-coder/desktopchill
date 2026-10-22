@@ -606,3 +606,19 @@ body.quizzing .edge-tab, body.playing .edge-tab { display: none !important; }
 .vipc .vipc-t { position: relative; bottom: auto; font-size: .5rem; line-height: 1; color: var(--muted); letter-spacing: .06em; margin-bottom: 1px; }
 .vipc b { margin: 0; font-size: .82rem; line-height: 1; }
 @media (max-width: 860px) { .vipc-t { display: block !important; font-size: .44rem !important; } .vipc b { font-size: .74rem; } }
+/* đổi XP lấy hình nền */
+.ws-buy { display: flex; align-items: center; gap: 14px; padding: 12px 14px; margin: 4px 0 8px; border-radius: 18px; background: color-mix(in srgb, var(--gold) 9%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent); }
+.wb-ic { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(94, 234, 212, .14); color: var(--gem); }
+.wb-ic svg { width: 20px; height: 20px; }
+.wb-t { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.wb-t small { color: var(--muted); font-size: .8rem; }
+.wb-t .bar i { background: linear-gradient(90deg, var(--gem), var(--gold)); }
+.ws-buy .btn { flex: none; }
+@media (max-width: 560px) { .ws-buy { flex-wrap: wrap; } .ws-buy .btn { width: 100%; } }
+.cc-xp { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(94, 234, 212, .08); }
+.cc-xp > svg { width: 18px; height: 18px; flex: none; color: var(--gem); margin-top: 2px; }
+.cc-xp span { display: grid; gap: 2px; } .cc-xp b { font-size: .92rem; } .cc-xp small { color: var(--muted); font-size: .76rem; line-height: 1.35; }
+.xp-unlock .wcard { width: min(320px, 100%); animation: rvin .9s .1s cubic-bezier(.2, 1.25, .4, 1) both; }
+.ws-media video.dim { filter: saturate(.6) brightness(.6); transform: none; }
+.ws-lock { inset: auto 12px 12px auto; padding: 6px 12px; border-radius: 10px; background: rgba(0, 0, 0, .55); display: flex; gap: 6px; font-size: .82rem; }
+.ws-lock svg { width: 15px; height: 15px; }

@@ -76,22 +76,46 @@ function closeMic() {
   if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
   if (mctx) { try { mctx.close(); } catch (e) {} mctx = null; }
 }
+// Nghe một câu. Tự dừng khi: có kết quả cuối, im lặng ~1,5 giây sau khi nói, hoặc quá 15 giây.
+// Nếu trình duyệt không báo "end" sau khi dừng (lỗi hay gặp trên Chrome), vẫn trả kết quả sau 1,2 giây.
+let curStop = null;
 export function listen(lang, { onPartial, onLevel } = {}) {
   return new Promise(async (res, rej) => {
     if (!SR) return rej(new Error('unsupported'));
     try { if (rec) rec.abort(); } catch (e) {}
-    try { await openMic(onLevel); } catch (e) { return rej(e); }
+    let best = '', alts = [], failed = null, done = false, spoke = false, lastLoud = 0;
+    const T = { sil: 0, max: 0, none: 0, kill: 0 };
+    const clear = () => Object.values(T).forEach((t) => clearTimeout(t));
+    const finish = () => {
+      if (done) return; done = true; clear(); curStop = null; closeMic(); if (onLevel) onLevel(0);
+      const r = rec; try { if (r) { r.onend = null; r.onresult = null; r.onerror = null; r.abort(); } } catch (e) {}
+      if (failed && failed !== 'aborted' && failed !== 'no-speech' && !best) rej(new Error(failed));
+      else if (!best && failed === 'no-speech') rej(new Error('no-speech'));
+      else res({ text: best, alts });
+    };
+    const stopSoon = () => { if (done) return; try { rec.stop(); } catch (e) {} clearTimeout(T.kill); T.kill = setTimeout(finish, 1200); };
+    curStop = stopSoon;
+    // đồng hồ âm lượng + phát hiện im lặng sau khi đã nói
+    const level = (v) => {
+      if (onLevel) onLevel(v);
+      const now = performance.now();
+      if (v > 0.16) { spoke = true; lastLoud = now; } else if (spoke && best && now - lastLoud > 1500) stopSoon();
+    };
+    try { await openMic(level); } catch (e) { curStop = null; return rej(e); }
     rec = new SR(); rec.lang = LANG[lang]; rec.interimResults = true; rec.maxAlternatives = 3; rec.continuous = false;
-    let best = '', alts = [], failed = null;
     rec.onresult = (e) => {
       const r = e.results[e.results.length - 1];
       best = Array.from(e.results).map((x) => x[0].transcript).join(' ');
       alts = Array.from(r).map((a) => a.transcript);
       if (onPartial) onPartial(best);
+      clearTimeout(T.sil);
+      if (r.isFinal) stopSoon(); else T.sil = setTimeout(stopSoon, 1500);
     };
-    rec.onerror = (e) => { failed = e.error || 'error'; };
-    rec.onend = () => { closeMic(); if (onLevel) onLevel(0); if (failed && failed !== 'aborted' && !best) rej(new Error(failed)); else res({ text: best, alts }); };
-    try { rec.start(); } catch (e) { closeMic(); rej(e); }
+    rec.onerror = (e) => { failed = e.error || 'error'; if (failed !== 'aborted') stopSoon(); };
+    rec.onend = finish;
+    T.max = setTimeout(stopSoon, 15000);
+    T.none = setTimeout(() => { if (!best) { failed = failed || 'no-speech'; stopSoon(); } }, 8000);
+    try { rec.start(); } catch (e) { done = true; clear(); curStop = null; closeMic(); rej(e); }
   });
 }
 // nghe dài (Speaking Part 2): ghép các đoạn nhận dạng, tự khởi động lại nếu trình duyệt ngắt giữa chừng
@@ -113,7 +137,7 @@ export function listenLong(lang, { onText, onLevel, maxMs = 120000 } = {}) {
   });
 }
 export function stopLong() { longStop = true; try { if (rec) rec.stop(); } catch (e) {} }
-export function stopListen() { try { if (rec) rec.stop(); } catch (e) {} }
+export function stopListen() { if (curStop) { curStop(); return; } try { if (rec) rec.stop(); } catch (e) {} }
 // Thông báo lỗi micro dễ hiểu
 export function micMsg(code) {
   switch (code) {

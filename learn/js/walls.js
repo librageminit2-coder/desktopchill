@@ -1,11 +1,11 @@
 // Kho hình nền: phần thưởng trong rương chủ đề và boss, bộ sưu tập, VIP, chia sẻ cho bạn bè, đặt làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=14';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=14';
-import { acct, call } from './account.js?v=14';
-import { sfx } from './sound.js?v=14';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText } from './ui.js?v=14';
+import { I } from './icons.js?v=15';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=15';
+import { acct, call, push } from './account.js?v=15';
+import { sfx } from './sound.js?v=15';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=15';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -82,7 +82,11 @@ export function syncWalls() {
       // gửi các rương đã mở trên máy này mà máy chủ chưa biết (ví dụ: học khi chưa đăng nhập)
       const todo = Object.entries(S.wclaims).filter(([k, v]) => v > ((j.claims || {})[k] || 0) && slotWalls(k).length).slice(0, 60);
       for (const [k, v] of todo) { try { await call('learn_wall_claim', { p_slot: k, p_stars: v }); } catch (e) { break; } }
-      if (todo.length) j = await call('learn_walls_mine');
+      // hình đổi bằng XP khi chưa đăng nhập
+      const srv = new Set((j.walls || []).map((x) => x.w));
+      const buys = Object.entries(S.walls).filter(([w, x]) => !srv.has(+w) && /^xp:/.test(x.src || '')).slice(0, 20);
+      for (const [w] of buys) { try { await push(); await call('learn_wall_buy', { p_wall: +w }); } catch (e) { break; } }
+      if (todo.length || buys.length) j = await call('learn_walls_mine');
       (j.walls || []).forEach((x) => { if (!S.walls[x.w]) S.walls[x.w] = { at: new Date(x.at).getTime(), src: x.src }; else S.walls[x.w].src = x.src; });
       Object.entries(j.claims || {}).forEach(([k, v]) => { if ((S.wclaims[k] || 0) < v) S.wclaims[k] = v; });
       ensureStarters();
@@ -256,17 +260,52 @@ export async function wallSheet(id) {
   const w = wallOf(id), mine = owned(id), src = mine && S.walls[id].src || '';
   const ws = whereOf(id).sort((a, b) => (a.lang === S.lang ? -1 : 0) - (b.lang === S.lang ? -1 : 0));
   const labels = await Promise.all(ws.map(slotLabel));
-  const from = src.startsWith('gift:') ? `Gift from ${src.slice(5)}` : src.startsWith('duel:') ? `Won in a duel against ${src.slice(5)}` : src.startsWith('quiz:') ? `Won in the live quiz “${src.slice(5)}”` : src.startsWith('chest:') ? 'From a chest' : '';
+  const from = src.startsWith('gift:') ? `Gift from ${src.slice(5)}` : src.startsWith('duel:') ? `Won in a duel against ${src.slice(5)}` : src.startsWith('quiz:') ? `Won in the live quiz “${src.slice(5)}”` : src.startsWith('chest:') ? 'From a chest' : src.startsWith('xp:') ? `Unlocked with ${fmt(src.slice(3))} XP` : src === 'starter' ? 'Starter wallpaper' : '';
   sheet(`<div class="ws-media r-${w.rarity}"><video src="${video(id)}" poster="${poster(id)}" muted loop playsinline autoplay ${mine ? '' : 'class="dim"'}></video>${mine ? '' : `<span class="ws-lock">${I.lock}<b>Not in your collection yet</b></span>`}</div>
     <div class="ws-h"><h2>${esc(w.name)}</h2><span class="rpill r-${w.rarity}">${RAR[w.rarity]} · #${pad(id)}</span></div>
-    ${mine ? `<p class="sub">${esc(from)}${from ? ' · ' : ''}collected ${new Date(S.walls[id].at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>` : '<p class="sub">Win it from any of the chests below, from a friend’s gift, a duel or a live quiz.</p>'}
+    ${mine ? `<p class="sub">${esc(from)}${from ? ' · ' : ''}collected ${new Date(S.walls[id].at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>` : '<p class="sub">Win it from the chests below, a friend’s gift, a duel or a live quiz, or unlock it with XP.</p>'}
+    ${mine ? '' : (() => { const cost = priceOf(id), left = xpLeft(); return `<div class="ws-buy"><span class="wb-ic">${I.gem}</span><div class="wb-t"><b>Unlock with XP</b><small>${fmt(cost)} XP for a ${RAR[w.rarity].toLowerCase()} wallpaper · you have ${fmt(left)} XP to spend</small><span class="bar"><i style="width:${Math.min(100, Math.round((left / cost) * 100))}%"></i></span></div><button class="btn ${left >= cost ? 'gold' : 'ghost'} ws-buy-go" type="button" ${left >= cost ? '' : 'disabled'}>${left >= cost ? `Unlock · ${fmt(cost)} XP` : `${fmt(cost - left)} XP to go`}</button></div>`; })()}
     ${mine ? `<div class="foot-row ws-acts"><button class="btn ${isBg(id) ? 'ghost' : 'acc'} use-bg" type="button" ${isBg(id) ? 'disabled' : ''}>${I.sparkle} ${isBg(id) ? 'Current background' : 'Use as background'}</button><button class="btn ghost share" type="button">${I.gift} Share</button></div>` : ''}
     <h3 class="gh">Where to find it</h3>
     <div class="list ws-where">${labels.map((l, k) => { const e = ws[k], has = (S.wclaims[e.slot] || 0) >= e.need; return `<button class="row" type="button" data-k="${k}" style="text-align:left;width:100%"><span class="ws-c c-${e.lang}">${e.lang === 'zh' ? '中' : e.lang === 'ielts' ? 'IE' : 'EN'}</span><span class="grow"><b>${esc(l.t)}</b><small>${esc(l.s)}</small></span>${has ? `<span class="tag-s acc">${I.check} Opened</span>` : I.chev}</button>`; }).join('')}</div>`, (el, close) => {
     const u = el.querySelector('.use-bg'); if (u) u.addEventListener('click', () => { setBg(id); close(); toast('Background changed'); });
     const sh = el.querySelector('.share'); if (sh) sh.addEventListener('click', () => { close(); shareSheet(id); });
+    const bg = el.querySelector('.ws-buy-go'); if (bg) bg.addEventListener('click', async () => {
+      close();
+      if (!(await confirmBox(`Unlock ${wallOf(id).name}?`, `This spends ${fmt(priceOf(id))} XP from your ${fmt(xpLeft())} XP to spend. Your level and streak stay the same.`, `Unlock · ${fmt(priceOf(id))} XP`))) return;
+      if (await buyWall(id)) unlockedFx(id);
+    });
     el.querySelectorAll('.ws-where .row').forEach((b) => b.addEventListener('click', () => { const l = labels[+b.dataset.k], e = ws[+b.dataset.k]; close(); C.goTo(e.lang, l.lv, l.unit); }));
   }, 'wide ws-sheet');
+}
+
+/* ---------- đổi XP lấy hình nền ---------- */
+// XP dùng được = tổng XP − XP đã đổi (hình có nguồn "xp:<giá>"). Cấp độ người chơi không bị giảm.
+export const PRICE = { common: 1200, rare: 2400, epic: 4800, legendary: 9600 };
+export const priceOf = (id) => PRICE[wallOf(id).rarity] || 9600;
+export const xpSpent = () => Object.values(S.walls).reduce((a, x) => a + (/^xp:\d+$/.test((x && x.src) || '') ? +x.src.slice(3) : 0), 0);
+export const xpLeft = () => Math.max(0, (S.xp || 0) - xpSpent());
+const fmt = (n) => Number(n).toLocaleString('en-US');
+export async function buyWall(id) {
+  if (owned(id)) return false;
+  const cost = priceOf(id);
+  if (xpLeft() < cost) { toast(`You need ${fmt(cost - xpLeft())} more XP`); return false; }
+  if (acct) {
+    try {
+      await push();
+      const j = await call('learn_wall_buy', { p_wall: id });
+      if (!j || !j.ok) { toast(j && j.error === 'notenough' ? `The server sees ${fmt(j.have)} XP to spend. Finish a lesson and try again.` : j && j.error === 'owned' ? 'Already in your collection' : 'Could not unlock right now'); if (j && j.error === 'owned') syncWalls(); return false; }
+    } catch (e) { toast(e.message); return false; }
+  }
+  S.walls[id] = { at: Date.now(), src: 'xp:' + cost }; save(true);
+  return true;
+}
+function unlockedFx(id) {
+  sfx('levelup');
+  const o = overlay(`<div class="rw xp-unlock">${card(id, { cls: 'aw is-new', tag: 'Unlocked' })}<h2>${esc(wallOf(id).name)}</h2><p class="muted">${fmt(priceOf(id))} XP spent · ${fmt(xpLeft())} XP left to spend</p><button class="btn acc xu-ok" type="button">${I.gallery} Add to collection</button></div>`, null, 'reward');
+  wireCards(o.el);
+  setTimeout(() => { const c = o.el.querySelector('.wcard'); if (c) { const r = c.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 30); } }, 300);
+  o.el.querySelector('.xu-ok').addEventListener('click', (e) => { e.stopPropagation(); const c = o.el.querySelector('.wcard'); o.close(); if (c) flyToCollection([c]); setTimeout(() => { if (location.hash.startsWith('#/collection') && C.render) C.render(); }, 1000); });
 }
 
 /* ---------- nền trang bằng hình đã sưu tập ---------- */
@@ -345,6 +384,7 @@ export async function collectionPage(args = []) {
     C.shell('#/collection', `<div class="page-h"><div><h1>Collection</h1><p>${total()} animated wallpapers. You start with ${(CAT.starters || []).length}; the rest hide in unit chests and level bosses. A 2★ chest gives 1, a 3★ chest gives 2, a boss gives up to 3. English, 中文 and IELTS each hold all of them, in a different order.</p></div></div>
     <section class="col-top">
       <div class="panel col-count"><div class="cc-n"><b>${n}</b><span>/ ${CAT.walls.length}</span></div><small>wallpapers collected</small>
+        <div class="cc-xp">${I.gem}<span><b>${fmt(xpLeft())} XP to spend</b><small>Tap any wallpaper to unlock it with XP: common ${fmt(PRICE.common)}, rare ${fmt(PRICE.rare)}, epic ${fmt(PRICE.epic)}, legendary ${fmt(PRICE.legendary)}.</small></span></div>
         <div class="cc-r">${byR.map((x) => `<span class="r-${x.r}"><i class="rd"></i>${RAR[x.r]}<b>${x.n}/${x.t}</b></span>`).join('')}</div></div>
       <div class="panel col-vip">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, v, 'lg')}<div class="cv-t"><b>${v ? `VIP ${v}` : 'No VIP yet'}</b><small>${v >= 10 ? 'Top rank' : `${pts} / ${next} points to VIP ${v + 1}`}</small><span class="bar"><i style="width:${v >= 10 ? 100 : Math.round(((pts - prevT) / (next - prevT)) * 100)}%"></i></span>
         <em>Finished unit: English +${Math.round(up.en)}, 中文 +${Math.round(up.zh)}, IELTS +${Math.round(up.ielts)}. Duels, quizzes and duplicates add bonus points (max 150).</em></div>

@@ -1,12 +1,12 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=14';
-import { mascot } from './mascot.js?v=14';
-import { sfx } from './sound.js?v=14';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=14';
+import { I } from './icons.js?v=15';
+import { mascot } from './mascot.js?v=15';
+import { sfx } from './sound.js?v=15';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=15';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
-import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=14';
+import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=15';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -281,7 +281,7 @@ R.speak = (el, it, api) => {
   const mic = el.querySelector('.mic'), heard = el.querySelector('.heard'), sc = el.querySelector('.score');
   mic.addEventListener('click', async () => {
     if (mic.classList.contains('rec')) { stopListen(); return; }
-    stopSpeak(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Listening…';
+    stopSpeak(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Listening… it stops by itself when you pause, or tap the mic to finish';
     try {
       const r = await listen(api.lang, { onPartial: (t) => { heard.textContent = t; }, onLevel: lvl(mic) });
       mic.classList.remove('rec'); sfx('stop'); tries++;
@@ -421,7 +421,7 @@ R.roleplay = (el, it, api) => {
     let tries = 0;
     mic.addEventListener('click', async () => {
       if (mic.classList.contains('rec')) { stopListen(); return; }
-      stopSpeak(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Listening…';
+      stopSpeak(); sfx('rec'); mic.classList.add('rec'); heard.textContent = 'Listening… it stops by itself when you pause, or tap the mic to finish';
       try {
         const r = await listen(api.lang, { onPartial: (t) => { heard.textContent = t; }, onLevel: lvl(mic) });
         mic.classList.remove('rec'); sfx('stop'); tries++;

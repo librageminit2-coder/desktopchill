@@ -1,12 +1,12 @@
 // Học cùng nhau: bạn bè, lớp học (giáo viên / trợ giảng / học viên), quiz trực tiếp kiểu “nhập PIN cùng chơi” và báo cáo.
 // Mọi dữ liệu đi qua các hàm RPC trên Supabase (xem learn/setup/learn_social.sql).
-import { I } from './icons.js?v=14';
-import { S, save, LN, unitProgress } from './store.js?v=14';
-import { acct, call, rpc, ensureToken } from './account.js?v=14';
-import { sfx, unlockAudio } from './sound.js?v=14';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=14';
-import * as hub from './hub.js?v=14';
-import * as walls from './walls.js?v=14';
+import { I } from './icons.js?v=15';
+import { S, save, LN, unitProgress } from './store.js?v=15';
+import { acct, call, rpc, ensureToken } from './account.js?v=15';
+import { sfx, unlockAudio } from './sound.js?v=15';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=15';
+import * as hub from './hub.js?v=15';
+import * as walls from './walls.js?v=15';
 
 let C = null; // ngữ cảnh từ app.js
 export const counts = { get requests() { return hub.hub.requests || 0; }, set requests(v) { hub.hub.requests = v; }, rooms: 0 };

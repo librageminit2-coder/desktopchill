@@ -1,16 +1,16 @@
-import { I, LOGO } from './icons.js?v=14';
-import { sound, sfx, unlockAudio } from './sound.js?v=14';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=14';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=14';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=14';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=14';
-import * as social from './social.js?v=14';
-import { setVideo, setBg } from './scene.js?v=14';
-import * as walls from './walls.js?v=14';
-import * as hub from './hub.js?v=14';
-import * as duel from './duel.js?v=14';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=14';
-import { mascot } from './mascot.js?v=14';
+import { I, LOGO } from './icons.js?v=15';
+import { sound, sfx, unlockAudio } from './sound.js?v=15';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=15';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=15';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=15';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=15';
+import * as social from './social.js?v=15';
+import { setVideo, setBg } from './scene.js?v=15';
+import * as walls from './walls.js?v=15';
+import * as hub from './hub.js?v=15';
+import * as duel from './duel.js?v=15';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=15';
+import { mascot } from './mascot.js?v=15';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -433,7 +433,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=14').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=15').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -906,7 +906,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=14').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=15').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */
