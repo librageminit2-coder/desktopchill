@@ -1,12 +1,12 @@
 // Học cùng nhau: bạn bè, lớp học (giáo viên / trợ giảng / học viên), quiz trực tiếp kiểu “nhập PIN cùng chơi” và báo cáo.
 // Mọi dữ liệu đi qua các hàm RPC trên Supabase (xem learn/setup/learn_social.sql).
-import { I } from './icons.js?v=15';
-import { S, save, LN, unitProgress } from './store.js?v=15';
-import { acct, call, rpc, ensureToken } from './account.js?v=15';
-import { sfx, unlockAudio } from './sound.js?v=15';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=15';
-import * as hub from './hub.js?v=15';
-import * as walls from './walls.js?v=15';
+import { I } from './icons.js?v=16';
+import { S, save, LN, unitProgress } from './store.js?v=16';
+import { acct, call, rpc, ensureToken } from './account.js?v=16';
+import { sfx, unlockAudio } from './sound.js?v=16';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=16';
+import * as hub from './hub.js?v=16';
+import * as walls from './walls.js?v=16';
 
 let C = null; // ngữ cảnh từ app.js
 export const counts = { get requests() { return hub.hub.requests || 0; }, set requests(v) { hub.hub.requests = v; }, rooms: 0 };
@@ -549,19 +549,51 @@ export async function hostPage(key) {
       closeStage(); location.hash = g.room ? `#/class/${g.room}/quizzes` : '#/quiz';
     });
   };
+  let qrMod = null;
+  const qrSVG = (txt) => {
+    if (!qrMod) return '';
+    const q = qrMod(0, 'M'); q.addData(txt); q.make(); const n = q.getModuleCount(); let d = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c} ${r}h1v1h-1z`;
+    return `<svg viewBox="-2 -2 ${n + 4} ${n + 4}" shape-rendering="crispEdges" role="img" aria-label="QR code for the join link"><rect x="-2" y="-2" width="${n + 4}" height="${n + 4}" fill="#fff"/><path d="${d}" fill="#0d1412"/></svg>`;
+  };
+  let lobbySig = '', seenP = new Set();
   const drawLobby = () => {
+    const sig = g.players.map((p) => p.id + ':' + p.nick).join(',') + '|' + g.locked + '|' + g.total;
+    if (sig === lobbySig && inner.querySelector('.lb')) return;
+    lobbySig = sig;
     const link = `${SITE}#/play/${g.pin}`;
-    inner.innerHTML = `<div class="lobby"><p class="join-at">Join at <b>desktopchill.com/learn</b> → Live quiz, or open <b>${esc(link.replace('https://', ''))}</b></p><div class="big-pin">${g.pin.slice(0, 3)} ${g.pin.slice(3)}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="btn sm ghost cp" type="button">${I.link} Copy join link</button><button class="btn sm ghost lk" type="button">${I.lock} ${g.locked ? 'Unlock game' : 'Lock game'}</button>${acct ? `<button class="btn sm ghost inv" type="button">${I.users} Invite friends</button>` : ''}</div>
-      <div class="pl-count" style="font-size:1.4rem">${I.users} ${g.players.length} player${g.players.length === 1 ? '' : 's'}</div>
-      <div class="pl-cloud">${g.players.map((p) => `<span>${esc(p.nick)}<button type="button" data-p="${p.id}" title="Remove">${I.x}</button></span>`).join('') || '<span class="muted" style="background:none;border:0">Waiting for players…</span>'}</div></div>`;
-    inner.querySelector('.cp').addEventListener('click', () => copyText(link, 'Join link copied'));
-    inner.querySelector('.lk').addEventListener('click', () => doAct('lock'));
-    const iv = inner.querySelector('.inv'); if (iv) iv.addEventListener('click', () => hub.inviteSheet('quiz', { pin: g.pin, title: g.title }, g.title));
-    inner.querySelectorAll('.pl-cloud button').forEach((b) => b.addEventListener('click', () => doAct('kick', { id: +b.dataset.p })));
-    bot.innerHTML = `<button class="btn acc go" type="button" ${g.players.length ? '' : 'disabled'} style="min-width:220px">${I.play} Start game</button>`;
+    const n = g.players.length;
+    inner.innerHTML = `<div class="lb">
+      <section class="lb-join">
+        <div class="lb-steps">
+          <p class="lb-k">Join on any phone or laptop</p>
+          <p class="lb-url">Go to <b>desktopchill.com/learn</b> and tap <b>Live quiz</b></p>
+          <p class="lb-k lb-k2">Game PIN</p>
+          <div class="big-pin" aria-label="Game PIN ${g.pin}">${g.pin.slice(0, 3)}<i></i>${g.pin.slice(3)}</div>
+          <div class="lb-acts">
+            <button class="btn sm lb-copy" type="button">${I.link}<span>Copy join link</span></button>
+            <button class="btn sm ghost lb-lock${g.locked ? ' on' : ''}" type="button" aria-pressed="${g.locked}">${I.lock}<span>${g.locked ? 'Unlock game' : 'Lock game'}</span></button>
+            ${acct ? `<button class="btn sm ghost lb-inv" type="button">${I.users}<span>Invite friends</span></button>` : ''}
+          </div>
+        </div>
+        <div class="lb-qr">${qrSVG(link)}<span>Scan to join</span></div>
+      </section>
+      <section class="lb-room">
+        <div class="lb-room-h"><h3>${I.users}<span>${n ? `${n} player${n === 1 ? '' : 's'} ready` : 'Waiting for players'}</span></h3>${g.locked ? `<span class="lb-locked">${I.lock} New players can't join</span>` : ''}</div>
+        ${n ? `<ul class="lb-pl">${g.players.map((p, i) => `<li class="${seenP.has(p.id) ? '' : 'new'}" style="--d:${seenP.size ? 0 : Math.min(i, 12) * 30}ms">${avatar(p.nick, '', 'sm')}<b>${esc(p.nick)}</b><button type="button" data-p="${p.id}" title="Remove ${esc(p.nick)}" aria-label="Remove ${esc(p.nick)}">${I.x}</button></li>`).join('')}</ul>`
+        : `<div class="lb-empty"><span class="lb-dots"><i></i><i></i><i></i></span><p>Players appear here as soon as they enter the PIN.</p></div>`}
+      </section>
+    </div>`;
+    if (!qrMod) import('./qr.js?v=16').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
+    const cp = inner.querySelector('.lb-copy');
+    cp.addEventListener('click', async () => { await copyText(link, 'Join link copied'); cp.classList.add('done'); cp.querySelector('span').textContent = 'Copied'; setTimeout(() => { cp.classList.remove('done'); cp.querySelector('span').textContent = 'Copy join link'; }, 1600); });
+    inner.querySelector('.lb-lock').addEventListener('click', () => doAct('lock'));
+    const iv = inner.querySelector('.lb-inv'); if (iv) iv.addEventListener('click', () => hub.inviteSheet('quiz', { pin: g.pin, title: g.title }, g.title));
+    inner.querySelectorAll('.lb-pl button').forEach((b) => b.addEventListener('click', () => doAct('kick', { id: +b.dataset.p })));
+    bot.innerHTML = `<button class="btn acc go lb-go" type="button" ${n ? '' : 'disabled'}>${I.play} ${n ? `Start game (${g.total} question${g.total === 1 ? '' : 's'})` : 'Start game'}</button>`;
     bot.querySelector('.go').addEventListener('click', () => { unlockAudio(); sfx('levelup'); doAct('start'); });
-    if (g.players.length > prevPlayers) sfx('pop'); prevPlayers = g.players.length;
+    if (n > prevPlayers) sfx('pop'); prevPlayers = n;
+    seenP = new Set(g.players.map((p) => p.id));
   };
   const drawQuestion = () => {
     const q = g.question, zh = /[㐀-鿿]/.test(q.q);
@@ -603,6 +635,7 @@ export async function hostPage(key) {
     drawTop();
     const phase = g.state === 'question' && base < 0 ? 'count' : g.state;
     const changed = phase !== lastState || g.q_index !== lastQ;
+    if (g.state !== 'lobby') lobbySig = '';
     if (g.state === 'lobby') { drawLobby(); }
     else if (changed) {
       if (phase === 'count') drawCountdown(); else if (phase === 'question') { drawQuestion(); sfx('open'); } else if (phase === 'reveal') { drawReveal(); sfx('star'); } else if (phase === 'board') drawBoard(); else if (phase === 'ended') drawEnd();

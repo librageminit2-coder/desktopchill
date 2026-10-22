@@ -1,16 +1,16 @@
-import { I, LOGO } from './icons.js?v=15';
-import { sound, sfx, unlockAudio } from './sound.js?v=15';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=15';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel } from './store.js?v=15';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=15';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=15';
-import * as social from './social.js?v=15';
-import { setVideo, setBg } from './scene.js?v=15';
-import * as walls from './walls.js?v=15';
-import * as hub from './hub.js?v=15';
-import * as duel from './duel.js?v=15';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=15';
-import { mascot } from './mascot.js?v=15';
+import { I, LOGO } from './icons.js?v=16';
+import { sound, sfx, unlockAudio } from './sound.js?v=16';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=16';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=16';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=16';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=16';
+import * as social from './social.js?v=16';
+import { setVideo, setBg } from './scene.js?v=16';
+import * as walls from './walls.js?v=16';
+import * as hub from './hub.js?v=16';
+import * as duel from './duel.js?v=16';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=16';
+import { mascot } from './mascot.js?v=16';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -350,7 +350,7 @@ function pathHTML(c, W) {
         <span class="uh-n">${p === LN ? I.check.replace('<svg', '<svg style="width:22px;height:22px;stroke-width:3"') : i + 1}</span>
         <div class="uh-t"><span class="uh-k">${esc(L.name)} · Unit ${i + 1}</span><h3>${esc(u.title)}</h3><p>${esc(u.goal || u.sub || '')}</p>
           <span class="uh-meta"><span class="uh-bar"><i style="width:${Math.round(p / LN * 100)}%"></i></span><span class="uh-st">${I.star}${us}/${LN * 3}</span></span></div>
-        <button class="guide" type="button" data-u="${u.id}">${I.read}<span>Guide</span></button>
+        <div class="uh-acts"><button class="guide" type="button" data-u="${u.id}">${I.read}<span>Guide</span></button>${cur.u === u ? `<button class="tout" type="button" data-u="${u.id}" title="12 questions. Score 85% to complete the unit at 2 stars">${I.bolt}<span>Test out</span></button>` : ''}</div>
       </header>
       <div class="span" style="height:${g.H}px"><svg class="road" width="${W}" height="${g.H}" viewBox="0 0 ${W} ${g.H}" aria-hidden="true"><path class="edge" d="${full}"/><path class="bed" d="${full}"/>${done}</svg>${nodes}${cpBtn}</div>
     </section>`;
@@ -423,6 +423,67 @@ function openUnitChest(c, uid, btn) {
   const res = walls.claim(uid, walls.chestStars(uid)), i = L.units.indexOf(u);
   setTimeout(() => walls.reveal({ slot: uid, res, title: u.title, kicker: `${L.name} · Unit ${i + 1} chest`, xp: reward, xpNote: reward ? `20 for the unit + ${unitStars(uid)} for your stars` : '', onClose: () => { checkLevel(lv0); checkBadges(); walls.checkVip(); home(); } }), 380);
 }
+// kiểm tra vượt chủ đề: 12 câu khó hơn, đạt 85% thì xong cả 8 bài với 2 sao (rương 2 sao = 1 hình nền; 3 sao vẫn phải học thật)
+const TOUT_PASS = 0.85;
+function testOut(c, uid) {
+  const { L, u } = findUnit(c, uid), i = L.units.indexOf(u);
+  if (unitProgress(uid) >= LN) return;
+  if (S.tout[uid] === today()) { toast('You tried this test today. Take the lessons, or test out again tomorrow.'); return; }
+  sheet(`<span class="muted sk">${esc(L.name)} · Unit ${i + 1}</span><h2>Test out of ${esc(u.title)}</h2>
+    <p class="sub">Already know this unit? Answer 12 mixed questions: words, sentence order, grammar and reading. Score ${Math.round(TOUT_PASS * 100)}% or more and all 8 lessons count as done with 2 stars, so the unit chest opens with 1 wallpaper.</p>
+    <ul class="tout-list"><li>${I.check}<span>One try per unit per day</span></li><li>${I.check}<span>The second wallpaper still needs 3 stars from the real lessons</span></li><li>${I.check}<span>All 20 words go into your review deck</span></li></ul>
+    <div class="foot-row" style="margin-top:14px"><button class="btn ghost tout-no" type="button">Take the lessons</button><button class="btn acc tout-go" type="button">${I.bolt} Start the test</button></div>`, (el, close) => {
+    el.querySelector('.tout-no').addEventListener('click', () => { close(); start(c, uid, currentPos(c).k); });
+    el.querySelector('.tout-go').addEventListener('click', () => { close(); runTestOut(c, L, u); });
+  });
+}
+function runTestOut(c, L, u) {
+  unlockAudio();
+  const zh = isZh(), q = [], gs = [u.gram, u.gram2].filter(Boolean);
+  shuffleArr(u.words).slice(0, 5).forEach((w, i) => q.push({ type: ['wordFromVi', 'meaning', 'listenWord', 'wordFromVi', 'meaning'][i], w }));
+  shuffleArr([...u.dlg.lines, ...gs.flatMap((g) => g.ex)].filter((s) => s.tk && s.tk.length >= 4 && s.tk.length <= 13)).slice(0, 3).forEach((s) => q.push({ type: 'order', s }));
+  const drills = shuffleArr(gs.flatMap((g) => (g.drill || []).map((d) => ({ d, g }))));
+  drills.slice(0, 3).forEach(({ d, g }) => q.push({ type: 'mcq', q: d.t, opts: d.opts, a: d.a, blank: true, note: g.title, vi: d.vi }));
+  const rq = u.read && u.read.q ? shuffleArr(u.read.q)[0] : null;
+  if (rq) q.push({ type: 'mcq', q: rq.q, opts: rq.opts, a: rq.a, note: 'From the reading: ' + u.read.title });
+  while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
+  const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
+  const before = playerLevel().lv;
+  import('./lesson.js?v=16').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+    if (r && r.done && r.acc >= TOUT_PASS) {
+      for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
+      addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
+      justBuilt = { unit: u.id, k: LN - 1 };
+      sfx('levelup'); setTimeout(() => toast(`Passed with ${Math.round(r.acc * 100)}%! Tap the chest for your wallpaper`), 600);
+    } else if (r && r.done) {
+      S.tout[u.id] = today(); save(true);
+      toast(`You scored ${Math.round(r.acc * 100)}%. You need ${Math.round(TOUT_PASS * 100)}%. Take the lessons, or try again tomorrow.`);
+    }
+    checkLevel(before); checkBadges(); render();
+  } }));
+}
+// số hình nền còn chờ trong một level (rương chủ đề + rương trùm), không tính hình đã có
+function wallsLeft(L, lang = S.lang) {
+  if (!walls.CAT) return 0;
+  const ids = new Set();
+  L.units.forEach((u) => walls.slotView(u.id, false).forEach((x) => { if (x.state !== 'got' && !x.have) ids.add(x.w); }));
+  walls.slotView(`boss|${lang}|${L.id}`, false).forEach((x) => { if (x.state !== 'got' && !x.have) ids.add(x.w); });
+  return ids.size;
+}
+const lvRange = (ls) => ls.length === 1 ? ls[0].name : ls.length === 2 ? `${ls[0].name} and ${ls[1].name}` : `${ls[0].name} to ${ls[ls.length - 1].name}`;
+function basicsNudge(c, L) {
+  const idx = c.levels.indexOf(L); if (idx <= 0) return '';
+  const lower = c.levels.slice(0, idx).filter((x) => x.units.some((u) => unitProgress(u.id) < LN)); if (!lower.length) return '';
+  let hid = ''; try { hid = localStorage.getItem('dcl_nudge_' + S.lang) || ''; } catch (e) {}
+  if (hid && Date.now() - +hid < 3 * 864e5) return '';
+  const nW = lower.reduce((a, x) => a + wallsLeft(x), 0), nU = lower.reduce((a, x) => a + x.units.filter((u) => unitProgress(u.id) < LN).length, 0);
+  return `<section class="nudge panel" data-lv="${lower[0].id}">
+    <div class="ng-cards" aria-hidden="true">${walls.CAT ? walls.slotWalls(lower[0].units[0].id).slice(0, 2).concat(walls.slotWalls(lower[0].units[1] ? lower[0].units[1].id : lower[0].units[0].id).slice(0, 1)).map((w) => walls.card(w, { state: walls.owned(w) ? 'got' : 'locked', cls: 'mini', hideName: true })).join('') : ''}</div>
+    <div class="ng-t"><b>${esc(lvRange(lower))} still ${nW ? `hold${lower.length === 1 ? 's' : ''} ${nW} wallpaper${nW === 1 ? '' : 's'}` : `ha${lower.length === 1 ? 's' : 've'} ${nU} unit${nU === 1 ? '' : 's'} to finish`}</b>
+      <p>Skipped the basics? Each unit has a 12-question test out. Pass it in about 3 minutes, refresh the core words and open the chest.</p>
+      <div class="ng-acts"><button class="btn sm acc ng-go" type="button">${I.bolt} Review ${esc(lower[0].name)}</button><button class="btn sm ghost ng-x" type="button">Not now</button></div></div>
+  </section>`;
+}
 // thử thách trùm: 20 câu trộn từ mọi chủ đề của level
 function bossFight(c, L) {
   const zh = isZh(), units = L.units.filter((u) => unitProgress(u.id) > 0), src = units.length ? units : L.units;
@@ -433,7 +494,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=15').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=16').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -471,8 +532,8 @@ function levelList(c, L) {
   return `<div class="lc-label">LEVELS</div>
   <div class="lv-list" role="tablist" aria-label="Choose a level">${c.levels.map((x) => {
     const t = x.units.length * LN, d = x.units.reduce((a, u) => a + unitProgress(u.id), 0), st = x.units.reduce((a, u) => a + unitStars(u.id), 0), pc = Math.round(d / t * 100), beat = S.boss[lang + '|' + x.id];
-    const isNew = NEW_LV.has(lang + '|' + x.id) && !d;
-    return `<button role="tab" data-lv="${x.id}" aria-selected="${x.id === L.id}" style="--pc:${pc}"><span class="lv-ring"><b>${pc}%</b></span><span class="lv-t"><b>${esc(x.name)}${isNew ? '<em class="lv-new">NEW</em>' : ''}</b><small>${esc(x.short || '')} · ${I.star}${st}${beat ? ' ' + I.crown : ''}</small></span></button>`;
+    const isNew = NEW_LV.has(lang + '|' + x.id) && !d, wl = wallsLeft(x, lang);
+    return `<button role="tab" data-lv="${x.id}" aria-selected="${x.id === L.id}" style="--pc:${pc}"><span class="lv-ring"><b>${pc}%</b></span><span class="lv-t"><b>${esc(x.name)}${isNew ? '<em class="lv-new">NEW</em>' : ''}</b><small>${esc(x.short || '')} · ${I.star}${st}${beat ? ' ' + I.crown : ''}</small>${wl ? `<small class="lv-wl" title="Wallpapers still waiting in this level">${I.gift}${wl} wallpaper${wl === 1 ? '' : 's'} left</small>` : ''}</span></button>`;
   }).join('')}</div>
   <div class="panel pad lc-extra" style="display:grid;gap:6px"><small class="muted">${esc(COURSES[lang].name)} · ${esc(COURSES[lang].tag)}</small><b style="font-size:1.05rem">${doneU} / ${all} units</b><span class="bar"><i style="width:${Math.round(doneU / all * 100)}%"></i></span><a class="more" href="#/roadmap" style="margin-top:4px">Open the roadmap</a></div>`;
 }
@@ -491,6 +552,7 @@ async function home() {
       <em>${left > 1 ? `${left} lessons to the reward chest` : 'Last lesson, then open the chest!'}</em></div>
     <button class="btn acc go" type="button">${I.play}<span>Continue</span></button>
   </section>` : `<section class="mission panel done"><div class="ms-ic">${I.crown}</div><div class="ms-t"><b>All ${esc(L.name)} units done</b><em>Fight the level boss or move on to the next level.</em></div></section>`}
+  ${basicsNudge(c, L)}
   <div class="level-intro"><div><h2>${esc(L.title)}</h2><p>${esc(L.desc || '')} <a class="rm-link" href="#/roadmap">See the full roadmap</a></p></div></div>
   <div id="path" class="path"></div>`, asideHTML(c), { left: levelList(c, L) });
   const pEl = app.querySelector('#path');
@@ -508,6 +570,7 @@ async function home() {
       else { sfx('tap'); unitReview(c, uid); }
     }));
     pEl.querySelectorAll('.guide').forEach((b) => b.addEventListener('click', () => { sfx('open'); guidebook(c, b.dataset.u); }));
+    pEl.querySelectorAll('.tout').forEach((b) => b.addEventListener('click', () => { sfx('open'); testOut(c, b.dataset.u); }));
     pEl.querySelectorAll('.boss-walls').forEach((b) => walls.wireCards(b, (id) => { sfx('open'); walls.wallSheet(id); }));
     pEl.querySelectorAll('.boss-go').forEach((b) => b.addEventListener('click', () => { sfx('tap'); bossFight(c, L); }));
     pEl.querySelectorAll('.next-lv').forEach((b) => b.addEventListener('click', () => { sfx('tap'); S.level[S.lang] = b.dataset.lv; save(); home(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
@@ -521,6 +584,12 @@ async function home() {
   if (curBtn && sessionStorage.getItem('dcl_scrolled') !== L.id + S.lang) { setTimeout(() => curBtn.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350); try { sessionStorage.setItem('dcl_scrolled', L.id + S.lang); } catch (e) {} }
   app.querySelectorAll('.lv-list button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); S.level[S.lang] = b.dataset.lv; save(); try { sessionStorage.removeItem('dcl_scrolled'); } catch (e) {} home(); }));
   const go = app.querySelector('.mission .go'); if (go) go.addEventListener('click', () => start(c, cur.u.id, cur.k));
+  const ng = app.querySelector('.nudge');
+  if (ng) {
+    walls.wireCards(ng.querySelector('.ng-cards'), (id) => { sfx('open'); walls.wallSheet(id); });
+    ng.querySelector('.ng-go').addEventListener('click', () => { sfx('tap'); S.level[S.lang] = ng.dataset.lv; save(); try { sessionStorage.removeItem('dcl_scrolled'); } catch (e) {} home(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    ng.querySelector('.ng-x').addEventListener('click', () => { try { localStorage.setItem('dcl_nudge_' + S.lang, String(Date.now())); } catch (e) {} ng.remove(); });
+  }
   checkBadges();
 }
 function start(c, uid, k) {
@@ -882,7 +951,8 @@ async function welcome() {
     </div>
     <div class="w-card panel" data-lang="${lang}">
       <div class="pick" role="group" aria-label="Choose a course">${avail.map((k) => `<button data-l="${k}" aria-pressed="${lang === k}"><span class="big ${k === 'zh' ? 'zh' : ''}">${esc(COURSES[k].name)}</span><small>${esc(COURSES[k].tag)}</small></button>`).join('')}</div>
-      <div class="field"><label>Start at</label><div class="list">${c.levels.map((L) => `<button class="row lvp ${lv[lang] === L.id ? 'sel' : ''}" data-lv="${L.id}"><span class="lvn">${esc(L.name)}</span><span class="grow"><b>${esc(L.title)}</b><small>${esc(L.desc)}</small></span>${lv[lang] === L.id ? I.check : ''}</button>`).join('')}</div></div>
+      <div class="field"><label>Start at</label><div class="list">${c.levels.map((L) => `<button class="row lvp ${lv[lang] === L.id ? 'sel' : ''}" data-lv="${L.id}"><span class="lvn">${esc(L.name)}</span><span class="grow"><b>${esc(L.title)}</b><small>${esc(L.desc)}</small></span>${lv[lang] === L.id ? I.check : ''}</button>`).join('')}</div>
+        ${c.levels[0].id !== lv[lang] ? `<p class="w-hint">${I.gift}<span>Starting higher is fine. Earlier levels keep their wallpapers, and every unit has a quick test out, so you can go back and collect them in a few minutes each.</span></p>` : ''}</div>
       <button class="btn acc wide go" type="button">Enter the map</button>
       <button class="btn ghost wide have" type="button">I already have an account</button>
     </div></div>`;
@@ -906,7 +976,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=15').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=16').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */

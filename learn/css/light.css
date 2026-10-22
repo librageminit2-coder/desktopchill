@@ -178,6 +178,9 @@
 :where(:root[data-theme="light"]) .dd .dd-in { background: rgba(250, 253, 251, 0.97); }
 :where(:root[data-theme="light"]) .vipc .bg { stroke: rgba(20, 44, 34, 0.132); }
 :where(:root[data-theme="light"]) .nlock { background: rgba(250, 253, 251, 0.90); }
+:where(:root[data-theme="light"]) .lb-qr svg { box-shadow: 0 10px 30px rgba(30, 50, 40, 0.158); }
+:where(:root[data-theme="light"]) .lb-room { background: rgba(250, 253, 251, 0.72); }
+:where(:root[data-theme="light"]) .nudge { background: linear-gradient(110deg, rgba(255, 201, 74, .14), rgba(250, 253, 251, 0.72) 55%); }
 
 /* ---- hand-tuned ---- */
 :root[data-theme="light"] .chip[aria-pressed="true"] { color: var(--acc-2); }

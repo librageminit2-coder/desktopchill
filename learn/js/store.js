@@ -28,6 +28,7 @@ function fresh() {
     bossStars: {},     // sao tốt nhất của thử thách boss: "en|a1" → 1..3
     vipSeen: 0,        // cấp VIP đã chúc mừng
     bg: 0,             // hình nền đang dùng làm nền trang (0 = rừng)
+    tout: {},          // kiểm tra vượt chủ đề: "en-a1-1" → ngày trượt gần nhất
   };
 }
 function merge(base, add) {
