@@ -1,9 +1,9 @@
 // Tài khoản: email + số điện thoại (bắt buộc), đổi tên, đổi PIN, quên PIN.
 // Tài khoản cũ chưa có email / số điện thoại: bắt buộc bổ sung trước khi học tiếp. PIN tạm do admin cấp: bắt buộc đổi.
-import { I } from './icons.js?v=22';
-import { acct, call, changePin, rename, forgot, acctErr, validEmail, validPhone, validName, validPin } from './account.js?v=22';
-import { sfx } from './sound.js?v=22';
-import { esc, toast, sheet } from './ui.js?v=22';
+import { I } from './icons.js?v=23';
+import { acct, call, changePin, rename, forgot, acctErr, validEmail, validPhone, validName, validPin } from './account.js?v=23';
+import { sfx } from './sound.js?v=23';
+import { esc, toast, sheet } from './ui.js?v=23';
 
 export const MII = '@mii.com';
 const miiNote = (v) => v && validEmail(v) && !/@mii\.com$/i.test(v.trim()) ? 'Tip: your MiTek email (@mii.com) is recommended.' : '';

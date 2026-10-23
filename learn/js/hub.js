@@ -1,13 +1,13 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=22';
-import { S, save } from './store.js?v=22';
-import * as chat from './chat.js?v=22';
-import * as acctui from './acctui.js?v=22';
-import { acct, call } from './account.js?v=22';
-import { sfx } from './sound.js?v=22';
-import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=22';
-import * as walls from './walls.js?v=22';
+import { I, LOGO } from './icons.js?v=23';
+import { S, save } from './store.js?v=23';
+import * as chat from './chat.js?v=23';
+import * as acctui from './acctui.js?v=23';
+import { acct, call } from './account.js?v=23';
+import { sfx } from './sound.js?v=23';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=23';
+import * as walls from './walls.js?v=23';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -70,15 +70,22 @@ export async function poll(first = false) {
     walls.checkVip();
     tick();
     acctui.checkAccount(j);
+    duelWait(first);
+    if (first) pendingRewards();
   } catch (e) {}
 }
 // xử trận duel hết hạn, chốt bảng tuần và nhận XP thưởng từ máy chủ
-async function tick() {
+export async function tick(quiet = false) {
   try {
-    const j = await call('learn_tick'); if (!j || !j.ok) return;
-    const xp = (j.grants || []).reduce((a, g) => a + (g.xp || 0), 0);
-    if (xp > 0) { S.xp += xp; save(true); toast(`+${xp} XP from ranking rewards`); sfx('levelup'); document.querySelectorAll('.xp-n').forEach((x) => { x.textContent = S.xp; }); }
-  } catch (e) {}
+    const j = await call('learn_tick'); if (!j || !j.ok) return 0;
+    const gs = j.grants || [], xp = gs.reduce((a, g) => a + (g.xp || 0), 0);
+    if (xp > 0) {
+      S.xp += xp; save(true); document.querySelectorAll('.xp-n').forEach((x) => { x.textContent = S.xp; });
+      const other = gs.filter((g) => !String(g.source || '').startsWith('duel:')).reduce((a, g) => a + (g.xp || 0), 0);
+      if (!quiet && other > 0) { toast(`+${other} XP from ranking rewards`); sfx('levelup'); }
+    }
+    return xp;
+  } catch (e) { return 0; }
 }
 export function paintChat() {
   document.querySelectorAll('.chat-btn').forEach((b) => { let x = b.querySelector('.badge'); if (hub.msgs) { if (!x) { x = document.createElement('i'); x.className = 'badge'; b.appendChild(x); } x.textContent = hub.msgs > 99 ? '99+' : hub.msgs; } else if (x) x.remove(); });
@@ -101,9 +108,79 @@ async function loadNotifs(fresh) {
     toast(text(nw[0]).t);
     // nhận được hình nền (quà, thắng quiz) → đồng bộ bộ sưu tập ngay
     if (nw.some((x) => x.kind === 'gift' || x.kind === 'rank_reward' || (x.kind === 'duel_done' && x.payload && x.payload.wall) || (x.kind === 'quiz_win' && x.payload && x.payload.wall))) { walls.syncWalls(); tick(); }
+    nw.filter((x) => x.kind === 'duel_done' && x.payload && x.payload.won && (x.payload.wall || x.payload.xp)).forEach((x) => duelReward({ id: x.payload.duel, wall: x.payload.wall, xp: x.payload.xp, opp: x.name, forfeit: x.payload.forfeit }));
+    if (nw.some((x) => x.kind === 'duel')) duelWait(false, true);
     const panel = document.querySelector('.np'); if (panel) drawPanel(panel);
   } catch (e) {}
 }
+
+/* ---------- v22: quà duel tự động — hiện giữa màn hình rồi bay vào Collection / XP (mỗi trận 1 lần) ---------- */
+const RW_KEY = 'dcl_duel_rw';
+const rwSeen = () => { try { return JSON.parse(localStorage.getItem(RW_KEY) || '[]'); } catch (e) { return []; } };
+const rwMark = (id) => { try { const a = rwSeen().filter((x) => x !== id); a.push(id); localStorage.setItem(RW_KEY, JSON.stringify(a.slice(-80))); } catch (e) {} };
+const busyScreen = () => !!document.querySelector('.player, .du-stage, .du-vs, .qz-stage, .gate, .tour, .ovl, .pp') || document.body.classList.contains('quizzing');
+const rwQueue = [];
+export function duelReward(r) {
+  if (!r || !r.id || rwSeen().includes(r.id) || rwQueue.some((x) => x.id === r.id)) return;
+  rwQueue.push(r); runRewards();
+}
+let rwT = 0;
+async function runRewards() {
+  if (rwT || !rwQueue.length) return;
+  if (busyScreen()) { rwT = setTimeout(() => { rwT = 0; runRewards(); }, 3000); return; }
+  const r = rwQueue.shift(); rwMark(r.id);
+  if (r.wall) { try { await walls.syncWalls(); } catch (e) {} await walls.loadCat(); }
+  walls.prizePop({ wall: +r.wall || 0, xp: +r.xp || 0, kicker: 'Duel prize',
+    sub: r.wall ? `Copied at random from ${r.opp || 'your opponent'}’s collection${r.forfeit ? ' (they ran out of time)' : ''}. They keep it too.` : `${r.opp || 'Your opponent'} had no wallpaper you are missing, so you get XP instead.`,
+    onDone: () => { if (r.xp) tick(true); if (location.hash.startsWith('#/collection') && r.wall) walls.syncWalls(); setTimeout(runRewards, 400); } });
+}
+// lần đầu mở trang: quà của các trận thắng gần đây mà chưa xem (vd. thắng khi đối thủ hết giờ lúc mình offline)
+function pendingRewards() {
+  const cut = Date.now() - 3 * 86400000;
+  hub.items.filter((x) => x.kind === 'duel_done' && x.payload && x.payload.won && (x.payload.wall || x.payload.xp) && new Date(x.created_at).getTime() > cut)
+    .forEach((x) => duelReward({ id: x.payload.duel, wall: x.payload.wall, xp: x.payload.xp, opp: x.name, forfeit: x.payload.forfeit }));
+}
+
+/* ---------- v22: thẻ nổi "có duel đang chờ bạn" (ngoài chuông thông báo) ---------- */
+const DW_MINI = 'dcl_dw_mini';
+let dwItems = [], dwAt = 0, dwN = -1;
+async function duelWait(first, force = false) {
+  if (!acct) { paintDuelWait(); return; }
+  const n = hub.duels || 0;
+  if (!n) { dwItems = []; dwN = 0; paintDuelWait(); return; }
+  if (!force && n === dwN && Date.now() - dwAt < 120000) { paintDuelWait(); return; }
+  const grew = n > dwN && dwN >= 0; dwN = n; dwAt = Date.now();
+  try { const j = await call('learn_duel_list'); if (j && j.ok) dwItems = (j.items || []).filter((d) => d.my_turn && d.role === 'b'); } catch (e) {}
+  if (grew || force) { try { sessionStorage.removeItem(DW_MINI); } catch (e) {} }
+  paintDuelWait();
+}
+const dwHidden = () => { const h = location.hash || '#/'; return h.startsWith('#/duel') || h.startsWith('#/play') || h.startsWith('#/host') || !!document.querySelector('.player, .tour, .gate'); };
+export function paintDuelWait() {
+  let el = document.querySelector('.dw');
+  if (!acct || !dwItems.length || dwHidden()) { if (el) el.remove(); return; }
+  const mini = (() => { try { return sessionStorage.getItem(DW_MINI) === '1'; } catch (e) { return false; } })();
+  const left = (t) => { const h = Math.max(0, Math.round((new Date(t) - Date.now()) / 3600000)); return h >= 1 ? `${h}h left` : 'less than 1h left'; };
+  const html = `<div class="dw-h"><span class="dw-ic">${I.swords}</span><span class="grow"><b>${dwItems.length === 1 ? 'A duel is waiting for you' : `${dwItems.length} duels are waiting for you`}</b><small>${mini ? 'Tap to see' : 'Play to beat their score, or decline'}</small></span><button class="icon-btn sm dw-x" type="button" title="Later" aria-label="Later">${I.x}</button></div>
+    <div class="dw-list">${dwItems.map((d) => `<div class="dw-i" data-id="${d.id}">${vipAv(d.opp ? d.opp.name : '?', d.opp && d.opp.avatar, d.opp ? d.opp.vip : 0)}<span class="grow"><b>${esc(d.opp ? d.opp.name : 'Someone')}${d.random ? ' <small>· random</small>' : ''}</b><small>Beat ${d.them && d.them.score != null ? d.them.score : '?'} pts · ${left(d.expires_at)}</small></span>
+      <button class="btn sm ghost dw-no" type="button">Decline</button><button class="btn sm acc dw-go" type="button">${I.swords} Play</button></div>`).join('')}</div>`;
+  if (!el) { el = document.createElement('section'); el.className = 'dw'; el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
+  el.classList.toggle('mini', mini); el.innerHTML = html;
+  el.onclick = (e) => {
+    if (el.classList.contains('mini')) { try { sessionStorage.removeItem(DW_MINI); } catch (er) {} sfx('tap'); paintDuelWait(); return; }
+    if (e.target.closest('.dw-x')) { try { sessionStorage.setItem(DW_MINI, '1'); } catch (er) {} sfx('tap'); paintDuelWait(); return; }
+    const row = e.target.closest('.dw-i'); if (!row) return; const id = +row.dataset.id;
+    if (e.target.closest('.dw-go')) { sfx('tap'); try { sessionStorage.setItem('dcl_duel_autoplay', String(id)); } catch (er) {} el.remove(); location.hash = '#/duel/' + id; }
+    else if (e.target.closest('.dw-no')) {
+      const d = dwItems.find((x) => x.id === id); if (!d) return;
+      (async () => {
+        if (!(await confirmBox('Decline this duel?', `${d.opp ? d.opp.name : 'They'} will be told you declined. Nobody gets points.`, 'Decline', true))) return;
+        try { await call('learn_duel_decline', { p_id: id }); } catch (er) {}
+        dwItems = dwItems.filter((x) => x.id !== id); hub.duels = Math.max(0, (hub.duels || 1) - 1); dwN = hub.duels; paintDuelWait(); toast('Duel declined');
+      })();
+    }
+  };
+}
+addEventListener('hashchange', () => setTimeout(paintDuelWait, 50));
 
 /* ---------- nội dung từng loại thông báo ---------- */
 function text(n) {
@@ -114,11 +191,14 @@ function text(n) {
     case 'quiz': return { t: `${n.name} invited you to a live quiz`, h: `${who} invited you to the live quiz <b>${esc(p.title || '')}</b>`, ic: 'zap', act: [['Join', 'go'], ['Later', 'read']], go: '#/play/' + p.pin };
     case 'class': return { t: `${n.name} invited you to a class`, h: `${who} invited you to the class <b>${esc(p.name || '')}</b>`, ic: 'school', act: [['Join', 'go'], ['Later', 'read']], go: '#/classes/join/' + p.code };
     case 'duel': return { t: `${n.name} challenged you to a duel`, h: `${who} challenged you to a duel. Same 10 questions, beat their score.`, ic: 'swords', act: [['Play', 'go']], go: '#/duel/' + p.duel };
-    case 'duel_done': if (p.forfeit) return p.won ? { t: `${n.name} ran out of time. You win!`, h: `${who} did not answer your duel within 24 hours, so you win${w ? ` and <b>${esc(w)}</b> was added to your collection` : ''}.`, ic: 'swords', go: '#/duel/' + p.duel, wall: p.wall } : { t: `You lost a duel to ${n.name} on time`, h: `You did not answer ${who}’s duel within 24 hours, so it counts as a loss.`, ic: 'swords', go: '#/duel/' + p.duel };
+    case 'duel_done': {
+      const prizeTxt = p.wall ? ` <b>${esc(w)}</b> was copied into your collection.` : p.xp ? ` +${p.xp} XP (they had no wallpaper you are missing).` : '';
+      if (p.forfeit) return p.won ? { t: `${n.name} ran out of time. You win!`, h: `${who} did not answer your duel within 24 hours, so you win.${prizeTxt}`, ic: 'swords', go: '#/duel/' + p.duel, wall: p.wall } : { t: `You lost a duel to ${n.name} on time`, h: `You did not answer ${who}’s duel within 24 hours, so it counts as a loss. You keep all your wallpapers.`, ic: 'swords', go: '#/duel/' + p.duel };
       if (p.won && p.prize === false) return { t: `You beat ${n.name}!`, h: `You beat ${who}. You already took today’s duel prize, so this win counts for the ranking only.`, ic: 'swords', go: '#/duel/' + p.duel };
-      return { t: p.draw ? `Duel with ${n.name}: draw` : p.won ? `You beat ${n.name}!` : `${n.name} won the duel`, h: p.draw ? `Your duel with ${who} ended in a draw. +2 VIP points each.` : p.won ? `You beat ${who}. Pick a wallpaper from their collection.` : `${who} won your duel. You keep everything; +1 VIP point.`, ic: 'swords', act: p.won ? [['Pick prize', 'go']] : null, go: '#/duel/' + p.duel };
+      return { t: p.draw ? `Duel with ${n.name}: draw` : p.won ? `You beat ${n.name}!` : `${n.name} won the duel`, h: p.draw ? `Your duel with ${who} ended in a draw. +2 VIP points each.` : p.won ? `You beat ${who}.${prizeTxt}` : `${who} won your duel. You keep everything; +1 VIP point.`, ic: 'swords', go: '#/duel/' + p.duel, wall: p.won ? p.wall : 0 };
+    }
     case 'duel_declined': return { t: `${n.name} declined your duel`, h: `${who} declined your duel`, ic: 'swords', go: '#/duel' };
-    case 'duel_pick': return { t: `${n.name} picked ${w} as a duel prize`, h: `${who} won your duel and copied <b>${esc(w)}</b> into their collection. You still have it.`, ic: 'swords', go: '#/duel' };
+    case 'duel_pick': return { t: `${n.name} got a copy of ${w}`, h: `${who} won your duel and got a copy of <b>${esc(w)}</b> at random. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
     case 'update': return +p.v >= 21 ? { t: 'New: English B1+ and B2+', h: '<b>New update.</b> Two new English levels (24 units) for engineering and office life, 22 new wallpapers and cheaper XP prices. Your progress is safe.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }

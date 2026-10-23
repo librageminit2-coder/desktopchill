@@ -987,3 +987,50 @@ body.booted .hud-in, body.booted .layout > .rail, body.booted .tabbar { animatio
 .rail.in-sheet .rk { padding: 0; }
 .rail.in-sheet .rl-sub { padding: 0 2px 6px; }
 .rail.in-sheet .rl-tabs { padding-right: 52px; }
+
+/* ---------- v22: quà duel hiện giữa màn hình rồi bay vào Collection / XP ---------- */
+.pp { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 20px; background: rgba(2, 6, 5, .62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; transition: opacity .3s; cursor: pointer; }
+.pp.on { opacity: 1; }
+.pp.fly { opacity: 0; transition: opacity .45s .15s; pointer-events: none; }
+.pp-in { display: grid; justify-items: center; gap: 10px; text-align: center; max-width: 360px; transform: scale(.7); transition: transform .5s var(--spring); }
+.pp.on .pp-in { transform: none; }
+.pp-k { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-weight: 800; font-size: .78rem; color: #2A1C00; background: linear-gradient(140deg, #FFF1C2, var(--gold)); }
+.pp-k svg { width: 15px; height: 15px; }
+.pp-item { width: min(300px, 72vw); filter: drop-shadow(0 18px 40px rgba(0, 0, 0, .5)); }
+.pp-item .wcard { width: 100%; }
+.pp-xp, .pp-flying.pp-xp { width: 150px; height: 150px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; align-content: center; color: #04210f; background: radial-gradient(circle at 35% 30%, #E7FFF1, #3ED598 60%, #18A06A); box-shadow: 0 0 0 8px rgba(62, 213, 152, .18), 0 0 60px rgba(62, 213, 152, .45); }
+.pp-xp svg { width: 36px; height: 36px; }
+.pp-xp b { font-size: 2rem; line-height: 1; } .pp-xp small { font-weight: 800; font-size: .8rem; }
+.pp-flying { position: fixed !important; z-index: 98; pointer-events: none; margin: 0; }
+.pp h2 { margin: 4px 0 0; font-size: 1.35rem; } .pp p { margin: 0; color: var(--ink-2, #d6e2dc); font-size: .9rem; }
+.pp-tap { color: var(--muted); font-size: .76rem; }
+
+/* ---------- v22: thẻ "có duel đang chờ bạn" nổi trên màn hình ---------- */
+.dw { position: fixed; z-index: 40; right: 18px; bottom: 22px; width: min(340px, calc(100vw - 24px)); border-radius: 22px; padding: 12px; background: color-mix(in srgb, var(--bg) 88%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); box-shadow: 0 18px 50px rgba(0, 0, 0, .45), 0 0 0 4px color-mix(in srgb, var(--gold) 12%, transparent); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); animation: dwin .45s var(--spring); }
+@keyframes dwin { from { transform: translateY(30px) scale(.94); opacity: 0; } }
+.dw-h { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dw-ic { flex: none; width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; color: #2A1C00; background: linear-gradient(140deg, #FFF1C2, var(--gold)); animation: dwpulse 1.8s ease-in-out infinite; }
+.dw-ic svg { width: 19px; height: 19px; }
+@keyframes dwpulse { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--gold) 22%, transparent); } }
+.dw-h b { font-size: .98rem; } .dw-h small { display: block; color: var(--muted); font-size: .74rem; }
+.dw-h .grow { flex: 1; min-width: 0; }
+.dw-list { display: grid; gap: 6px; max-height: 46vh; overflow-y: auto; }
+.dw-i { display: flex; align-items: center; gap: 9px; padding: 8px; border-radius: 16px; background: rgba(255, 255, 255, .05); }
+.dw-i .grow { flex: 1; min-width: 0; display: grid; line-height: 1.25; }
+.dw-i .grow b { font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dw-i .grow small { font-size: .72rem; color: var(--muted); }
+.dw-i .btn { min-height: 34px; padding: 0 12px; font-size: .8rem; }
+.dw-no { flex: none; }
+.dw.mini { width: auto; padding: 8px 14px 8px 8px; cursor: pointer; }
+.dw.mini .dw-list, .dw.mini .dw-x { display: none; }
+.dw.mini .dw-h { margin: 0; }
+body.quizzing .dw, body.chat-open .dw, body.side-sheet .dw { display: none; }
+@media (max-width: 860px) { .dw { right: 12px; bottom: calc(var(--nav-h, 64px) + 30px + env(safe-area-inset-bottom)); } .dw.mini { right: auto; left: 86px; } }
+@media (min-width: 1500px) { body.rail-on .dw { right: calc(var(--rail-w) + 40px); } }
+body:has(.player) .dw, body:has(.tour) .dw, body:has(.gate) .dw, body:has(.pp) .dw { display: none; }
+.du-prize { display: flex; align-items: center; gap: 12px; margin: 12px auto 4px; padding: 10px 14px 10px 10px; border-radius: 18px; width: fit-content; max-width: 100%; background: color-mix(in srgb, var(--gold) 12%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent); }
+.du-prize .wcard { width: 120px; flex: none; }
+.du-prize small { display: block; color: var(--gold); font-weight: 800; font-size: .72rem; }
+.du-prize b { font-size: .98rem; }
+.du-xp { flex: none; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; align-content: center; font-size: .7rem; font-weight: 800; color: #04210f; background: radial-gradient(circle at 35% 30%, #E7FFF1, #3ED598 60%, #18A06A); }
+.du-xp svg { width: 18px; height: 18px; } .du-xp b { font-size: 1.05rem; line-height: 1; }

@@ -1,13 +1,13 @@
 // Khiêu chiến 1-1 không cần online cùng lúc: người A làm 10 câu (dễ → rất khó, 20 giây mỗi câu), kết quả lưu trên máy chủ,
 // người B nhận thông báo và làm cùng đề. Người thắng chọn 1 hình nền trong bộ sưu tập của người thua (người thua không mất gì).
 // v19: mỗi ngày 10 lượt khiêu chiến; chỉ trận thắng đầu tiên trong ngày có quà. Người nhận có 24 giờ, quá hạn bị xử thua và quà tự chuyển cho người thắng.
-import { I } from './icons.js?v=22';
-import { S, save } from './store.js?v=22';
-import { acct, call } from './account.js?v=22';
-import { sfx, unlockAudio } from './sound.js?v=22';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=22';
-import * as walls from './walls.js?v=22';
-import { hub, loadFriends } from './hub.js?v=22';
+import { I } from './icons.js?v=23';
+import { S, save } from './store.js?v=23';
+import { acct, call } from './account.js?v=23';
+import { sfx, unlockAudio } from './sound.js?v=23';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=23';
+import * as walls from './walls.js?v=23';
+import { hub, loadFriends, duelReward } from './hub.js?v=23';
 
 let C = null;
 export function init(ctx) { C = ctx; }
@@ -99,7 +99,7 @@ export async function duelPage(args = []) {
     const sc = d.me && d.me.score != null ? `${d.me.score}${d.them && d.them.score != null ? ' – ' + d.them.score : ''}` : '';
     return `<a class="row du-row" href="#/duel/${d.id}">${vipAv(d.opp ? d.opp.name : '?', d.opp && d.opp.avatar, d.opp ? d.opp.vip : 0)}<span class="grow"><b>${esc(d.opp ? d.opp.name : 'Opponent')}${d.random ? ' <small class="muted">· random</small>' : ''}</b><small>${esc(d.title)} · ${ago(d.created_at)}${sc ? ' · ' + sc : ''}</small></span>${res}</a>`;
   };
-  C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>You both answer the same 10 questions, from easy to harder: 8 from the units the challenger has studied, 2 general knowledge, 20 seconds each. Faster correct answers score more. Up to 10 challenges a day. <b>Your first win each day</b> copies one wallpaper from the loser’s collection; later wins count for the weekly ranking. Your opponent has 24 hours to answer, or they lose.</p></div></div>
+  C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>You both answer the same 10 questions, from easy to harder: 8 from the units the challenger has studied, 2 general knowledge, 20 seconds each. Faster correct answers score more. Up to 10 challenges a day. <b>Your first win each day</b> earns a prize automatically: a random wallpaper from the loser’s collection that you don’t have yet (they keep it too), or 150 XP if they have nothing new for you. Later wins count for the weekly ranking. Your opponent has 24 hours to answer, or they lose.</p></div></div>
   <div class="du-grid">
     <section class="panel pad du-new">
       <h3 class="sec-h">${I.swords} New challenge <em>${L.today || 0}/${L.per_day || 10} today</em></h3>
@@ -149,7 +149,10 @@ async function openDuel(id) {
       <p>${d.role === 'b' ? `They already played. Beat <b>${d.them ? d.them.score : '?'}</b> points. ` : ''}10 questions, 20 seconds each: 8 from the units the challenger has studied, 2 general knowledge. Once you start, leaving counts the remaining answers as wrong.</p>
       <div class="foot-row" style="max-width:440px;width:100%">${d.role === 'b' ? '<button class="btn ghost du-no" type="button">Decline</button>' : '<a class="btn ghost" href="#/duel">Later</a>'}<button class="btn acc du-play" type="button">${I.swords} Play now</button></div>
       <small class="muted">Answer before ${new Date(d.expires_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></div>`, null, { noCourse: true });
-    app.querySelector('.du-play').addEventListener('click', async () => { unlockAudio(); await versus(d.opp, d.title); play(d, j.questions); });
+    const startPlay = async () => { unlockAudio(); await versus(d.opp, d.title); play(d, j.questions); };
+    app.querySelector('.du-play').addEventListener('click', startPlay);
+    let auto = false; try { auto = sessionStorage.getItem('dcl_duel_autoplay') === String(id); sessionStorage.removeItem('dcl_duel_autoplay'); } catch (e) {}
+    if (auto) setTimeout(startPlay, 250);
     const no = app.querySelector('.du-no'); if (no) no.addEventListener('click', async () => { if (!(await confirmBox('Decline this duel?', `${d.opp.name} will be told you declined. Nobody gets points.`, 'Decline', true))) return; await call('learn_duel_decline', { p_id: id }); location.hash = '#/duel'; });
     return;
   }
@@ -229,18 +232,19 @@ function result(d, questions, myDet, theirDet, fresh = false) {
   const me = d.me || {}, them = d.them || {}, draw = d.state === 'done' && d.winner == null;
   const ban = d.state === 'done' ? (draw ? 'draw' : d.won ? 'win' : 'lose') : d.state;
   const head = { win: 'You win!', lose: `${d.opp.name} wins`, draw: 'Draw', expired: 'Expired', declined: 'Declined', a_play: 'Not finished', b_turn: `Waiting for ${d.opp.name}` }[ban];
-  const sub = { win: d.forfeit ? (d.pick_wall ? `They did not answer within 24 hours. ${walls.wallOf(d.pick_wall).name} was added to your collection.` : d.prize ? 'They did not answer within 24 hours. +10 VIP points instead of a wallpaper.' : 'They did not answer within 24 hours. You win; today’s prize was already taken.') : d.can_pick ? 'Pick one wallpaper from their collection. They keep it too.' : !d.prize ? 'You already took today’s prize, so this win counts for the weekly ranking only.' : d.pick_wall ? `You took ${walls.wallOf(d.pick_wall).name}.` : d.pick_wall === 0 ? 'They had nothing you lack, so you got +10 VIP points instead.' : '', lose: d.forfeit ? 'You did not answer within 24 hours, so this counts as a loss. You keep all your wallpapers.' : 'You lose nothing. Ask for a rematch!', draw: 'Same score and same time. +2 VIP points each.', expired: 'This duel was never finished.', declined: 'Your opponent declined this duel.', a_play: '', b_turn: 'They have 24 hours to answer, or they lose.' }[ban];
+  const got = d.pick_wall > 0 ? `${walls.wallOf(d.pick_wall).name} was copied from their collection into yours.` : d.prize_xp ? `They had no wallpaper you are missing, so you got +${d.prize_xp} XP.` : '';
+  const sub = { win: !d.prize ? `${d.forfeit ? 'They did not answer within 24 hours. ' : ''}You already took today’s duel prize, so this win counts for the weekly ranking only.` : `${d.forfeit ? 'They did not answer within 24 hours. ' : ''}${got}`, lose: d.forfeit ? 'You did not answer within 24 hours, so this counts as a loss. You keep all your wallpapers.' : 'You lose nothing. Ask for a rematch!', draw: 'Same score and same time. +2 VIP points each.', expired: 'This duel was never finished.', declined: 'Your opponent declined this duel.', a_play: '', b_turn: 'They have 24 hours to answer, or they lose.' }[ban];
   C.shell('#/duel', `<div class="panel du-res">
     <div class="du-banner ${ban}"><div class="du-face">${vipAv(acct.name, acct.avatar, walls.myVip(), 'lg')}<b>${me.score ?? '–'}</b><small>You · ${me.correct ?? 0}/${me.n ?? 10} · ${Math.round((me.ms || 0) / 1000)} s</small></div>
       <div class="du-mid"><h2>${esc(head)}</h2><p>${esc(sub)}</p></div>
       <div class="du-face">${vipAv(d.opp.name, d.opp.avatar, d.opp.vip || 0, 'lg')}<b>${them.score ?? '–'}</b><small>${esc(d.opp.name)}${them.n ? ` · ${them.correct}/${them.n} · ${Math.round((them.ms || 0) / 1000)} s` : ''}</small></div></div>
-    ${d.can_pick ? `<button class="btn gold wide du-pick" type="button">${I.gift} Pick your prize</button>` : ''}
+    ${ban === 'win' && d.prize && (d.pick_wall > 0 || d.prize_xp) ? `<div class="du-prize">${d.pick_wall > 0 ? walls.card(d.pick_wall, { state: 'got', cls: 'mini' }) : `<span class="du-xp">${I.gem}<b>+${d.prize_xp}</b> XP</span>`}<span><small>Duel prize</small><b>${d.pick_wall > 0 ? esc(walls.wallOf(d.pick_wall).name) : 'Experience points'}</b></span></div>` : ''}
     ${questions ? review(questions, myDet, theirDet) : ''}
     <div class="foot-row"><a class="btn ghost" href="#/duel">All duels</a>${d.state === 'done' ? `<a class="btn acc" href="#/duel/new/${d.opp.uid}">${I.swords} Rematch</a>` : '<a class="btn acc" href="#/">Back to learning</a>'}</div></div>`, null, { noCourse: true });
   if (fresh && ban === 'win') { sfx('levelup'); setTimeout(() => burst(innerWidth / 2, innerHeight / 3, 50), 200); }
   else if (fresh && ban === 'lose') sfx('bad');
-  const pk = app.querySelector('.du-pick'); if (pk) pk.addEventListener('click', () => prizeSheet(d));
-  if (fresh && d.can_pick) setTimeout(() => prizeSheet(d), 900);
+  // quà tự động: hiện giữa màn hình rồi bay vào Collection / XP (mỗi trận 1 lần)
+  if (ban === 'win' && d.prize && (d.pick_wall > 0 || d.prize_xp)) setTimeout(() => duelReward({ id: d.id, wall: d.pick_wall > 0 ? d.pick_wall : 0, xp: d.prize_xp || 0, opp: d.opp.name, forfeit: d.forfeit }), fresh ? 1200 : 300);
 }
 function review(questions, mine, theirs) {
   if (!questions || !mine) return '';
@@ -252,29 +256,4 @@ function review(questions, mine, theirs) {
   }).join('')}</ol></details>`;
 }
 
-/* ---------- chọn phần thưởng ---------- */
-async function prizeSheet(d) {
-  let j; try { j = await call('learn_duel_options', { p_id: d.id }); } catch (e) { toast(e.message); return; }
-  if (!j.ok) { toast(em(j)); return; }
-  await walls.loadCat();
-  const ws = j.walls || [];
-  sheet(`<h2>Pick your prize</h2><p class="sub">${ws.length ? `One wallpaper from ${esc(d.opp.name)}’s collection that you don’t have yet. They keep it too.` : 'They have nothing you are missing.'}</p>
-    <div class="wgrid sm pz">${ws.map((w) => walls.card(w)).join('')}</div>
-    <p class="err pz-err"></p><button class="btn gold wide pz-go" type="button" disabled>${I.gift} Take it</button>`, (el, close) => {
-    let pick = 0; const go = el.querySelector('.pz-go');
-    walls.wireCards(el.querySelector('.pz'), (w, c) => { pick = w; el.querySelectorAll('.pz .wcard').forEach((k) => k.classList.toggle('picked', k === c)); go.disabled = false; sfx('tap'); });
-    go.addEventListener('click', async () => {
-      go.disabled = true;
-      try {
-        const r = await call('learn_duel_pick', { p_id: d.id, p_wall: pick });
-        if (!r.ok) { el.querySelector('.pz-err').textContent = em(r); return; }
-        S.walls[pick] = { at: Date.now(), src: 'duel:' + d.opp.name }; save();
-        const c = el.querySelector('.pz .wcard.picked');
-        close(); sfx('levelup');
-        if (c) { const ghost = c.cloneNode(true); ghost.style.cssText = 'position:fixed;left:50%;top:40%;width:220px;transform:translate(-50%,-50%);z-index:99'; document.body.appendChild(ghost); walls.flyToCollection([ghost]); setTimeout(() => ghost.remove(), 1200); }
-        toast(`${walls.wallOf(pick).name} added to your collection`);
-        walls.syncWalls(); setTimeout(() => openDuel(d.id), 1000);
-      } catch (e) { el.querySelector('.pz-err').textContent = e.message; go.disabled = false; }
-    });
-  }, 'wide');
-}
+

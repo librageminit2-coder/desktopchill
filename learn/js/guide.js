@@ -1,10 +1,10 @@
 // Hướng dẫn bắt buộc 1 lần cho mỗi tài khoản: đổi hình nền trong Collection, rồi đổi ảnh đại diện.
 // Sau đó là 2 gợi ý (Add friends, Duels): không chặn màn hình, chỉ tắt khi người dùng bấm đúng nút đó.
 // Lưu trong tiến trình (S.guide) nên đồng bộ theo tài khoản: làm xong một lần thì máy khác cũng không hiện lại.
-import { S, save } from './store.js?v=22';
-import { acct } from './account.js?v=22';
-import { sfx } from './sound.js?v=22';
-import { toast } from './ui.js?v=22';
+import { S, save } from './store.js?v=23';
+import { acct } from './account.js?v=23';
+import { sfx } from './sound.js?v=23';
+import { toast } from './ui.js?v=23';
 
 const g = () => { if (!S.guide || typeof S.guide !== 'object') S.guide = {}; return S.guide; };
 const vis = (el) => { if (!el || !el.isConnected) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 4 && r.height > 4 && cs.visibility !== 'hidden' && cs.display !== 'none'; };

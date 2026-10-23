@@ -194,6 +194,10 @@
 @media (max-width: 860px) { :where(:root[data-theme="light"]) .m-scrim { background: rgba(225, 235, 229, 0.60); } }
 :where(:root[data-theme="light"]) .pc { background: rgba(20, 44, 34, 0.055); }
 :where(:root[data-theme="light"]) .rl-t { background: rgba(20, 44, 34, 0.044); }
+:where(:root[data-theme="light"]) .pp { background: rgba(225, 235, 229, 0.62); }
+:where(:root[data-theme="light"]) .pp-item { filter: drop-shadow(0 18px 40px rgba(30, 50, 40, 0.225)); }
+:where(:root[data-theme="light"]) .dw { box-shadow: 0 18px 50px rgba(30, 50, 40, 0.203), 0 0 0 4px color-mix(in srgb, var(--gold) 12%, transparent); }
+:where(:root[data-theme="light"]) .dw-i { background: rgba(20, 44, 34, 0.055); }
 
 /* ---- hand-tuned ---- */
 :root[data-theme="light"] .chip[aria-pressed="true"] { color: var(--acc-2); }

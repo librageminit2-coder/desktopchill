@@ -1,11 +1,11 @@
 // Kho hình nền: phần thưởng trong rương chủ đề và boss, bộ sưu tập, VIP, chia sẻ cho bạn bè, đặt làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=22';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=22';
-import { acct, call, push } from './account.js?v=22';
-import { sfx } from './sound.js?v=22';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=22';
+import { I } from './icons.js?v=23';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=23';
+import { acct, call, push } from './account.js?v=23';
+import { sfx } from './sound.js?v=23';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=23';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -218,6 +218,37 @@ function target() {
   const sels = ['.nav a[href="#/collection"]', '.tabbar a[href="#/collection"]', '.hud-me', '.hud-show'];
   for (const s of sels) { const t = document.querySelector(s); if (t && t.offsetParent !== null) { const r = t.getBoundingClientRect(); if (r.width) return { el: t, r }; } }
   return { el: null, r: { left: innerWidth / 2, top: 20, width: 0, height: 0 } };
+}
+// v22: quà duel hiện giữa màn hình rồi thu nhỏ bay vào Collection (hình nền) hoặc ô XP
+function xpTarget() {
+  for (const s of ['.chipx.gem', '.hud-me', '.tabbar a[href="#/collection"]']) { const t = document.querySelector(s); if (t && t.offsetParent !== null) { const r = t.getBoundingClientRect(); if (r.width) return { el: t, r }; } }
+  return { el: null, r: { left: innerWidth - 40, top: 20, width: 0, height: 0 } };
+}
+export function prizePop({ wall = 0, xp = 0, kicker = 'Duel prize', title = '', sub = '', onDone = null } = {}) {
+  document.querySelectorAll('.pp').forEach((x) => x.remove());
+  const el = document.createElement('div'); el.className = 'pp'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', kicker);
+  el.innerHTML = `<div class="pp-in"><small class="pp-k">${I.gift} ${esc(kicker)}</small>
+    <div class="pp-item">${wall ? card(wall, { state: 'got', cls: 'pp-card' }) : `<span class="pp-xp">${I.gem}<b>+${xp}</b><small>XP</small></span>`}</div>
+    <h2>${esc(title || (wall ? wallOf(wall).name : `+${xp} XP`))}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}<small class="pp-tap">Tap to collect</small></div>`;
+  document.body.appendChild(el);
+  sfx('levelup'); requestAnimationFrame(() => el.classList.add('on'));
+  setTimeout(() => { const r = el.querySelector('.pp-item').getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 40); }, 350);
+  let gone = false;
+  const go = () => {
+    if (gone) return; gone = true; clearTimeout(tid);
+    const item = el.querySelector('.pp-item > *'); el.classList.add('fly');
+    const done = () => { el.remove(); if (onDone) onDone(); };
+    if (!item || matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); toast(wall ? `${wallOf(wall).name} added to your collection` : `+${xp} XP`); return; }
+    if (wall) { flyToCollection([item]); item.style.visibility = 'hidden'; setTimeout(done, 950); return; }
+    const t = xpTarget(), r = item.getBoundingClientRect(), f = item.cloneNode(true);
+    f.classList.add('pp-flying'); f.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`; document.body.appendChild(f); item.style.visibility = 'hidden';
+    const dx = t.r.left + t.r.width / 2 - (r.left + r.width / 2), dy = t.r.top + t.r.height / 2 - (r.top + r.height / 2);
+    const a = f.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${dx * 0.35}px, ${dy * 0.35 - 60}px) scale(.7)`, opacity: 1, offset: 0.4 }, { transform: `translate(${dx}px, ${dy}px) scale(.12)`, opacity: 0.3 }], { duration: 850, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
+    a.onfinish = () => { f.remove(); sfx('tile'); if (t.el) { t.el.classList.remove('catch'); void t.el.offsetWidth; t.el.classList.add('catch'); floatText(t.el, `+${xp}`); setTimeout(() => t.el.classList.remove('catch'), 700); } burst(t.r.left + t.r.width / 2, t.r.top + t.r.height / 2, 16); };
+    setTimeout(done, 300);
+  };
+  const tid = setTimeout(go, 2200);
+  el.addEventListener('click', go);
 }
 export function flyToCollection(cards) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { toast(`${cards.length} new wallpaper${cards.length > 1 ? 's' : ''} in your collection`); return; }
