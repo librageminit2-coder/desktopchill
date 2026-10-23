@@ -1,26 +1,27 @@
 // Khiêu chiến 1-1 không cần online cùng lúc: người A làm 10 câu (dễ → rất khó, 20 giây mỗi câu), kết quả lưu trên máy chủ,
 // người B nhận thông báo và làm cùng đề. Người thắng chọn 1 hình nền trong bộ sưu tập của người thua (người thua không mất gì).
 // v19: mỗi ngày 10 lượt khiêu chiến; chỉ trận thắng đầu tiên trong ngày có quà. Người nhận có 24 giờ, quá hạn bị xử thua và quà tự chuyển cho người thắng.
-import { I } from './icons.js?v=21';
-import { S, save } from './store.js?v=21';
-import { acct, call } from './account.js?v=21';
-import { sfx, unlockAudio } from './sound.js?v=21';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=21';
-import * as walls from './walls.js?v=21';
-import { hub, loadFriends } from './hub.js?v=21';
+import { I } from './icons.js?v=22';
+import { S, save } from './store.js?v=22';
+import { acct, call } from './account.js?v=22';
+import { sfx, unlockAudio } from './sound.js?v=22';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=22';
+import * as walls from './walls.js?v=22';
+import { hub, loadFriends } from './hub.js?v=22';
 
 let C = null;
 export function init(ctx) { C = ctx; }
 const app = document.getElementById('app');
 const QMS = 20000;
-const DIFF = ['Easy', 'Medium', 'Hard', 'Very hard', 'Expert'];
+const DIFF = ['Warm-up', 'Easy', 'Medium', 'Tricky', 'Hard'];
 const ERR = { duel_today: 'You used all 10 challenges for today. Answering challenges sent to you is unlimited.', noprize: 'This win counts for the ranking only. You already took today’s prize.', noone: 'Nobody else has been online in the last 3 days. Challenge a friend instead.', notfriend: 'You can only pick a friend here, or choose a random opponent.', nouser: 'This learner is not available for duels.', duel_open: 'You already have an open duel with this friend. Finish it first.', noquestions: 'Could not build questions for this course.', self: 'You cannot duel yourself.', expired: 'This duel expired (3 days without an answer).', notyourturn: 'It is not your turn.', noduel: 'Duel not found.', pick_today: 'You already picked a prize today. This one waits for you until tomorrow.', picked: 'Prize already picked.', youhave: 'You already have that wallpaper.', notowned: 'They no longer have that wallpaper.', notwinner: 'Only the winner picks a prize.' };
 addEventListener('hashchange', () => { const st = document.querySelector('.du-stage'); if (st && !location.hash.startsWith('#/duel')) { st.remove(); document.body.classList.remove('quizzing'); } });
 const em = (j) => ERR[j && j.error] || (j && j.error) || 'Something went wrong.';
 
-/* ---------- đề: 10 câu, 5 mức độ (dễ → chuyên gia), mỗi mức 1 câu của khoá + 1 câu kiến thức chung ---------- */
-// Câu của khoá lấy từ level tương ứng (A1/A2 → B1 → B1+/B2 → B2+ → C1 …), dạng câu khó dần: nghĩa của từ → chọn từ → ngữ pháp.
-// Câu kiến thức chung lấy từ data/duelbank.json (15 chủ đề, độ khó 1–4) và data/quizbank.json cho mức dễ; mỗi trận không lặp chủ đề.
+/* ---------- đề: 10 câu, dễ → khó dần, bám giáo trình đã học ---------- */
+// v21b: 8 câu từ chính các chủ đề người thách đã học (chưa học đủ thì lấy level đang học và các level trước),
+// chủ đề học trước ra trước (dễ), chủ đề mới học ra sau; dạng câu: nghĩa của từ → chọn từ → ngữ pháp.
+// 2 câu kiến thức chung (20%), mức dễ: quizbank.json và mức 1 của duelbank.json.
 let BANKS = null;
 async function banks() {
   if (BANKS) return BANKS;
@@ -31,49 +32,42 @@ async function banks() {
 }
 async function makeQuestions(lang) {
   const [c, B] = await Promise.all([C.course(lang), banks()]);
-  const n = c.levels.length, zh = lang === 'zh';
-  const tier = (d) => c.levels.filter((L, i) => Math.min(4, Math.floor((i * 5) / n)) === d);
+  const zh = lang === 'zh';
   const shuf = (opts, a) => { const idx = shuffleArr(opts.map((_, i) => i)); return { opts: idx.map((i) => opts[i]), a: idx.indexOf(a) }; };
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  const usedCat = new Set(), usedQ = new Set();
-  // câu kiến thức chung ở mức d (0 = quizbank dễ, 1–4 = duelbank), chủ đề không lặp trong trận
-  const general = (d) => {
-    const src = d === 0 ? B.quiz.map((t) => ({ id: 'q-' + t.id, name: t.name, q: t.q.map((x) => ({ q: x.q, opts: x.opts })) }))
-      : B.duel.map((t) => ({ id: t.id, name: t.name, q: t.q.filter((x) => x.d === d) }));
-    const cats = shuffleArr(src.filter((t) => t.q.length && !usedCat.has(t.id.replace(/^q-/, ''))));
-    for (const t of cats) {
-      const qs = t.q.filter((x) => !usedQ.has(x.q)); if (!qs.length) continue;
-      const x = pick(qs); usedCat.add(t.id.replace(/^q-/, '')); usedQ.add(x.q);
-      return { q: x.q, ...shuf(x.opts.slice(0, 4), 0), d, zh: false, note: t.name };
+  // giáo trình: chủ đề đã học (có ít nhất 1 bài xong), theo thứ tự khoá học
+  const all = c.levels.flatMap((L) => L.units.map((u) => ({ u, L })));
+  let pool = all.filter(({ u }) => (S.done[u.id] || []).some(Boolean));
+  if (pool.length < 4) { // học chưa đủ: dùng level đang học và các level trước
+    const li = Math.max(0, c.levels.findIndex((L) => L.id === (S.level || {})[lang]));
+    const ids = new Set(c.levels.slice(0, li + 1).map((L) => L.id));
+    pool = all.filter(({ L }) => ids.has(L.id));
+  }
+  // 5 nhóm theo thứ tự học: nhóm đầu = chủ đề học sớm nhất (dễ nhất)
+  const seg = (t) => { const n = pool.length, a0 = Math.floor((t * n) / 5), a1 = Math.max(a0 + 1, Math.floor(((t + 1) * n) / 5)); return pool.slice(a0, Math.min(n, a1)); };
+  const allWords = pool.flatMap(({ u, L }) => u.words.map((w) => ({ w, L })));
+  const usedQ = new Set(), usedCat = new Set();
+  const course = (kind, t) => {
+    const units = seg(t), words = units.flatMap(({ u, L }) => u.words.map((w) => ({ w, L })));
+    if (kind === 'gram') {
+      const drills = units.flatMap(({ u }) => [u.gram, u.gram2].filter(Boolean).flatMap((g) => g.drill.filter((x) => x.opts && x.opts.length >= 2 && !usedQ.has(x.t)).map((x) => ({ x, g }))));
+      if (drills.length) { const p = pick(drills); usedQ.add(p.x.t); return { q: p.x.t.replace(/_{2,}/g, '_____'), ...shuf(p.x.opts.slice(0, 3), p.x.a), d: t, zh, note: p.g.title }; }
+      kind = 'rev';
     }
+    const free = words.filter((x) => !usedQ.has(x.w.w)), w = pick(free.length ? free : words); usedQ.add(w.w.w);
+    // đáp án nhiễu lấy từ toàn bộ phần đã học (khác hẳn nhau → dễ phân biệt hơn)
+    const others = shuffleArr(allWords.filter((x) => x.w.vi !== w.w.vi && x.w.w !== w.w.w)).slice(0, 3).map((x) => x.w);
+    const note = `Vocabulary · ${w.L.name}`;
+    if (kind === 'rev') return { q: `Which ${zh ? 'word' : 'word or phrase'} means “${w.w.vi}”?`, ...shuf([w.w.w, ...others.map((x) => x.w)], 0), d: t, zh, note };
+    return { q: `What does “${w.w.w}”${zh ? ` (${w.w.py})` : ''} mean?`, ...shuf([w.w.vi, ...others.map((x) => x.vi)], 0), d: t, zh, note };
+  };
+  const general = (src, t) => {
+    const cats = shuffleArr((src === 'quiz' ? B.quiz.map((x) => ({ id: x.id, name: x.name, q: x.q })) : B.duel.map((x) => ({ id: x.id, name: x.name, q: x.q.filter((y) => y.d === 1) }))).filter((x) => x.q.length && !usedCat.has(x.id)));
+    for (const k of cats) { const x = pick(k.q); if (usedQ.has(x.q)) continue; usedQ.add(x.q); usedCat.add(k.id); return { q: x.q, ...shuf(x.opts.slice(0, 4), 0), d: t, zh: false, note: k.name }; }
     return null;
   };
-  // câu của khoá ở mức d
-  const course = (d) => {
-    const Ls = tier(d).length ? tier(d) : [c.levels[Math.min(n - 1, d)]];
-    const units = Ls.flatMap((L) => L.units.map((u) => ({ u, L })));
-    const words = units.flatMap(({ u, L }) => u.words.map((w) => ({ w, L })));
-    const drills = units.flatMap(({ u }) => [u.gram, u.gram2].filter(Boolean).flatMap((g) => g.drill.filter((x) => x.opts && x.opts.length >= 2).map((x) => ({ x, g }))));
-    const kind = d === 0 ? 'mean' : d === 1 ? (Math.random() < 0.5 ? 'rev' : 'mean') : d === 2 ? (Math.random() < 0.6 ? 'gram' : 'rev') : 'gram';
-    if (kind === 'gram' && drills.length) {
-      let p; for (let t = 0; t < 30; t++) { p = pick(drills); if (!usedQ.has(p.x.t)) break; }
-      usedQ.add(p.x.t);
-      return { q: p.x.t.replace(/_{2,}/g, '_____'), ...shuf(p.x.opts.slice(0, 4), p.x.a), d, zh, note: p.g.title };
-    }
-    let w; for (let t = 0; t < 30; t++) { w = pick(words); if (!usedQ.has(w.w.w)) break; }
-    usedQ.add(w.w.w);
-    const others = shuffleArr(words.filter((x) => x.w.vi !== w.w.vi && x.w.w !== w.w.w)).slice(0, 3).map((x) => x.w);
-    const note = `Vocabulary · ${w.L.name}`;
-    if (kind === 'rev') return { q: `Which ${zh ? 'word' : 'word or phrase'} means “${w.w.vi}”?`, ...shuf([w.w.w, ...others.map((x) => x.w)], 0), d, zh, note };
-    return { q: `What does “${w.w.w}”${zh && d < 2 ? ` (${w.w.py})` : ''} mean?`, ...shuf([w.w.vi, ...others.map((x) => x.vi)], 0), d, zh, note };
-  };
-  const out = [];
-  for (let d = 0; d < 5; d++) {
-    const pair = [course(d), general(d) || course(d)];
-    if (Math.random() < 0.5) pair.reverse();
-    out.push(...pair);
-  }
-  return out;
+  const plan = [['mean', 0], ['mean', 0], ['rev', 1], ['G', 1, 'quiz'], ['mean', 2], ['rev', 2], ['gram', 3], ['rev', 3], ['G', 4, 'duel'], ['gram', 4]];
+  return plan.map(([k, t, src]) => (k === 'G' ? general(src, t) || course('mean', t) : course(k, t)));
 }
 
 /* ---------- trang Duels ---------- */
@@ -81,7 +75,7 @@ let pickLang = null;
 export async function duelPage(args = []) {
   const route = '#/duel';
   if (!acct) {
-    C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>Challenge a friend or a random learner. You both answer the same 10 questions, from easy to expert: half from your course, half general knowledge. The winner of the day’s first duel picks one wallpaper from the loser’s collection, and the loser keeps it too.</p></div></div>
+    C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>Challenge a friend or a random learner. You both answer the same 10 questions, from easy to harder: 8 from the units the challenger has studied, 2 general knowledge. The winner of the day’s first duel picks one wallpaper from the loser’s collection, and the loser keeps it too.</p></div></div>
     <div class="panel empty"><span class="e-ic">${I.swords}</span><h2>Sign in to duel</h2><p>A name and a 4–6 digit PIN is all it takes.</p><div class="foot-row" style="max-width:420px;width:100%"><button class="btn acc mk" type="button">Create account</button><button class="btn ghost lg" type="button">Sign in</button></div></div>`, null, { noCourse: true });
     app.querySelector('.mk').addEventListener('click', () => C.authSheet('new')); app.querySelector('.lg').addEventListener('click', () => C.authSheet('login'));
     return;
@@ -105,7 +99,7 @@ export async function duelPage(args = []) {
     const sc = d.me && d.me.score != null ? `${d.me.score}${d.them && d.them.score != null ? ' – ' + d.them.score : ''}` : '';
     return `<a class="row du-row" href="#/duel/${d.id}">${vipAv(d.opp ? d.opp.name : '?', d.opp && d.opp.avatar, d.opp ? d.opp.vip : 0)}<span class="grow"><b>${esc(d.opp ? d.opp.name : 'Opponent')}${d.random ? ' <small class="muted">· random</small>' : ''}</b><small>${esc(d.title)} · ${ago(d.created_at)}${sc ? ' · ' + sc : ''}</small></span>${res}</a>`;
   };
-  C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>You both answer the same 10 questions, from easy to expert: half from your course, half general knowledge, 20 seconds each. Faster correct answers score more. Up to 10 challenges a day. <b>Your first win each day</b> copies one wallpaper from the loser’s collection; later wins count for the weekly ranking. Your opponent has 24 hours to answer, or they lose.</p></div></div>
+  C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>You both answer the same 10 questions, from easy to harder: 8 from the units the challenger has studied, 2 general knowledge, 20 seconds each. Faster correct answers score more. Up to 10 challenges a day. <b>Your first win each day</b> copies one wallpaper from the loser’s collection; later wins count for the weekly ranking. Your opponent has 24 hours to answer, or they lose.</p></div></div>
   <div class="du-grid">
     <section class="panel pad du-new">
       <h3 class="sec-h">${I.swords} New challenge <em>${L.today || 0}/${L.per_day || 10} today</em></h3>
@@ -152,7 +146,7 @@ async function openDuel(id) {
   const d = j.duel;
   if (d.my_turn && j.questions) {
     C.shell('#/duel', `<div class="panel empty du-ready">${vipAv(d.opp.name, d.opp.avatar, d.opp.vip, 'xl')}<h2>${d.role === 'b' ? `${esc(d.opp.name)} challenged you` : 'Finish your duel'}</h2>
-      <p>${d.role === 'b' ? `They already played. Beat <b>${d.them ? d.them.score : '?'}</b> points. ` : ''}10 questions, 20 seconds each, from easy to expert, mixing your course with general knowledge. Once you start, leaving counts the remaining answers as wrong.</p>
+      <p>${d.role === 'b' ? `They already played. Beat <b>${d.them ? d.them.score : '?'}</b> points. ` : ''}10 questions, 20 seconds each: 8 from the units the challenger has studied, 2 general knowledge. Once you start, leaving counts the remaining answers as wrong.</p>
       <div class="foot-row" style="max-width:440px;width:100%">${d.role === 'b' ? '<button class="btn ghost du-no" type="button">Decline</button>' : '<a class="btn ghost" href="#/duel">Later</a>'}<button class="btn acc du-play" type="button">${I.swords} Play now</button></div>
       <small class="muted">Answer before ${new Date(d.expires_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></div>`, null, { noCourse: true });
     app.querySelector('.du-play').addEventListener('click', async () => { unlockAudio(); await versus(d.opp, d.title); play(d, j.questions); });

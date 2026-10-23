@@ -1,11 +1,11 @@
 // Kho hình nền: phần thưởng trong rương chủ đề và boss, bộ sưu tập, VIP, chia sẻ cho bạn bè, đặt làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=21';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=21';
-import { acct, call, push } from './account.js?v=21';
-import { sfx } from './sound.js?v=21';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=21';
+import { I } from './icons.js?v=22';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=22';
+import { acct, call, push } from './account.js?v=22';
+import { sfx } from './sound.js?v=22';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=22';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }

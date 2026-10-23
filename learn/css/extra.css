@@ -963,3 +963,27 @@ body.booted .hud-in, body.booted .layout > .rail, body.booted .tabbar { animatio
 .cs-i .grow b { display: block; } .cs-i .grow small { display: block; color: var(--muted); }
 .cs-i .cs-n { width: 54px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 900; background: var(--glass-3); flex: none; }
 .cs-i.sel .cs-n { background: var(--acc-grad); color: #fff; }
+
+/* ---------- v21b: cột phải tách 2 tab Ranking / Friends ---------- */
+.rl-tabs { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 6px; padding: 10px 8px 10px 10px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 82%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.rail.in-sheet .rl-tabs { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0 0 12px; }
+.rl-t { position: relative; flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 10px; border-radius: 14px; font: inherit; font-weight: 800; font-size: .9rem; color: var(--muted); background: rgba(255, 255, 255, .04); border: 1px solid transparent; transition: background .2s, color .2s; }
+.rl-t svg { width: 17px; height: 17px; }
+.rl-t:hover { color: var(--ink); }
+.rl-t[aria-selected="true"] { color: var(--ink); background: var(--glass-3); border-color: var(--line-2); }
+.rl-t[data-t="rank"][aria-selected="true"] svg { color: var(--gold); }
+.rl-t[data-t="friends"][aria-selected="true"] svg { color: var(--ok); }
+.rl-t .badge { top: -5px; right: -4px; }
+.rl-tn { font-style: normal; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; font-size: .7rem; font-weight: 800; color: #04210f; background: var(--ok); }
+.rl-tabs .rl-msg { position: relative; flex: none; }
+.rl-tabs .rl-msg .badge { top: -4px; right: -4px; }
+.rl-tabs .rl-x { flex: none; }
+.rl-p[hidden] { display: none !important; }
+.rl-p { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.rl-sub { display: flex; align-items: center; gap: 10px; padding: 12px 14px 4px; }
+.rl-sub small { margin-left: auto; color: var(--muted); font-size: .74rem; font-weight: 600; }
+.rk { border-bottom: 0; padding: 4px 8px 10px; }
+.rk-sub { margin: 8px 6px 10px; color: var(--muted); font-size: .76rem; font-weight: 600; line-height: 1.4; }
+.rail.in-sheet .rk { padding: 0; }
+.rail.in-sheet .rl-sub { padding: 0 2px 6px; }
+.rail.in-sheet .rl-tabs { padding-right: 52px; }

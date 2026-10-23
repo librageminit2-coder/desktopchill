@@ -1,13 +1,13 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=21';
-import { S, save } from './store.js?v=21';
-import * as chat from './chat.js?v=21';
-import * as acctui from './acctui.js?v=21';
-import { acct, call } from './account.js?v=21';
-import { sfx } from './sound.js?v=21';
-import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=21';
-import * as walls from './walls.js?v=21';
+import { I, LOGO } from './icons.js?v=22';
+import { S, save } from './store.js?v=22';
+import * as chat from './chat.js?v=22';
+import * as acctui from './acctui.js?v=22';
+import { acct, call } from './account.js?v=22';
+import { sfx } from './sound.js?v=22';
+import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=22';
+import * as walls from './walls.js?v=22';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -44,7 +44,7 @@ export function applyChrome() {
 function paintTabs() {
   const mk = (cls, html, fn) => { let t = document.querySelector('.' + cls); if (!t) { t = document.createElement('button'); t.type = 'button'; t.className = 'edge-tab ' + cls; t.addEventListener('click', fn); document.body.appendChild(t); } t.innerHTML = html; return t; };
   const on = ranked().filter((x) => !x.me && online(x.last_seen)).length;
-  mk('rail-tab', `${I.users}<span>Friends${on ? ` · ${on}` : ''}</span>`, () => toggleRail(true));
+  mk('rail-tab', `${I.trophy}<span>Ranking · Friends${on ? ` · ${on}` : ''}</span>`, () => toggleRail(true));
   mk('side-tab', `${I.target}<span>Today</span>`, () => toggleSide(true));
   document.body.classList.toggle('has-side', !!document.querySelector('.layout > .side'));
 }
@@ -197,7 +197,7 @@ export function whatsNew(force) {
       <ul>${c.topics.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
       <button class="btn sm ${S.lang === 'en' ? 'acc' : 'ghost'} wn-go" type="button" data-lv="${c.lv}">Open ${c.name.replace('English ', '')}</button>
     </section>`).join('')}</div>
-    <p class="wn-note">${I.sparkle}<span>Also new: 22 wallpapers (72–93) in the B1+ and B2+ chests and bosses, wallpapers cost 40% less XP, duels now go from easy to expert with general-knowledge questions, and the phone layout is easier to use.</span></p>
+    <p class="wn-note">${I.sparkle}<span>Also new: 22 wallpapers (72–93) in the B1+ and B2+ chests and bosses, wallpapers cost 40% less XP, duel questions come from the units you have studied (plus 2 general-knowledge questions), and the phone layout is easier to use.</span></p>
   </div>`, (el, close) => {
     el.querySelectorAll('.wn-go').forEach((b) => b.addEventListener('click', () => { close(); C.goTo('en', b.dataset.lv); }));
   }, 'wide');
@@ -217,7 +217,7 @@ function ranked() {
 }
 /* ---------- bảng xếp hạng toàn máy chủ (trên danh sách bạn) ---------- */
 const RK_TABS = [['en', 'EN'], ['zh', '中文'], ['ielts', 'IELTS'], ['duel', 'Duel']];
-const rk = { tab: (() => { try { return localStorage.getItem('dcl_rk') || ''; } catch (e) { return ''; } })(), data: {}, at: {}, open: pref('dcl_rk_open', true), busy: '' };
+const rk = { tab: (() => { try { return localStorage.getItem('dcl_rk') || ''; } catch (e) { return ''; } })(), data: {}, at: {}, busy: '' };
 const rkTab = () => rk.tab || (['en', 'zh', 'ielts'].includes(S.lang) ? S.lang : 'en');
 export async function loadRank(board = rkTab(), force = false) {
   if (rk.busy === board || (!force && rk.data[board] && Date.now() - rk.at[board] < 60000)) return;
@@ -246,7 +246,6 @@ function rankRows(board) {
 }
 function paintRank(el) {
   const b = rkTab();
-  el.classList.toggle('shut', !rk.open);
   el.querySelectorAll('.rk-tabs button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.b === b));
   const body = el.querySelector('.rk-body'); if (body) body.innerHTML = rankRows(b);
   el.querySelectorAll('.rk-duel').forEach((btn) => btn.addEventListener('click', (e) => {
@@ -265,32 +264,48 @@ function paintRank(el) {
   }));
 }
 function rankHTML() {
-  return `<section class="rk ${rk.open ? '' : 'shut'}"><button class="rk-h" type="button" aria-expanded="${rk.open}"><span class="rk-ic">${I.trophy}</span><b>Ranking</b><small>Top 10 · all learners</small>${I.chevDown}</button>
+  return `<section class="rk"><p class="rk-sub">Top 10 of all learners · stars per course, duel points per week</p>
     <div class="rk-tabs seg" role="tablist">${RK_TABS.map(([k, l]) => `<button type="button" data-b="${k}" class="${k === 'zh' ? 'zh' : ''}" aria-pressed="${rkTab() === k}">${l}</button>`).join('')}</div>
     <div class="rk-body">${rankRows(rkTab())}</div></section>`;
 }
 function wireRank(r) {
   const el = r.querySelector('.rk'); if (!el) return;
   paintRank(el);
-  el.querySelector('.rk-h').addEventListener('click', () => { rk.open = !rk.open; setPref('dcl_rk_open', rk.open); sfx('tap'); el.classList.toggle('shut', !rk.open); el.querySelector('.rk-h').setAttribute('aria-expanded', rk.open); });
   el.querySelectorAll('.rk-tabs button').forEach((b) => b.addEventListener('click', () => { rk.tab = b.dataset.b; try { localStorage.setItem('dcl_rk', rk.tab); } catch (e) {} sfx('tap'); paintRank(el); loadRank(rk.tab); }));
   loadRank(rkTab());
 }
+// v21b: cột phải tách 2 tab riêng: Ranking (bảng xếp hạng toàn máy chủ) và Friends (bạn bè, online, lời mời)
+let railTab = (() => { try { return localStorage.getItem('dcl_rail_tab') === 'friends' ? 'friends' : 'rank'; } catch (e) { return 'rank'; } })();
+function railHead(onN, incN) {
+  const msgN = hub.msgs || 0;
+  return `<div class="rl-tabs" role="tablist">
+    <button type="button" role="tab" class="rl-t" data-t="rank" aria-selected="${railTab === 'rank'}">${I.trophy}<span>Ranking</span></button>
+    <button type="button" role="tab" class="rl-t" data-t="friends" aria-selected="${railTab === 'friends'}">${I.users}<span>Friends</span>${incN ? `<i class="badge">${incN}</i>` : onN ? `<em class="rl-tn">${onN}</em>` : ''}</button>
+    ${acct ? `<button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}${msgN ? `<i class="badge">${msgN > 99 ? '99+' : msgN}</i>` : ''}</button>` : ''}<button class="icon-btn sm rl-x" type="button" title="Hide">${I.chev}</button></div>`;
+}
 function railInner() {
-  if (!acct) return `<div class="rl-h"><b>Friends</b></div><div class="rl-empty">${I.users}<p>Sign in to see friends, who is online and the weekly ranking.</p><button class="btn sm acc rl-in" type="button">Sign in</button></div>`;
+  if (!acct) return `${railHead(0, 0)}<div class="rl-empty">${I.users}<p>Sign in to see the ranking, your friends and who is online.</p><button class="btn sm acc rl-in" type="button">Sign in</button></div>`;
   const d = hub.friends;
-  if (!d) return `<div class="rl-h"><b>Friends</b></div><p class="muted" style="padding:14px">Loading…</p>`;
-  const all = ranked(), on = all.filter((x) => !x.me && online(x.last_seen)), inc = (d.items || []).filter((x) => x.incoming);
+  const all = d ? ranked() : [], on = all.filter((x) => !x.me && online(x.last_seen)), inc = d ? (d.items || []).filter((x) => x.incoming) : [];
   const sorted = [...all].sort((a, b) => (a.me ? -1 : b.me ? 1 : 0) || (online(b.last_seen) - online(a.last_seen)) || a.rank - b.rank);
-  return `${rankHTML()}<div class="rl-h"><b>Friends</b><span class="rl-on"><i></i>${on.length} online</span><button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}</button><button class="icon-btn rl-x" type="button" title="Hide friends">${I.chev}</button></div>
+  const friends = !d ? '<p class="muted" style="padding:14px">Loading…</p>' : `<div class="rl-sub"><span class="rl-on"><i></i>${on.length} online</span><small>${all.length - 1} friend${all.length === 2 ? '' : 's'} · weekly XP</small></div>
     ${inc.length ? `<a class="rl-req" href="#/friends">${I.users}<span>${inc.length} friend request${inc.length > 1 ? 's' : ''}</span>${I.chev}</a>` : ''}
     <div class="rl-list">${sorted.map((x) => `<div class="rl-i ${x.me ? 'me' : ''} ${online(x.last_seen) ? 'on' : ''}" data-u="${x.uid}">
       <span class="rl-rk ${x.rank <= 3 ? 'top t' + x.rank : ''}">${x.rank}</span>
       <span class="rl-av">${vipAv(x.name, x.avatar, x.vip || 0)}${!x.me && online(x.last_seen) ? '<i class="dot"></i>' : ''}</span>
       <span class="rl-n"><b>${esc(x.name)}${x.me ? ' (you)' : ''}</b><small>${x.week_xp || 0} XP this week${x.me ? '' : online(x.last_seen) ? ' · online' : ` · ${ago(x.last_seen).replace(' ago', '')}`}</small></span>
       ${x.me ? '' : `<span class="rl-a"><button class="icon-btn sm rl-chat" type="button" title="Send a message">${I.chat}</button><button class="icon-btn sm rl-duel" type="button" title="Challenge to a duel">${I.swords}</button><button class="icon-btn sm rl-gift" type="button" title="Share a wallpaper">${I.gift}</button></span>`}</div>`).join('')}</div>
-    ${all.length < 2 ? `<div class="rl-empty"><p>No friends yet. Share your code <b>${esc(d.me && d.me.code || '')}</b> or add someone.</p></div>` : ''}
-    <div class="rl-f"><a class="btn sm ghost rl-addf" href="#/friends">${I.plus} Add friends</a><a class="btn sm ghost rl-duels" href="#/duel">${I.swords} Duels</a></div>`;
+    ${all.length < 2 ? `<div class="rl-empty"><p>No friends yet. ${d.me && d.me.code ? `Share your code <b>${esc(d.me.code)}</b>, or tap` : 'Tap'} + next to anyone in the Ranking.</p></div>` : ''}`;
+  return `${railHead(on.length, inc.length)}
+    <div class="rl-p" data-p="rank" ${railTab === 'rank' ? '' : 'hidden'}>${rankHTML()}<div class="rl-f"><a class="btn sm ghost rl-duels" href="#/duel">${I.swords} Duels</a><button class="btn sm ghost rl-gof" type="button">${I.users} My friends</button></div></div>
+    <div class="rl-p" data-p="friends" ${railTab === 'friends' ? '' : 'hidden'}>${friends}<div class="rl-f"><a class="btn sm ghost rl-addf" href="#/friends">${I.plus} Add friends</a><a class="btn sm ghost rl-duels" href="#/duel">${I.swords} Duels</a></div></div>`;
+}
+function setRailTab(r, t) {
+  railTab = t; try { localStorage.setItem('dcl_rail_tab', t); } catch (e) {}
+  r.querySelectorAll('.rl-t').forEach((b) => b.setAttribute('aria-selected', b.dataset.t === t));
+  r.querySelectorAll('.rl-p').forEach((p) => { p.hidden = p.dataset.p !== t; });
+  r.scrollTop = 0;
+  if (t === 'rank') loadRank(rkTab());
 }
 // cột bạn bè nằm trong bố cục trang (cùng khoảng cách với các cột khác)
 export function renderRail() {
@@ -299,15 +314,18 @@ export function renderRail() {
 }
 function wireRail(r) {
   const x = r.querySelector('.rl-x'); if (x) x.addEventListener('click', () => toggleRail(false));
+  r.querySelectorAll('.rl-t').forEach((b) => b.addEventListener('click', () => { if (railTab !== b.dataset.t) { sfx('tap'); setRailTab(r, b.dataset.t); } }));
+  const gf = r.querySelector('.rl-gof'); if (gf) gf.addEventListener('click', () => { sfx('tap'); setRailTab(r, 'friends'); });
   const si = r.querySelector('.rl-in'); if (si) si.addEventListener('click', () => C.authSheet('login'));
   r.querySelectorAll('.rl-duel').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('sheet-root').innerHTML = ''; location.hash = '#/duel/new/' + b.closest('.rl-i').dataset.u; }));
   r.querySelectorAll('.rl-gift').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); walls.shareSheet(); }));
   r.querySelectorAll('.rl-chat').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); const f = ranked().find((x) => String(x.uid) === b.closest('.rl-i').dataset.u); if (f) { document.getElementById('sheet-root').innerHTML = ''; chat.openDM(f); } }));
   const rm = r.querySelector('.rl-msg'); if (rm) rm.addEventListener('click', () => { document.getElementById('sheet-root').innerHTML = ''; chat.openChats(); });
-  wireRank(r);
+  if (railTab === 'rank' || r.querySelector('.rk')) wireRank(r);
 }
-export function railSheet() {
+export function railSheet(tab) {
   if (!acct) { C.authSheet('login'); return; }
+  if (tab === 'rank' || tab === 'friends') { railTab = tab; try { localStorage.setItem('dcl_rail_tab', tab); } catch (e) {} }
   sheet('<div class="rail in-sheet"></div>', (el) => { const r = el.querySelector('.rail'); r.innerHTML = railInner(); wireRail(r); const x = r.querySelector('.rl-x'); if (x) x.remove(); });
   loadFriends();
 }

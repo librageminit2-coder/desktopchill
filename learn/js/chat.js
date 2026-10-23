@@ -1,9 +1,9 @@
 // Nhắn tin: bạn bè (1-1), lớp học (nhóm) và ván live quiz (nhóm, cả khách chưa có tài khoản).
 // Khung chat nổi ở góc phải dưới (màn nhỏ thì chiếm cả màn hình). Hỏi máy chủ 3,5 giây/lần khi đang mở.
-import { I } from './icons.js?v=21';
-import { acct, call, rpc } from './account.js?v=21';
-import { sfx } from './sound.js?v=21';
-import { esc, toast, vipAv, avatar, ago, online } from './ui.js?v=21';
+import { I } from './icons.js?v=22';
+import { acct, call, rpc } from './account.js?v=22';
+import { sfx } from './sound.js?v=22';
+import { esc, toast, vipAv, avatar, ago, online } from './ui.js?v=22';
 
 const POLL = 3500;
 let dock = null, timer = 0, view = null; // view: { kind: 'list' } | { kind: 'chan', chan, title, sub, av } | { kind: 'game', pin, pkey, host, title }

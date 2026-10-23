@@ -1,10 +1,10 @@
 // Hướng dẫn bắt buộc 1 lần cho mỗi tài khoản: đổi hình nền trong Collection, rồi đổi ảnh đại diện.
 // Sau đó là 2 gợi ý (Add friends, Duels): không chặn màn hình, chỉ tắt khi người dùng bấm đúng nút đó.
 // Lưu trong tiến trình (S.guide) nên đồng bộ theo tài khoản: làm xong một lần thì máy khác cũng không hiện lại.
-import { S, save } from './store.js?v=21';
-import { acct } from './account.js?v=21';
-import { sfx } from './sound.js?v=21';
-import { toast } from './ui.js?v=21';
+import { S, save } from './store.js?v=22';
+import { acct } from './account.js?v=22';
+import { sfx } from './sound.js?v=22';
+import { toast } from './ui.js?v=22';
 
 const g = () => { if (!S.guide || typeof S.guide !== 'object') S.guide = {}; return S.guide; };
 const vis = (el) => { if (!el || !el.isConnected) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 4 && r.height > 4 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
@@ -108,7 +108,7 @@ export const touring = () => cur >= 0;
 
 /* ---------- gợi ý Add friends / Duels ---------- */
 const HINTS = [
-  { id: 'friend', sels: ['.rl-addf', '.rail-btn'], title: 'Add friends', text: 'Find people by name or friend code, or tap + next to anyone in the Ranking. Friends can chat, duel and send each other wallpapers.' },
+  { id: 'friend', sels: ['.rl-addf', '.rl-t[data-t="friends"]', '.tb-friends', '.rail-btn'], title: 'Add friends', text: 'Find people by name or friend code, or tap + next to anyone in the Ranking. Friends can chat, duel and send each other wallpapers.' },
   { id: 'duel', sels: ['.rl-duels', '.nav .mt[href="#/duel"]', '.dd a[href="#/duel"]'], title: 'Duels', text: 'You and a rival answer the same 10 questions. Up to 10 a day; your first win each day takes a wallpaper from their collection.' },
 ];
 let hintT = 0, hintEl = null, hintOn = null;

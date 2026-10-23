@@ -193,6 +193,7 @@
 @media (max-width: 860px) { :where(:root[data-theme="light"]) .m-today { box-shadow: 0 10px 24px rgba(30, 50, 40, 0.158), 0 0 0 3px rgba(12, 18, 16, .7); } }
 @media (max-width: 860px) { :where(:root[data-theme="light"]) .m-scrim { background: rgba(225, 235, 229, 0.60); } }
 :where(:root[data-theme="light"]) .pc { background: rgba(20, 44, 34, 0.055); }
+:where(:root[data-theme="light"]) .rl-t { background: rgba(20, 44, 34, 0.044); }
 
 /* ---- hand-tuned ---- */
 :root[data-theme="light"] .chip[aria-pressed="true"] { color: var(--acc-2); }
