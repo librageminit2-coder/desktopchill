@@ -1,12 +1,12 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=23';
-import { mascot } from './mascot.js?v=23';
-import { sfx } from './sound.js?v=23';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=23';
+import { I } from './icons.js?v=24';
+import { mascot } from './mascot.js?v=24';
+import { sfx } from './sound.js?v=24';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=24';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
-import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=23';
+import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=24';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -87,7 +87,8 @@ export function buildQueue(unit, k, lang) {
     q.push({ type: 'reading' });
     unit.read.q.forEach((x) => q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading' }));
     pick(unit.read.sents.filter((s) => okLen(s, 4, 14)), 3).forEach((s) => q.push(lang === 'zh' ? { type: 'listenOrder', s } : { type: 'dictation', s }));
-    const withWord = unit.read.sents.map((s) => ({ s, w: W.find((w) => textOf(lang, s).toLowerCase().includes((lang === 'zh' ? w.w : w.w.toLowerCase()))) })).filter((x) => x.w);
+    const wordIn = (t, w) => (lang === 'zh' ? t.includes(w.w) : new RegExp('\\b' + w.w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i').test(t)); // chỉ chọn câu có đúng nguyên từ, để ô trống luôn hiện
+    const withWord = unit.read.sents.map((s) => ({ s, w: W.find((w) => wordIn(textOf(lang, s), w)) })).filter((x) => x.w);
     pick(withWord, 3).forEach((x) => q.push({ type: 'blank', s: x.s, w: x.w }));
     pick(unit.read.sents.filter((s) => okLen(s, 3, 12)), 1).forEach((s) => q.push({ type: 'speak', s }));
   } else if (k === 5) gramQueue(unit.gram, 'gram', W, q, sentences);

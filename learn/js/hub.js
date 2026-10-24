@@ -1,13 +1,13 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=23';
-import { S, save } from './store.js?v=23';
-import * as chat from './chat.js?v=23';
-import * as acctui from './acctui.js?v=23';
-import { acct, call } from './account.js?v=23';
-import { sfx } from './sound.js?v=23';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=23';
-import * as walls from './walls.js?v=23';
+import { I, LOGO } from './icons.js?v=24';
+import { S, save } from './store.js?v=24';
+import * as chat from './chat.js?v=24';
+import * as acctui from './acctui.js?v=24';
+import { acct, call } from './account.js?v=24';
+import { sfx } from './sound.js?v=24';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=24';
+import * as walls from './walls.js?v=24';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
