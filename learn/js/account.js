@@ -1,6 +1,6 @@
 // Tài khoản đơn giản: tên + mã PIN. Tiến trình lưu lên Supabase qua các hàm RPC.
 // Sau khi đăng nhập, máy chủ cấp một "token phiên" để dùng cho bạn bè, lớp học và quiz (không gửi PIN mỗi lần).
-import { S, onSave, replace } from './store.js?v=24';
+import { S, onSave, replace } from './store.js?v=25';
 const URL = 'https://phcmbgaozkaibqsttonc.supabase.co/rest/v1/rpc/';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoY21iZ2FvemthaWJxc3R0b25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODk3NTgsImV4cCI6MjEwNDk2NTc1OH0.Hvs0Gxebog5gcKILnSdT3g6nz6-GI0CEepmMJM0gCxo';
 const AKEY = 'dcl_account';
@@ -59,7 +59,7 @@ export async function call(fn, body = {}) {
   catch (e) { if (!e.auth) throw e; acct.token = null; const t2 = await auth(); return rpc(fn, { p_token: t2, ...body }); }
 }
 
-const REG_ERR = { badname: 'Name must be 3–24 characters with at least one letter: letters, numbers, dots or dashes.', badpin: 'PIN must be 4 to 6 digits.', bademail: 'Enter a valid email address.', badphone: 'Enter a valid phone number, e.g. 0912 345 678.', emailtaken: 'This email is already used by another account. Sign in, or use Forgot PIN.', phonetaken: 'This phone number is already used by another account. Sign in, or use Forgot PIN.', toobig: 'Your progress is too large to save. Please contact desktopchill.' };
+const REG_ERR = { badname: 'Name must be 3–24 characters with at least one letter: letters, numbers, dots or dashes.', badpin: 'PIN must be 4 to 6 digits.', bademail: 'Enter a valid email address, or leave it empty.', emailnotallowed: 'Please use a personal email address, or leave it empty.', badphone: 'Enter a valid phone number, e.g. 0912 345 678.', emailtaken: 'This email is already used by another account. Sign in, or use Forgot PIN.', phonetaken: 'This phone number is already used by another account. Sign in, or use Forgot PIN.', toobig: 'Your progress is too large to save. Please contact desktopchill.' };
 export const acctErr = (e, fallback = 'Something went wrong.') => REG_ERR[e] || { badpin: 'Wrong PIN.', locked: 'Too many wrong PINs. Try again in 10 minutes.', taken: 'That name is already taken.', renamelimit: 'You can change your name 3 times in 30 days.', samepin: 'Choose a PIN different from the current one.' }[e] || fallback;
 export const validEmail = (e) => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test((e || '').trim());
 export const validPhone = (p) => { const d = (p || '').replace(/\D/g, ''); return d.length >= 9 && d.length <= 15; };

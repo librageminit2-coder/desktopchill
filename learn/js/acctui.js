@@ -1,22 +1,17 @@
-// Tài khoản: email + số điện thoại (bắt buộc), đổi tên, đổi PIN, quên PIN.
-// Tài khoản cũ chưa có email / số điện thoại: bắt buộc bổ sung trước khi học tiếp. PIN tạm do admin cấp: bắt buộc đổi.
-import { I } from './icons.js?v=24';
-import { acct, call, changePin, rename, forgot, acctErr, validEmail, validPhone, validName, validPin } from './account.js?v=24';
-import { sfx } from './sound.js?v=24';
-import { esc, toast, sheet } from './ui.js?v=24';
+// Tài khoản: số điện thoại (bắt buộc) + email (tuỳ chọn), đổi tên, đổi PIN, quên PIN. Đăng nhập bằng tên tài khoản hoặc số điện thoại.
+// Tài khoản cũ chưa có số điện thoại: bắt buộc bổ sung trước khi học tiếp. PIN tạm do admin cấp: bắt buộc đổi.
+import { I } from './icons.js?v=25';
+import { acct, call, changePin, rename, forgot, acctErr, validEmail, validPhone, validName, validPin } from './account.js?v=25';
+import { sfx } from './sound.js?v=25';
+import { esc, toast, sheet } from './ui.js?v=25';
 
-export const MII = '@mii.com';
-const miiNote = (v) => v && validEmail(v) && !/@mii\.com$/i.test(v.trim()) ? 'Tip: your MiTek email (@mii.com) is recommended.' : '';
 export const contactFields = (email = '', phone = '') => `
-  <div class="field"><label for="ce">Email</label><input class="input" id="ce" type="email" autocomplete="email" maxlength="120" placeholder="name${MII}" value="${esc(email)}" required /><small class="hintx ce-h">Your MiTek email (${MII}) is recommended.</small></div>
+  <div class="field"><label for="ce">Email (optional)</label><input class="input" id="ce" type="email" autocomplete="email" maxlength="120" placeholder="name@example.com" value="${esc(email || '')}" /></div>
   <div class="field"><label for="cp">Phone number</label><input class="input" id="cp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="0912 345 678" value="${esc(phone)}" required /><small class="hintx">Used only to verify you if you forget your PIN.</small></div>`;
-export function wireContact(el) {
-  const e = el.querySelector('#ce'), h = el.querySelector('.ce-h');
-  if (e && h) e.addEventListener('input', () => { const n = miiNote(e.value); h.textContent = n || `Your MiTek email (${MII}) is recommended.`; h.classList.toggle('warn', !!n); });
-}
+export function wireContact() {}
 export function readContact(el) {
   const email = el.querySelector('#ce').value.trim(), phone = el.querySelector('#cp').value.trim();
-  if (!validEmail(email)) return { err: 'Enter a valid email address.' };
+  if (email && !validEmail(email)) return { err: 'Enter a valid email address, or leave it empty.' };
   if (!validPhone(phone)) return { err: 'Enter a valid phone number, e.g. 0912 345 678.' };
   return { email, phone };
 }
@@ -54,7 +49,7 @@ function forcePin(done) {
   });
 }
 function forceContact(done) {
-  gate(`<span class="gate-ic">${I.users}</span><h2>Add your email and phone</h2><p class="sub">Every account now needs an email and a phone number. You can then sign in with either one, and desktopchill can verify you if you forget your PIN.</p>
+  gate(`<span class="gate-ic">${I.users}</span><h2>Add your phone number</h2><p class="sub">Every account needs a phone number. You can sign in with it, and desktopchill can verify you if you forget your PIN.</p>
     <form class="gf" novalidate>${contactFields()}<p class="err" role="alert"></p><button class="btn acc wide" type="submit">Save and continue</button></form>
     <p class="muted gate-f">Signed in as <b>${esc(acct.name)}</b>. You can change these later in Profile &amp; settings.</p>`, (el, close) => {
     wireContact(el);
@@ -69,17 +64,17 @@ function forceContact(done) {
 
 /* ---------- Profile & settings: khối tài khoản ---------- */
 export function accountPanelHTML() {
-  return `<div class="panel pad acct-p"><h3>Account</h3><p class="muted" style="margin:6px 0 10px">Sign in on any device with your name, email or phone number and your PIN.${acct.code ? ` Friend code <b style="letter-spacing:.12em;color:var(--ink)">${esc(acct.code)}</b>.` : ''}</p>
+  return `<div class="panel pad acct-p"><h3>Account</h3><p class="muted" style="margin:6px 0 10px">Sign in on any device with your account name or phone number and your PIN.${acct.code ? ` Friend code <b style="letter-spacing:.12em;color:var(--ink)">${esc(acct.code)}</b>.` : ''}</p>
     <div class="acct-rows">
       <div class="row"><span class="grow"><b>Account name</b><small class="an-v">${esc(acct.name)}</small></span><button class="btn sm ghost a-name" type="button">${I.edit} Change</button></div>
-      <div class="row"><span class="grow"><b>Email and phone</b><small class="ac-v">Loading…</small></span><button class="btn sm ghost a-contact" type="button">${I.edit} Change</button></div>
+      <div class="row"><span class="grow"><b>Phone and email</b><small class="ac-v">Loading…</small></span><button class="btn sm ghost a-contact" type="button">${I.edit} Change</button></div>
       <div class="row"><span class="grow"><b>PIN</b><small>4–6 digits. Changing it signs out your other devices.</small></span><button class="btn sm ghost a-pin" type="button">${I.lock} Change</button></div>
     </div></div>`;
 }
 let contact = null;
 export async function wireAccountPanel(root, onChange) {
   const v = root.querySelector('.ac-v'); if (!v) return;
-  const paint = () => { v.innerHTML = contact && contact.has ? `${esc(contact.email)} · ${esc(contact.phone)}` : '<span style="color:var(--warn);font-weight:700">Missing. Please add them.</span>'; };
+  const paint = () => { v.innerHTML = contact && contact.has ? `${esc(contact.phone || '')}${contact.email ? ' · ' + esc(contact.email) : ''}` : '<span style="color:var(--warn);font-weight:700">Missing. Please add them.</span>'; };
   try { contact = await call('learn_contact_get'); paint(); } catch (e) { v.textContent = e.message; }
   root.querySelector('.a-name').addEventListener('click', () => nameSheet(onChange));
   root.querySelector('.a-contact').addEventListener('click', () => contactSheet(() => { paint(); }));
@@ -99,7 +94,7 @@ function nameSheet(onChange) {
 }
 function contactSheet(after) {
   const has = contact && contact.has;
-  sheet(`<h2>${has ? 'Change email and phone' : 'Add email and phone'}</h2><p class="sub">You can sign in with either one. desktopchill uses them only to verify you if you forget your PIN.</p>
+  sheet(`<h2>${has ? 'Change phone and email' : 'Add phone and email'}</h2><p class="sub">Sign in with your account name or phone number. desktopchill uses these only to verify you if you forget your PIN.</p>
     <form class="gf" novalidate>${contactFields(has ? contact.email : '', has ? contact.phone : '')}${has ? pinInput('cpin', 'Your PIN') : ''}<p class="err" role="alert"></p><button class="btn acc wide" type="submit">Save</button></form>`, (el, close) => {
     digitsOnly(el); wireContact(el);
     el.querySelector('.gf').addEventListener('submit', async (e) => {
@@ -127,15 +122,15 @@ function pinSheet() {
 
 /* ---------- quên PIN ---------- */
 export function forgotSheet(prefill = '') {
-  sheet(`<h2>Forgot your PIN?</h2><p class="sub">Send a request to desktopchill. We check it by hand, confirm it is really you using the email or phone saved on the account, then send you a temporary PIN.</p>
+  sheet(`<h2>Forgot your PIN?</h2><p class="sub">Send a request to desktopchill. We check it by hand, confirm it is really you using the phone number saved on the account, then send you a temporary PIN.</p>
     <form class="gf" novalidate>
-      <div class="field"><label for="fi">Account name, email or phone</label><input class="input" id="fi" maxlength="120" value="${esc(prefill)}" autocomplete="username" required /></div>
+      <div class="field"><label for="fi">Account name or phone number</label><input class="input" id="fi" maxlength="120" value="${esc(prefill)}" autocomplete="username" required /></div>
       <div class="field"><label for="fc">How should we reach you?</label><input class="input" id="fc" maxlength="120" placeholder="Zalo / phone number or email" required /></div>
       <div class="field"><label for="fn">Anything else? <span class="muted">(optional)</span></label><textarea class="input" id="fn" rows="2" maxlength="300" placeholder="e.g. best time to call"></textarea></div>
       <p class="err" role="alert"></p><button class="btn acc wide" type="submit">${I.send} Send request</button></form>`, (el, close) => {
     el.querySelector('.gf').addEventListener('submit', async (e) => {
       e.preventDefault(); const i = el.querySelector('#fi').value.trim(), c = el.querySelector('#fc').value.trim(), n = el.querySelector('#fn').value.trim(), err = el.querySelector('.err');
-      if (i.length < 3) { err.textContent = 'Enter your account name, email or phone.'; return; }
+      if (i.length < 3) { err.textContent = 'Enter your account name or phone number.'; return; }
       if (c.length < 6) { err.textContent = 'Tell us how to reach you.'; return; }
       try {
         const j = await forgot(i, c, n);
