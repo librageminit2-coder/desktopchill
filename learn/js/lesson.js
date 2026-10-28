@@ -1,12 +1,13 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=25';
-import { mascot } from './mascot.js?v=25';
-import { sfx } from './sound.js?v=25';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=25';
+import { I } from './icons.js?v=26';
+import { mascot } from './mascot.js?v=26';
+import { sfx } from './sound.js?v=26';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=26';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
-import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=25';
+import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=26';
+import * as bestie from './bestie.js?v=26';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -187,19 +188,77 @@ R.match = (el, it, api) => {
   }));
   return { check: () => ({ ok: miss < 3, answer: '' }), manual: true };
 };
+// v23: chọn từ bằng cách bấm HOẶC kéo thả: kéo từ ngân hàng vào đúng vị trí, kéo trong dòng để đổi chỗ, kéo ra ngoài để bỏ
 function tilesUI(el, tokens, api, { zh, target }) {
   const bank = shuffle(tokens.map((t, i) => ({ t, i })));
-  el.insertAdjacentHTML('beforeend', `<div class="answer-line"></div><div class="bank">${bank.map((x, j) => `<button class="tile ${zh ? 'zh' : ''}" type="button" data-j="${j}">${esc(x.t)}</button>`).join('')}</div>`);
-  const line = el.querySelector('.answer-line'), picked = [];
-  el.querySelectorAll('.bank .tile').forEach((b) => b.addEventListener('click', () => {
-    sfx('tile'); b.classList.add('used'); picked.push(+b.dataset.j);
-    const c = h(`<button class="tile ${zh ? 'zh' : ''}" type="button">${esc(bank[+b.dataset.j].t)}</button>`);
-    c.addEventListener('click', () => { sfx('tile'); const k = [...line.children].indexOf(c); picked.splice(k, 1); c.remove(); b.classList.remove('used'); api.ready(picked.length > 0); });
-    line.appendChild(c); api.ready(true);
-    if (zh && api.lang === 'zh') speak(bank[+b.dataset.j].t, 'zh', { rate: 1.1 });
-  }));
+  el.insertAdjacentHTML('beforeend', `<div class="answer-line" aria-label="Your sentence"></div><div class="bank">${bank.map((x, j) => `<button class="tile ${zh ? 'zh' : ''}" type="button" data-j="${j}">${esc(x.t)}</button>`).join('')}</div><p class="drag-hint muted">Tap or drag the words. Drag inside the line to reorder.</p>`);
+  const line = el.querySelector('.answer-line'), bankEl = el.querySelector('.bank');
+  const picked = () => [...line.children].filter((c) => c.dataset.j != null).map((c) => +c.dataset.j);
+  const bankBtn = (j) => bankEl.querySelector(`.tile[data-j="${j}"]`);
+  const sync = () => { api.ready(picked().length > 0); };
+  const mk = (j) => { const c = h(`<button class="tile ${zh ? 'zh' : ''}" type="button" data-j="${j}">${esc(bank[j].t)}</button>`); wire(c, 'line'); return c; };
+  const add = (j, at = null) => {
+    sfx('tile'); bankBtn(j).classList.add('used');
+    const c = mk(j); if (at == null || at >= line.children.length) line.appendChild(c); else line.insertBefore(c, line.children[at]);
+    sync(); if (zh && api.lang === 'zh') speak(bank[j].t, 'zh', { rate: 1.1 });
+  };
+  const remove = (c) => { sfx('tile'); bankBtn(+c.dataset.j).classList.remove('used'); c.remove(); sync(); };
+  // vị trí chèn theo toạ độ con trỏ
+  const slotAt = (x, y, skip) => {
+    const kids = [...line.children].filter((c) => c !== skip && !c.classList.contains('ph'));
+    for (let i = 0; i < kids.length; i++) { const r = kids[i].getBoundingClientRect(); if (y < r.top - 4) return i; if (y <= r.bottom + 4 && x < r.left + r.width / 2) return i; }
+    return kids.length;
+  };
+  let ph = null;
+  const showPh = (at, skip, w) => {
+    if (!ph) { ph = document.createElement('span'); ph.className = 'tile ph'; }
+    ph.style.width = w + 'px';
+    const kids = [...line.children].filter((c) => c !== skip && c !== ph);
+    if (at >= kids.length) line.appendChild(ph); else line.insertBefore(ph, kids[at]);
+  };
+  const hidePh = () => { if (ph) ph.remove(); };
+  function wire(b, from) {
+    let st = null, ghost = null, moved = false;
+    b.addEventListener('pointerdown', (e) => {
+      if (e.button > 0 || (from === 'bank' && b.classList.contains('used'))) return;
+      st = { x: e.clientX, y: e.clientY, id: e.pointerId }; moved = false;
+      addEventListener('pointermove', onMove); addEventListener('pointerup', end); addEventListener('pointercancel', end);
+    });
+    const onMove = (e) => {
+      if (!st || e.pointerId !== st.id) return;
+      if (!moved && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 7) return;
+      if (!moved) {
+        moved = true;
+        const r = b.getBoundingClientRect(); st.dx = e.clientX - r.left; st.dy = e.clientY - r.top; st.w = r.width;
+        ghost = b.cloneNode(true); ghost.classList.add('drag-ghost'); ghost.style.width = r.width + 'px'; document.body.appendChild(ghost);
+        b.classList.add('dragging'); el.classList.add('is-dragging');
+      }
+      e.preventDefault();
+      ghost.style.transform = `translate(${e.clientX - st.dx}px, ${e.clientY - st.dy}px)`;
+      const lr = line.getBoundingClientRect(), over = e.clientY > lr.top - 24 && e.clientY < lr.bottom + 24 && e.clientX > lr.left - 24 && e.clientX < lr.right + 24;
+      line.classList.toggle('drop-on', over);
+      if (over) showPh(slotAt(e.clientX, e.clientY, from === 'line' ? b : null), from === 'line' ? b : null, st.w); else hidePh();
+    };
+    const end = (e) => {
+      removeEventListener('pointermove', onMove); removeEventListener('pointerup', end); removeEventListener('pointercancel', end);
+      if (!st) return; const was = moved; st = null;
+      if (!was) return;
+      const lr = line.getBoundingClientRect(), over = e.clientY > lr.top - 24 && e.clientY < lr.bottom + 24 && e.clientX > lr.left - 24 && e.clientX < lr.right + 24;
+      let at = null; if (over && ph && ph.parentNode) at = [...line.children].filter((c) => c !== b).indexOf(ph);
+      hidePh(); line.classList.remove('drop-on'); el.classList.remove('is-dragging'); b.classList.remove('dragging'); if (ghost) { ghost.remove(); ghost = null; }
+      if (from === 'bank') { if (over) add(+b.dataset.j, at); }
+      else if (over) { sfx('tile'); const kids = [...line.children].filter((c) => c !== b); if (at == null || at >= kids.length) line.appendChild(b); else line.insertBefore(b, kids[at]); sync(); }
+      else remove(b);
+      b.dataset.dragged = '1'; setTimeout(() => { delete b.dataset.dragged; }, 50);
+    };
+    b.addEventListener('click', () => {
+      if (b.dataset.dragged) return;
+      if (from === 'bank') { if (!b.classList.contains('used')) add(+b.dataset.j); } else remove(b);
+    });
+  }
+  bankEl.querySelectorAll('.tile').forEach((b) => wire(b, 'bank'));
   return () => {
-    const said = picked.map((j) => bank[j].t).join(zh ? '' : ' ');
+    const said = picked().map((j) => bank[j].t).join(zh ? '' : ' ');
     return norm(said, api.lang) === norm(target, api.lang);
   };
 }
@@ -637,7 +696,10 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     const firstTime = !custom && !(S.done[unit.id] && S.done[unit.id][k]);
     const xp = custom ? Math.max(3, right) : 10 + (acc >= 0.95 ? 5 : acc >= 0.8 ? 2 : 0) + (firstTime ? 0 : -4);
     const stars = acc >= 0.95 ? 3 : acc >= 0.8 ? 2 : 1;
-    const bonus = maxCombo >= 10 ? 5 : maxCombo >= 5 ? 2 : 0;
+    const bonus0 = maxCombo >= 10 ? 5 : maxCombo >= 5 ? 2 : 0;
+    // v23: Bestie cùng học hôm nay → +10%; Bestie vắng quá 3 ngày → −10% (chỉ bài học trong khoá)
+    const mm = custom ? 1 : bestie.mult(), bdelta = mm === 1 ? 0 : Math.round((xp + bonus0) * mm) - (xp + bonus0);
+    const bonus = bonus0 + bdelta, bnote = bdelta ? bestie.multNote() : '';
     addXP(xp + bonus); bump('lessons');
     if (acc >= 0.999 && right >= 5) S.counts.perfect = (S.counts.perfect || 0) + 1;
     S.counts.combo = Math.max(S.counts.combo || 0, maxCombo);
@@ -649,11 +711,12 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
       <div class="res-art"><svg class="burst" viewBox="0 0 200 150" aria-hidden="true"><g class="rays"><path d="M100 75 L230 66 L230 84Z"/><path d="M100 75 L217 132 L208 148Z"/><path d="M100 75 L173 183 L157 192Z"/><path d="M100 75 L109 205 L91 205Z"/><path d="M100 75 L43 192 L27 183Z"/><path d="M100 75 L-8 148 L-17 132Z"/><path d="M100 75 L-30 84 L-30 66Z"/><path d="M100 75 L-17 18 L-8 2Z"/><path d="M100 75 L27 -33 L43 -42Z"/><path d="M100 75 L91 -55 L109 -55Z"/><path d="M100 75 L157 -42 L173 -33Z"/><path d="M100 75 L208 2 L217 18Z"/></g><circle cx="100" cy="80" r="46" class="halo"/><g class="stars"><path class="s1" d="M30 40l4 9 9 4-9 4-4 9-4-9-9-4 9-4z"/><path class="s2" d="M170 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path class="s3" d="M160 110l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/></g></svg>${mascot({ size: 96, mood: acc >= 0.8 ? 'wow' : 'happy', cls: 'jump', wave: true })}</div>
       ${custom ? '' : `<div class="res-stars" aria-label="${stars} stars">${[1, 2, 3].map((i) => `<span class="st ${i <= stars ? 'on' : ''}" style="--d:${0.35 + i * 0.28}s">${I.star}</span>`).join('')}</div>`}
       <div><h1>${acc >= 0.95 ? 'Perfect!' : acc >= 0.8 ? 'Well done!' : 'Lesson complete!'}</h1><p class="muted" style="margin-top:6px">${custom ? 'Practice' : esc(unit.title) + ' · ' + lessonName(lang, k)}${newStars && !firstTime ? ' · New star record' : ''}</p></div>
-      <div class="stats"><div class="stat xp"><b data-count="${xp + bonus}">0</b><span>XP${bonus ? ' (+' + bonus + ' combo)' : ''}</span></div><div class="stat acc2"><b>${Math.round(acc * 100)}%</b><span>Accuracy</span></div><div class="stat cb"><b>×${maxCombo}</b><span>Best combo</span></div><div class="stat tm"><b>${mins}′</b><span>Time</span></div></div>
+      <div class="stats"><div class="stat xp"><b data-count="${xp + bonus}">0</b><span>XP${bonus0 ? ' (+' + bonus0 + ' combo)' : ''}${bdelta ? ` <i class="bst-x ${bdelta > 0 ? 'up' : 'down'}">${bdelta > 0 ? '+' : ''}${bdelta} Bestie</i>` : ''}</span></div><div class="stat acc2"><b>${Math.round(acc * 100)}%</b><span>Accuracy</span></div><div class="stat cb"><b>×${maxCombo}</b><span>Best combo</span></div><div class="stat tm"><b>${mins}′</b><span>Time</span></div></div>
+      ${bnote ? `<p class="bst-note ${bdelta > 0 ? 'up' : 'down'}">${I.heart} ${esc(bnote)}</p>` : ''}
       ${(k === 0 || k === 1) && !custom ? `<p class="muted">${Math.min(10, unit.words.length - k * 10)} new words added to your review deck.</p>` : ''}
     </div></div>`);
     innerEl.replaceWith(fresh); innerEl = fresh;
-    const c = fresh.querySelector('[data-count]'), tot = xp + bonus; let v = 0; const step = () => { v++; c.textContent = v; if (v < tot) setTimeout(step, 600 / tot); }; setTimeout(step, 300);
+    const c = fresh.querySelector('[data-count]'), tot = xp + bonus; let v = 0; const step = () => { v++; c.textContent = v; if (v < tot) setTimeout(step, 600 / tot); }; if (tot > 0) setTimeout(step, 300);
     if (!custom) [1, 2, 3].forEach((i) => { if (i <= stars) setTimeout(() => sfx('star'), 350 + i * 280); });
     confetti();
     foot.classList.remove('ok', 'bad'); skipb.hidden = true; btn.disabled = false; btn.textContent = 'Continue'; state = 'end';

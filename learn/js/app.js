@@ -1,19 +1,23 @@
-import { I, LOGO } from './icons.js?v=25';
-import { sound, sfx, unlockAudio } from './sound.js?v=25';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=25';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=25';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=25';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=25';
-import * as social from './social.js?v=25';
-import { setVideo, setBg } from './scene.js?v=25';
-import * as walls from './walls.js?v=25';
-import * as hub from './hub.js?v=25';
-import * as duel from './duel.js?v=25';
-import * as chat from './chat.js?v=25';
-import * as guide from './guide.js?v=25';
-import * as acctui from './acctui.js?v=25';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=25';
-import { mascot } from './mascot.js?v=25';
+import { I, LOGO } from './icons.js?v=26';
+import { sound, sfx, unlockAudio } from './sound.js?v=26';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=26';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=26';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=26';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=26';
+import * as social from './social.js?v=26';
+import { setVideo, setBg } from './scene.js?v=26';
+import * as walls from './walls.js?v=26';
+import * as hub from './hub.js?v=26';
+import * as duel from './duel.js?v=26';
+import * as chat from './chat.js?v=26';
+import * as guide from './guide.js?v=26';
+import * as acctui from './acctui.js?v=26';
+import * as gacha from './gacha.js?v=26';
+import * as bestie from './bestie.js?v=26';
+import * as ctxm from './ctx.js?v=26';
+import * as adv from './adv.js?v=26';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=26';
+import { mascot } from './mascot.js?v=26';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -94,8 +98,8 @@ function checkBadges() {
 // menu kiểu Steam: mục chính, rê chuột thì hiện menu con
 const MENU = [
   { label: 'Learn', href: '#/', ic: 'home', match: ['#/', '#/roadmap', '#/review', '#/practice'], items: [['#/', 'Journey map', 'home', 'Your lessons, chests and bosses'], ['#/roadmap', 'Roadmap', 'list', 'Every level and unit at a glance'], ['#/review', 'Review', 'cards', 'Word cards due today'], ['#/practice', 'Practice', 'target', 'Speed rounds, speaking, dictation']] },
-  { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All wallpapers', 'gallery', 'Everything you own and can still win'], ['#/collection/en', 'English chests', 'book', 'Where each wallpaper hides'], ['#/collection/zh', '中文 chests', 'book', 'Where each wallpaper hides'], ['#/collection/ielts', 'IELTS chests', 'book', 'Where each wallpaper hides'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
-  { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel', '#/quiz'], items: [['#/duel', 'Duels', 'swords', 'Same 10 questions, winner takes a wallpaper'], ['#/quiz', 'Live quiz', 'zap', 'Join with a PIN or host by topic']] },
+  { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All wallpapers', 'gallery', 'Everything you own and can still win'], ['#/collection/spin', 'Lucky spin', 'gift', 'Spin your tickets for wallpapers'], ['#/collection/en', 'English chests', 'book', 'Spin tickets in every unit'], ['#/collection/zh', '中文 chests', 'book', 'Spin tickets in every unit'], ['#/collection/ielts', 'IELTS chests', 'book', 'Spin tickets in every unit'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
+  { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel', '#/quiz', '#/adventure'], items: [['#/adventure', 'Bestie Adventure', 'map', 'Fight bosses together with your Bestie'], ['#/duel', 'Duels', 'swords', 'Same 10 questions, first win of the day: a spin ticket'], ['#/quiz', 'Live quiz', 'zap', 'Join with a PIN or host by topic']] },
   { label: 'Classes', href: '#/classes', ic: 'school', match: ['#/classes', '#/class'], items: [['#/classes', 'My classes', 'school', 'Assignments, stream and reports'], ['#/classes', 'Join a class', 'plus', 'Enter the code from your teacher']] },
 ];
 // thanh dưới (điện thoại): Ranking và Friends là 2 tab riêng; trang Me mở bằng ảnh đại diện ở góc phải trên
@@ -153,14 +157,15 @@ function shell(route, inner, aside, opts = {}) {
     <div class="hud-r">
       ${opts.noCourse ? '' : courseTabs()}${opts.noCourse ? '' : `<button class="m-course" type="button" aria-label="Change course"><span class="${S.lang === 'zh' ? 'zh' : ''}">${esc(COURSES[S.lang].short)}</span>${I.chevDown}</button>`}
       <span class="chipx fire ${lit ? 'lit' : ''}" title="Day streak">${I.flame}<b>${st}</b></span>
-      <span class="chipx gem" title="Total XP">${I.gem}<b class="xp-n">${S.xp}</b></span>
+      <span class="chipx gem" title="Total XP">${I.gem}<b class="xp-n">${S.xp}</b></span>${gacha.chipHTML()}
       ${vipChip()}
       ${acct ? `<button class="icon-btn chat-btn" type="button" title="Messages" aria-label="Messages">${I.chat}${hub.hub.msgs ? `<i class="badge">${hub.hub.msgs > 99 ? '99+' : hub.hub.msgs}</i>` : ''}</button>` : ''}${hub.bellHTML()}${acct ? `<button class="icon-btn rail-btn" type="button" title="Friends" aria-label="Friends">${I.users}${reqN ? `<i class="badge">${reqN}</i>` : ''}</button>` : ''}
       <div class="mi me-mi"><a class="hud-me" href="#/me" title="Profile and settings">${meAv(40)}${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
         <div class="dd right" role="menu"><div class="dd-in panel solid">
           <div class="dd-me">${acct ? `<b>${esc(acct.name)}</b><small>Level ${playerLevel().lv} · VIP ${walls.myVip()}</small>` : '<b>Guest</b><small>Progress is saved on this device</small>'}</div>
           <a href="#/me" role="menuitem">${I.gear}<span><b>Profile & settings</b><small>Avatar, theme, background, voice</small></span></a>
-          <a href="#/friends" role="menuitem">${I.users}<span><b>Friends</b><small>Requests, codes and leaderboard</small></span>${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
+          <a href="#/friends" role="menuitem">${I.users}<span><b>Friends</b><small>Requests, codes, groups and leaderboard</small></span>${reqN ? `<i class="badge">${reqN}</i>` : ''}</a>
+          ${acct ? `<a href="#/bestie" role="menuitem">${I.heart}<span><b>Bestie</b><small>${bestie.has() ? `${esc(bestie.B.brief.name)} · effects, sharing, slogan` : 'Learn together with one friend'}</small></span>${bestie.B.inc ? `<i class="badge">${bestie.B.inc}</i>` : ''}</a>` : ''}
           ${acct ? `<button type="button" class="dd-out" role="menuitem">${I.logout}<span><b>Sign out</b><small>Your progress stays on this device</small></span></button>` : `<button type="button" class="dd-in-btn" role="menuitem">${I.cloud}<span><b>Sign in or create account</b><small>Save progress to the cloud</small></span></button>`}
         </div></div></div>
     </div>
@@ -168,7 +173,7 @@ function shell(route, inner, aside, opts = {}) {
   </div></header>
   <button class="hud-show" type="button" title="Show the menu" aria-label="Show the menu">${I.chevDown}<span>Menu</span></button>
   <div class="layout ${lay}">
-    ${left ? `<aside class="lcol" aria-label="Levels">${left}</aside>` : ''}
+    ${left ? `<aside class="lcol" aria-label="Levels"><div class="col-h"><b>Levels</b><button class="icon-btn sm lcol-x" type="button" title="Hide this panel" aria-label="Hide this panel">${I.chev}</button></div>${left}</aside>` : ''}
     <main class="main" id="main">${inner}</main>
     ${aside ? `<button class="m-today" type="button" aria-label="Daily quests and collection">${I.target}<span>Today</span>${quests().every((q) => q.v >= q.n) && S.dchest !== today() ? '<i class="badge">!</i>' : ''}</button><div class="m-scrim"></div>` : ''}
     ${aside ? `<aside class="side" aria-label="Today"><div class="col-h"><b>Today</b><button class="icon-btn sm side-x" type="button" title="Hide this panel" aria-label="Hide this panel">${I.chev}</button></div>${aside}</aside>` : ''}
@@ -183,6 +188,8 @@ function shell(route, inner, aside, opts = {}) {
   const out = app.querySelector('.dd-out'); if (out) out.addEventListener('click', () => { if (confirm('Sign out? Your progress stays on this device.')) { logout(); hub.start(); render(); } });
   const sin = app.querySelector('.dd-in-btn'); if (sin) sin.addEventListener('click', () => authSheet('login'));
   const sx = app.querySelector('.side-x'); if (sx) sx.addEventListener('click', () => hub.toggleSide(false));
+  const lx = app.querySelector('.lcol-x'); if (lx) lx.addEventListener('click', () => hub.toggleLcol(false));
+  gacha.wireChips(app);
   hub.wireBell(app);
   const rb = app.querySelector('.rail-btn'); if (rb) rb.addEventListener('click', () => hub.toggleRail());
   const cb = app.querySelector('.chat-btn'); if (cb) cb.addEventListener('click', () => { sfx('tap'); chat.openChats(); });
@@ -245,6 +252,7 @@ function asideHTML(c) {
     ${lvRing(64)}
     <div><small>Player level</small><b>Level ${p.lv}</b><span class="bar"><i style="width:${Math.round(p.cur / p.need * 100)}%"></i></span><em>${p.cur} / ${p.need} XP · today ${todayXP()} XP</em></div>
   </section>
+  ${bestieMini()}
   ${walls.miniHTML()}
   <section class="panel quests">
     <h3>${I.target} Daily quests</h3>
@@ -259,6 +267,14 @@ function asideHTML(c) {
     <div class="ph-act"><button class="chip ph-say" type="button">${I.speaker} Listen</button><button class="chip ph-try" type="button">${I.mic} Say it</button></div>
   </section>` : ''}
 `;
+}
+// v23: thẻ Bestie nhỏ ở cột Today
+function bestieMini() {
+  if (!acct) return '';
+  const b = bestie.B.brief;
+  if (!b) return `<a class="panel bmini none" href="#/bestie">${I.heart}<span class="bm-t"><b>Pick a Bestie</b><small>+10% XP when you both study, shared wallpapers, Adventure</small></span>${I.chev}</a>`;
+  const m = +b.mult;
+  return `<a class="panel bmini ${m > 1 ? 'up' : m < 1 ? 'down' : ''}" href="#/bestie">${vipAv(b.name, b.avatar, b.vip || 0)}<span class="bm-t"><b>${I.heart} ${esc(b.name)}</b><small>${m > 1 ? '+10% XP on lessons today' : m < 1 ? `Away ${b.offline_days} days · lessons −10% XP` : 'Study today together for +10% XP'}</small></span>${I.chev}</a>`;
 }
 function micHelpSheet() {
   sheet(`<h2>Turn on the microphone</h2><p class="sub">Chrome is blocking the microphone for desktopchill.com, so speaking exercises can't hear you.</p>${MIC_HELP}<button class="btn acc wide mic-recheck" type="button" style="margin-top:14px">${I.redo} Check again</button><p class="muted mic-res" style="margin-top:8px;font-size:.88rem"></p>`, (el) => {
@@ -285,6 +301,7 @@ function wireAside() {
   const say = app.querySelector('.ph-say'); if (say && phraseRef) say.addEventListener('click', () => speak(textOf(S.lang, phraseRef.l), S.lang, { btn: say }));
   const tr = app.querySelector('.ph-try'); if (tr && phraseRef) tr.addEventListener('click', () => { unlockAudio(); runQueue(phraseRef.u, [{ type: 'speak', s: phraseRef.l }], S.lang); });
   const dc = app.querySelector('.dchest.ready'); if (dc) dc.addEventListener('click', () => openDailyChest(dc));
+  const cs = app.querySelector('.cm-spin'); if (cs) cs.addEventListener('click', () => { sfx('tap'); gacha.spin(); });
 }
 function openDailyChest(btn) {
   const reward = 15 + Math.floor(Math.random() * 11);
@@ -389,8 +406,8 @@ function bossHTML(c, L) {
   return `<div class="boss panel ${beat ? 'beat' : all ? 'ready' : ''}">
     <span class="boss-ic">${beat ? I.crown : I.shield}</span>
     <div><small>End of ${esc(L.name)}</small><h3>${beat ? `${esc(L.name)} boss defeated` : `${esc(L.name)} boss challenge`}</h3>
-    <p class="muted">${beat ? `You passed the final test of this level. Best: ${S.bossStars[S.lang + '|' + L.id] || 1}★.` : `20 mixed questions from every unit. Score 80% or more to win the crown${all ? '' : '. Opens when every unit in this level is done'}.`} Boss chest: 80% / 88% / 95% for 1 / 2 / 3 wallpapers.</p>
-    ${walls.CAT ? `<div class="boss-walls">${walls.slotView(`boss|${S.lang}|${L.id}`, beat).map((x, i) => walls.card(x.w, { state: x.have ? 'got' : x.state, cls: 'mini', hideName: x.state === 'locked', lockText: ['80%', '88%', '95%'][i] })).join('')}</div>` : ''}</div>
+    <p class="muted">${beat ? `You passed the final test of this level. Best: ${S.bossStars[S.lang + '|' + L.id] || 1}★.` : `20 mixed questions from every unit. Score 80% or more to win the crown${all ? '' : '. Opens when every unit in this level is done'}.`} Boss chest: 80% / 88% / 95% for 1 / 2 / 3 spin tickets.</p>
+    <div class="boss-tks">${walls.ticketView(`boss|${S.lang}|${L.id}`, beat).map((t, i) => walls.ticketCard(t, ['80%', '88%', '95%'][i])).join('')}</div></div>
     <div class="boss-act"><button class="btn ${all && !beat ? 'gold' : 'ghost'} boss-go" type="button" ${all || beat ? '' : 'disabled'}>${beat ? 'Try again' : all ? 'Fight' : `${I.lock} Finish every unit first`}</button>
     ${nx ? `<button class="btn ${beat ? 'acc' : 'ghost'} next-lv" type="button" data-lv="${nx.id}">${beat ? 'Go to ' : 'Preview '}${esc(nx.name)}</button>` : ''}</div>
   </div>`;
@@ -448,6 +465,7 @@ function openUnitChest(c, uid, btn) {
   btn.classList.add('popping'); sfx('tap');
   const r = btn.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 24);
   const res = walls.claim(uid, walls.chestStars(uid)), i = L.units.indexOf(u);
+  if (res.server) res.server.then((j) => { if (j && j.ok) gacha.setLeft(j.left); });
   setTimeout(() => walls.reveal({ slot: uid, res, title: u.title, kicker: `${L.name} · Unit ${i + 1} chest`, xp: reward, xpNote: reward ? `20 for the unit + ${unitStars(uid)} for your stars` : '', onClose: () => { checkLevel(lv0); checkBadges(); walls.checkVip(); home(); } }), 380);
 }
 // kiểm tra vượt chủ đề: 12 câu khó hơn, đạt 85% thì xong cả 8 bài với 2 sao (rương 2 sao = 1 hình nền; 3 sao vẫn phải học thật)
@@ -476,7 +494,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=25').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=26').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -489,13 +507,10 @@ function runTestOut(c, L, u) {
     checkLevel(before); checkBadges(); render();
   } }));
 }
-// số hình nền còn chờ trong một level (rương chủ đề + rương trùm), không tính hình đã có
+// số vé quay còn chờ trong một level (rương chủ đề + rương trùm)
 function wallsLeft(L, lang = S.lang) {
   if (!walls.CAT) return 0;
-  const ids = new Set();
-  L.units.forEach((u) => walls.slotView(u.id, false).forEach((x) => { if (x.state !== 'got' && !x.have) ids.add(x.w); }));
-  walls.slotView(`boss|${lang}|${L.id}`, false).forEach((x) => { if (x.state !== 'got' && !x.have) ids.add(x.w); });
-  return ids.size;
+  return L.units.reduce((a, u) => a + walls.ticketsLeftIn(u.id, false), 0) + walls.ticketsLeftIn(`boss|${lang}|${L.id}`, false);
 }
 const lvRange = (ls) => ls.length === 1 ? ls[0].name : ls.length === 2 ? `${ls[0].name} and ${ls[1].name}` : `${ls[0].name} to ${ls[ls.length - 1].name}`;
 function basicsNudge(c, L) {
@@ -505,8 +520,8 @@ function basicsNudge(c, L) {
   if (hid && Date.now() - +hid < 3 * 864e5) return '';
   const nW = lower.reduce((a, x) => a + wallsLeft(x), 0), nU = lower.reduce((a, x) => a + x.units.filter((u) => unitProgress(u.id) < LN).length, 0);
   return `<section class="nudge panel" data-lv="${lower[0].id}">
-    <div class="ng-cards" aria-hidden="true">${walls.CAT ? walls.slotWalls(lower[0].units[0].id).slice(0, 2).concat(walls.slotWalls(lower[0].units[1] ? lower[0].units[1].id : lower[0].units[0].id).slice(0, 1)).map((w) => walls.card(w, { state: walls.owned(w) ? 'got' : 'locked', cls: 'mini', hideName: true })).join('') : ''}</div>
-    <div class="ng-t"><b>${esc(lvRange(lower))} still ${nW ? `hold${lower.length === 1 ? 's' : ''} ${nW} wallpaper${nW === 1 ? '' : 's'}` : `ha${lower.length === 1 ? 's' : 've'} ${nU} unit${nU === 1 ? '' : 's'} to finish`}</b>
+    <div class="ng-cards tks" aria-hidden="true">${[0, 1, 2].map(() => walls.ticketCard({ state: 'locked', need: 2 }, '?')).join('')}</div>
+    <div class="ng-t"><b>${esc(lvRange(lower))} still ${nW ? `hold${lower.length === 1 ? 's' : ''} ${nW} spin ticket${nW === 1 ? '' : 's'}` : `ha${lower.length === 1 ? 's' : 've'} ${nU} unit${nU === 1 ? '' : 's'} to finish`}</b>
       <p>Skipped the basics? Go back and finish those units: every finished unit opens a chest and adds VIP points.</p>
       <div class="ng-acts"><button class="btn sm acc ng-go" type="button">${I.bolt} Review ${esc(lower[0].name)}</button><button class="btn sm ghost ng-x" type="button">Not now</button></div></div>
   </section>`;
@@ -521,15 +536,16 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=25').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=26').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
       if (st > (S.bossStars[key] || 0)) S.bossStars[key] = st;
       save(true);
       const res = walls.claim(`boss|${S.lang}|${L.id}`, st);
-      if (first || res.fresh.length || res.dup.length) { sfx('levelup'); walls.reveal({ slot: `boss|${S.lang}|${L.id}`, res, title: first ? `${L.name} boss defeated!` : `${L.name} boss: ${Math.round(r.acc * 100)}%`, kicker: `You scored ${Math.round(r.acc * 100)}%`, xp: first ? 50 : 0, onClose: () => { checkLevel(before); checkBadges(); walls.checkVip(); render(); } }); return; }
-      toast(`You scored ${Math.round(r.acc * 100)}%. ${st < 3 ? `Score ${st < 2 ? '88' : '95'}% for the next boss wallpaper.` : 'Boss chest already empty.'}`);
+      if (res.server) res.server.then((j) => { if (j && j.ok) gacha.setLeft(j.left); });
+      if (first || res.tickets) { sfx('levelup'); walls.reveal({ slot: `boss|${S.lang}|${L.id}`, res, title: first ? `${L.name} boss defeated!` : `${L.name} boss: ${Math.round(r.acc * 100)}%`, kicker: `You scored ${Math.round(r.acc * 100)}%`, xp: first ? 50 : 0, onClose: () => { checkLevel(before); checkBadges(); walls.checkVip(); render(); } }); return; }
+      toast(`You scored ${Math.round(r.acc * 100)}%. ${st < 3 ? `Score ${st < 2 ? '88' : '95'}% for the next boss ticket.` : 'Boss chest already empty.'}`);
     }
     if (r && r.done && r.acc < 0.8) toast(`You scored ${Math.round(r.acc * 100)}%. You need 80% to win. Review and try again.`);
     checkLevel(before); checkBadges(); render();
@@ -556,11 +572,11 @@ function moodLine() {
 const NEW_LV = new Set(['en|b1p', 'en|b2p', 'zh|hsk1', 'zh|hsk2', 'zh|hsk3', 'ielts|b5', 'ielts|b6', 'ielts|b7', 'ielts|b8']);
 function levelList(c, L) {
   const lang = S.lang, all = c.levels.reduce((a, x) => a + x.units.length, 0), doneU = c.levels.reduce((a, x) => a + x.units.filter((u) => unitProgress(u.id) === LN).length, 0);
-  return `<div class="lc-label">LEVELS</div>
+  return `
   <div class="lv-list" role="tablist" aria-label="Choose a level">${c.levels.map((x) => {
     const t = x.units.length * LN, d = x.units.reduce((a, u) => a + unitProgress(u.id), 0), st = x.units.reduce((a, u) => a + unitStars(u.id), 0), pc = Math.round(d / t * 100), beat = S.boss[lang + '|' + x.id];
     const isNew = NEW_LV.has(lang + '|' + x.id) && !d, wl = wallsLeft(x, lang);
-    return `<button role="tab" data-lv="${x.id}" aria-selected="${x.id === L.id}" style="--pc:${pc}"><span class="lv-ring"><b>${pc}%</b></span><span class="lv-t"><b>${esc(x.name)}${isNew ? '<em class="lv-new">NEW</em>' : ''}</b><small>${esc(x.short || '')} · ${I.star}${st}${beat ? ' ' + I.crown : ''}</small>${wl ? `<small class="lv-wl" title="Wallpapers still waiting in this level">${I.gift}${wl} wallpaper${wl === 1 ? '' : 's'} left</small>` : ''}</span></button>`;
+    return `<button role="tab" data-lv="${x.id}" aria-selected="${x.id === L.id}" style="--pc:${pc}"><span class="lv-ring"><b>${pc}%</b></span><span class="lv-t"><b>${esc(x.name)}${isNew ? '<em class="lv-new">NEW</em>' : ''}</b><small>${esc(x.short || '')} · ${I.star}${st}${beat ? ' ' + I.crown : ''}</small>${wl ? `<small class="lv-wl" title="Spin tickets still waiting in this level">${I.gift}${wl} ticket${wl === 1 ? '' : 's'} left</small>` : ''}</span></button>`;
   }).join('')}</div>
   <div class="panel pad lc-extra" style="display:grid;gap:6px"><small class="muted">${esc(COURSES[lang].name)} · ${esc(COURSES[lang].tag)}</small><b style="font-size:1.05rem">${doneU} / ${all} units</b><span class="bar"><i style="width:${Math.round(doneU / all * 100)}%"></i></span><a class="more" href="#/roadmap" style="margin-top:4px">Open the roadmap</a></div>`;
 }
@@ -598,7 +614,6 @@ async function home() {
     }));
     pEl.querySelectorAll('.guide').forEach((b) => b.addEventListener('click', () => { sfx('open'); guidebook(c, b.dataset.u); }));
     pEl.querySelectorAll('.tout').forEach((b) => b.addEventListener('click', () => { sfx('open'); testOut(c, b.dataset.u); }));
-    pEl.querySelectorAll('.boss-walls').forEach((b) => walls.wireCards(b, (id) => { sfx('open'); walls.wallSheet(id); }));
     pEl.querySelectorAll('.boss-go').forEach((b) => b.addEventListener('click', () => { sfx('tap'); bossFight(c, L); }));
     pEl.querySelectorAll('.next-lv').forEach((b) => b.addEventListener('click', () => { sfx('tap'); S.level[S.lang] = b.dataset.lv; save(); home(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
     justBuilt = null;
@@ -617,7 +632,6 @@ async function home() {
   const go = app.querySelector('.mission .go'); if (go) go.addEventListener('click', () => start(c, cur.u.id, cur.k));
   const ng = app.querySelector('.nudge');
   if (ng) {
-    walls.wireCards(ng.querySelector('.ng-cards'), (id) => { sfx('open'); walls.wallSheet(id); });
     ng.querySelector('.ng-go').addEventListener('click', () => { sfx('tap'); S.level[S.lang] = ng.dataset.lv; save(); try { sessionStorage.removeItem('dcl_scrolled'); } catch (e) {} home(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
     ng.querySelector('.ng-x').addEventListener('click', () => { try { localStorage.setItem('dcl_nudge_' + S.lang, String(Date.now())); } catch (e) {} ng.remove(); });
   }
@@ -800,7 +814,7 @@ async function me() {
   const days = [...Array(28)].map((_, i) => { const d = new Date(Date.now() - (27 - i) * 86400000); const k = today(d); return { k, v: S.days[k] || 0 }; });
   const vidOn = (() => { try { return localStorage.getItem('dcl_video') !== 'off'; } catch (e) { return true; } })(), dim = document.documentElement.dataset.dim || '0';
   shell('#/me', `<div class="page-h"><div class="me-head">${acct ? `<button class="av-pick" type="button" title="Change avatar">${meAv(64)}<span class="av-edit">${I.edit}</span></button>` : lvRing(64)}<div><h1>${acct ? esc(acct.name) : 'My profile'}</h1><p class="sync">Level ${p.lv} · ${syncText()}</p></div></div>
-    <div class="acts"><a class="btn sm ghost" href="#/friends">${I.users} Friends${social.counts.requests ? ` <i class="tag-s acc">${social.counts.requests}</i>` : ''}</a><a class="btn sm ghost" href="#/classes">${I.school} Classes</a><a class="btn sm ghost" href="#/roadmap">${I.list} Roadmap</a><a class="btn sm ghost" href="#/review">${I.cards} Review</a></div></div>
+    <div class="acts">${acct ? `<a class="btn sm ghost" href="#/bestie">${I.heart} Bestie</a>` : ''}<a class="btn sm ghost" href="#/friends">${I.users} Friends${social.counts.requests ? ` <i class="tag-s acc">${social.counts.requests}</i>` : ''}</a><a class="btn sm ghost" href="#/classes">${I.school} Classes</a><a class="btn sm ghost" href="#/roadmap">${I.list} Roadmap</a><a class="btn sm ghost" href="#/review">${I.cards} Review</a></div></div>
   <div class="me-grid"><div class="list">
     <div class="panel me-stats">
       <div><b>${streakNow()}</b><small>day streak</small></div>
@@ -900,10 +914,11 @@ function meCollection() {
     <div class="foot-row" style="margin-top:12px"><a class="btn ghost" href="#/collection">${I.gallery} Open collection</a><button class="btn ghost" type="button" onclick="location.hash='#/collection/badges'">${I.medal} Achievements</button></div></div>`;
 }
 function bgSheet() {
-  const mine = Object.keys(S.walls).map(Number);
-  sheet(`<h2>Page background</h2><p class="sub">Play any wallpaper you collected behind the lessons. ${mine.length ? '' : 'Open a unit chest to get your first one.'}</p>
-    <div class="wgrid sm bgs">${mine.map((w) => walls.card(w, { cls: walls.isBg(w) ? 'picked' : '' })).join('')}</div>`, (el, close) => {
-    walls.wireCards(el.querySelector('.bgs'), (id) => { walls.setBg(id); sfx('ok'); close(); toast('Background changed'); if (location.hash.startsWith('#/me')) me(); });
+  const mine = Object.keys(S.walls).map(Number), shared = [...walls.bestieWalls].filter((w) => !S.walls[w]);
+  sheet(`<h2>Page background</h2><p class="sub">Play any wallpaper you collected behind the lessons. ${mine.length ? '' : 'Spin a ticket to get your first one.'}</p>
+    <div class="wgrid sm bgs">${mine.map((w) => walls.card(w, { cls: walls.isBg(w) ? 'picked' : '' })).join('')}</div>
+    ${shared.length ? `<h3 class="gh">${I.heart} Shared by your Bestie <em>${shared.length}</em></h3><div class="wgrid sm bgs">${shared.map((w) => walls.card(w, { state: 'got', cls: walls.isBg(w) ? 'picked' : '', tag: 'Bestie' })).join('')}</div>` : ''}`, (el, close) => {
+    el.querySelectorAll('.bgs').forEach((g) => walls.wireCards(g, (id) => { walls.setBg(id); sfx('ok'); close(); toast('Background changed'); if (location.hash.startsWith('#/me')) me(); }));
   }, 'wide');
 }
 function micTest() {
@@ -1014,7 +1029,7 @@ async function welcome() {
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=25').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=26').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */
@@ -1037,6 +1052,8 @@ async function render() {
     else if (r.startsWith('#/friends')) await social.friendsPage(r.split('/').slice(2));
     else if (r.startsWith('#/collection')) await walls.collectionPage(r.split('/').slice(2));
     else if (r.startsWith('#/duel')) await duel.duelPage(r.split('/').slice(2));
+    else if (r.startsWith('#/adventure')) await adv.page(r.split('/').slice(2));
+    else if (r.startsWith('#/bestie')) { await social.friendsPage(['bestie']); }
     else if (r.startsWith('#/review')) await review();
     else if (r.startsWith('#/practice')) await practice();
     else if (r.startsWith('#/me')) await me();
@@ -1061,8 +1078,11 @@ async function goTo(lang, lv, uid) {
   scrollToUnit = uid || null; try { sessionStorage.setItem('dcl_scrolled', (lv || '') + lang); } catch (e) {}
   if (location.hash === '#/' || location.hash === '') render(); else location.hash = '#/';
 }
-const ctx = { shell, render, authSheet, course, findUnit, curLevel, startLesson: (c, uid, k) => start(c, uid, k), COURSES, AVAIL, LN, lessonName, asideHTML, lvRing, goTo, badgesHTML, applyBg: setBg };
-social.init(ctx); walls.init(ctx); hub.init(ctx); duel.init(ctx);
+const ctx = { shell, render, authSheet, course, findUnit, curLevel, startLesson: (c, uid, k) => start(c, uid, k), COURSES, AVAIL, LN, lessonName, asideHTML, lvRing, goTo, badgesHTML, applyBg: setBg,
+  spin: (o) => gacha.spin(o), setTickets: (n) => gacha.setLeft(n), tickets: () => gacha.G.left, tick: (q) => hub.tick(q), openDM: (f) => chat.openDM(f),
+  friends: () => ((hub.hub.friends && hub.hub.friends.items) || []), loadFriends: () => hub.loadFriends(), autoJoin: (g) => social.autoJoin(g), advInvite: (a) => adv.invite(a),
+  startTour: (k, force) => guide.startTour(k, force), showRank: (b) => hub.showRank(b), gachaPanel: () => gacha.panelHTML(), wireGacha: (r) => gacha.wirePanel(r), gachaLoad: () => gacha.load(true) };
+social.init(ctx); walls.init(ctx); hub.init(ctx); duel.init(ctx); gacha.init(ctx); bestie.init(ctx); ctxm.init(ctx); adv.init(ctx); guide.init(ctx);
 const boot = walls.loadCat().catch(() => {});
 window.addEventListener('hashchange', render);
 onSync(() => { const el = document.querySelector('.sync'); if (el) el.textContent = `Level ${playerLevel().lv} · ${syncText()}`; });

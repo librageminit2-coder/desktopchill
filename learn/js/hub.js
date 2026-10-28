@@ -1,19 +1,22 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=25';
-import { S, save } from './store.js?v=25';
-import * as chat from './chat.js?v=25';
-import * as acctui from './acctui.js?v=25';
-import { acct, call } from './account.js?v=25';
-import { sfx } from './sound.js?v=25';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=25';
-import * as walls from './walls.js?v=25';
+import { I, LOGO } from './icons.js?v=26';
+import { S, save, applyRevoke } from './store.js?v=26';
+import * as chat from './chat.js?v=26';
+import * as acctui from './acctui.js?v=26';
+import { acct, call } from './account.js?v=26';
+import { sfx } from './sound.js?v=26';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=26';
+import * as walls from './walls.js?v=26';
+import * as bestie from './bestie.js?v=26';
+import * as gacha from './gacha.js?v=26';
+import * as ctx from './ctx.js?v=26';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
 const pref = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v === '1'; } catch (e) { return d; } };
 const setPref = (k, v) => { try { localStorage.setItem(k, v ? '1' : '0'); } catch (e) {} };
-export const ui = { rail: pref('dcl_rail', true), hud: pref('dcl_hud', true), side: pref('dcl_side', true) };
+export const ui = { rail: pref('dcl_rail', true), hud: pref('dcl_hud', true), side: pref('dcl_side', true), lcol: pref('dcl_lcol', true) };
 
 export function init(ctx) {
   C = ctx;
@@ -21,13 +24,36 @@ export function init(ctx) {
   document.addEventListener('visibilitychange', () => { if (!document.hidden && acct && Date.now() - lastPoll > 30000) poll(); });
   window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(applyChrome, 150); });
 }
-let rz = 0, lastPoll = 0, ticking = 0;
+let rz = 0, lastPoll = 0, ticking = 0, pinging = 0;
+/* ---------- v23: thu hồi do máy chủ quyết định (áp lên tiến trình trên máy, báo 1 lần) ---------- */
+function revokeCheck(rv) {
+  if (!rv || !rv.id || ((S.fix && S.fix.rv) || 0) >= rv.id) return;
+  if (!applyRevoke(rv)) return;
+  if (C && C.render && (location.hash || '#/') === '#/' && !document.querySelector('.player, .ovl')) C.render();
+  setTimeout(() => sheet(`<h2>Your progress was adjusted</h2><p class="sub">${rv.stars} English stars earned with the old Test out shortcut were removed, together with the matching VIP points (VIP ${rv.vip_before} → ${rv.vip_after}). Your XP and your wallpapers stay exactly as they were. Take the lessons again to win the stars back.</p><button class="btn acc wide rvk-ok" type="button">OK</button>`, (el, close) => el.querySelector('.rvk-ok').addEventListener('click', close)), 1500);
+}
+/* ---------- v23: lời mời quiz nhóm (tự vào phòng chờ) và Vượt ải Bestie ---------- */
+const seenInv = new Set();
+function pendingInvites(j) {
+  const busy = () => !!document.querySelector('.player, .du-stage, .qz-stage, .adv-stage, .tour, .gate') || document.body.classList.contains('quizzing');
+  if (j.gquiz && j.gquiz.pin && !seenInv.has('g' + j.gquiz.nid)) {
+    seenInv.add('g' + j.gquiz.nid);
+    if (busy()) toast(`${j.gquiz.host || 'A friend'} started a group quiz in ${j.gquiz.gname || 'your group'} · PIN ${j.gquiz.pin}`);
+    else if (C.autoJoin) C.autoJoin(j.gquiz);
+  }
+  if (j.adv && j.adv.id && !seenInv.has('a' + j.adv.id) && C.advInvite) { seenInv.add('a' + j.adv.id); C.advInvite(j.adv); }
+}
 // bắt đầu hỏi máy chủ (gọi lại sau khi đăng nhập)
 export function start() {
   applyChrome();
   if (!acct) { hub.friends = null; hub.items = []; hub.unread = 0; const r = document.querySelector('.rail'); if (r) r.innerHTML = railInner(); return; }
   poll(true);
   if (!ticking) ticking = setInterval(() => { if (!document.hidden && acct) poll(); }, 45000);
+  // hỏi nhanh 12 giây/lần khi có nhóm hoặc Bestie: quiz nhóm và lời mời Vượt ải tới gần như ngay
+  if (!pinging) pinging = setInterval(async () => {
+    if (document.hidden || !acct || !hub.me || !((hub.me.groups || 0) > 0 || bestie.has())) return;
+    try { const j = await call('learn_ping'); if (j && j.ok) pendingInvites(j); } catch (e) {}
+  }, 12000);
 }
 
 /* ---------- ẩn / hiện menu trên và danh sách bạn ---------- */
@@ -38,6 +64,7 @@ export function applyChrome() {
   b.classList.toggle('has-acct', !!acct);
   b.classList.toggle('rail-on', !!acct && ui.rail && wide());
   b.classList.toggle('side-off', !ui.side);
+  b.classList.toggle('lcol-off', !ui.lcol);
   paintTabs();
 }
 // thẻ dọc ở mép phải để mở lại cột Today / danh sách bạn
@@ -46,8 +73,11 @@ function paintTabs() {
   const on = ranked().filter((x) => !x.me && online(x.last_seen)).length;
   mk('rail-tab', `${I.trophy}<span>Ranking · Friends${on ? ` · ${on}` : ''}</span>`, () => toggleRail(true));
   mk('side-tab', `${I.target}<span>Today</span>`, () => toggleSide(true));
+  mk('lv-tab', `${I.list}<span>Levels</span>`, () => toggleLcol(true));
   document.body.classList.toggle('has-side', !!document.querySelector('.layout > .side'));
+  document.body.classList.toggle('has-lcol', !!document.querySelector('.layout > .lcol'));
 }
+export function toggleLcol(v = !ui.lcol) { ui.lcol = v; setPref('dcl_lcol', v); applyChrome(); sfx('tap'); }
 export function toggleSide(v = !ui.side) { ui.side = v; setPref('dcl_side', v); applyChrome(); sfx('tap'); }
 export function toggleHud(v = !ui.hud) { ui.hud = v; setPref('dcl_hud', v); applyChrome(); sfx('tap'); }
 export function toggleRail(v) {
@@ -63,7 +93,12 @@ export async function poll(first = false) {
     const before = hub.unread;
     hub.unread = j.unread || 0; hub.requests = j.requests || 0; hub.duels = j.duels || 0; hub.msgs = j.msgs || 0; hub.me = j;
     if (j.avatar !== undefined && acct) acct.avatar = j.avatar;
-    Object.assign(walls.vipState, { vip: j.vip || 0, pts: j.vip_pts || 0, bonus: j.bonus || 0, server: true });
+    Object.assign(walls.vipState, { vip: j.vip || 0, pts: j.vip_pts || 0, bonus: j.bonus || 0, penalty: j.penalty || 0, server: true });
+    if (typeof j.tickets === 'number') gacha.setLeft(j.tickets);
+    const hadB = bestie.has(); bestie.fromMe(j);
+    if (bestie.has() && (first || !hadB)) bestie.load(true).then(() => bestie.maybeMissYou());
+    revokeCheck(j.revoke);
+    pendingInvites(j);
     paintBadges();
     if (first || hub.unread > before) await loadNotifs(!first);
     if (first || !hub.friends || Date.now() - hub.fAt > 120000) loadFriends();
@@ -81,8 +116,11 @@ export async function tick(quiet = false) {
     const gs = j.grants || [], xp = gs.reduce((a, g) => a + (g.xp || 0), 0);
     if (xp > 0) {
       S.xp += xp; save(true); document.querySelectorAll('.xp-n').forEach((x) => { x.textContent = S.xp; });
-      const other = gs.filter((g) => !String(g.source || '').startsWith('duel:')).reduce((a, g) => a + (g.xp || 0), 0);
+      const other = gs.filter((g) => /^rank|^duel-week/.test(String(g.source || ''))).reduce((a, g) => a + (g.xp || 0), 0);
+      const duelX = gs.filter((g) => g.source === 'duel-xp').reduce((a, g) => a + (g.xp || 0), 0), advX = gs.filter((g) => g.source === 'adv').reduce((a, g) => a + (g.xp || 0), 0);
       if (!quiet && other > 0) { toast(`+${other} XP from ranking rewards`); sfx('levelup'); }
+      else if (!quiet && advX > 0) toast(`+${advX} XP from Bestie Adventure`);
+      else if (!quiet && duelX > 0) toast(`+${duelX} XP from duels`);
     }
     return xp;
   } catch (e) { return 0; }
@@ -108,7 +146,9 @@ async function loadNotifs(fresh) {
     toast(text(nw[0]).t);
     // nhận được hình nền (quà, thắng quiz) → đồng bộ bộ sưu tập ngay
     if (nw.some((x) => x.kind === 'gift' || x.kind === 'rank_reward' || (x.kind === 'duel_done' && x.payload && x.payload.wall) || (x.kind === 'quiz_win' && x.payload && x.payload.wall))) { walls.syncWalls(); tick(); }
-    nw.filter((x) => x.kind === 'duel_done' && x.payload && x.payload.won && (x.payload.wall || x.payload.xp)).forEach((x) => duelReward({ id: x.payload.duel, wall: x.payload.wall, xp: x.payload.xp, opp: x.name, forfeit: x.payload.forfeit }));
+    if (nw.some((x) => x.kind === 'rank_ticket' || (x.payload && x.payload.ticket))) gacha.load(true);
+    if (nw.some((x) => /^bestie/.test(x.kind))) { bestie.load(true).then(() => renderRail()); }
+    nw.filter((x) => x.kind === 'duel_done' && x.payload && x.payload.won && (x.payload.wall || x.payload.ticket)).forEach((x) => duelReward({ id: x.payload.duel, wall: x.payload.wall, ticket: !!x.payload.ticket, xp: x.payload.xp, opp: x.name, forfeit: x.payload.forfeit }));
     if (nw.some((x) => x.kind === 'duel')) duelWait(false, true);
     const panel = document.querySelector('.np'); if (panel) drawPanel(panel);
   } catch (e) {}
@@ -130,6 +170,7 @@ async function runRewards() {
   if (busyScreen()) { rwT = setTimeout(() => { rwT = 0; runRewards(); }, 3000); return; }
   const r = rwQueue.shift(); rwMark(r.id);
   if (r.wall) { try { await walls.syncWalls(); } catch (e) {} await walls.loadCat(); }
+  if (r.ticket) { gacha.load(true); walls.prizePop({ ticket: true, kicker: 'Duel prize', title: 'Lucky spin ticket', sub: `Your first duel win today${r.forfeit ? ` (${r.opp || 'they'} ran out of time)` : ''}. Spin it in Collection › Lucky spin.`, onDone: () => { tick(true); setTimeout(runRewards, 400); } }); return; }
   walls.prizePop({ wall: +r.wall || 0, xp: +r.xp || 0, kicker: 'Duel prize',
     sub: r.wall ? `Copied at random from ${r.opp || 'your opponent'}’s collection${r.forfeit ? ' (they ran out of time)' : ''}. They keep it too.` : `${r.opp || 'Your opponent'} had no wallpaper you are missing, so you get XP instead.`,
     onDone: () => { if (r.xp) tick(true); if (location.hash.startsWith('#/collection') && r.wall) walls.syncWalls(); setTimeout(runRewards, 400); } });
@@ -137,8 +178,8 @@ async function runRewards() {
 // lần đầu mở trang: quà của các trận thắng gần đây mà chưa xem (vd. thắng khi đối thủ hết giờ lúc mình offline)
 function pendingRewards() {
   const cut = Date.now() - 3 * 86400000;
-  hub.items.filter((x) => x.kind === 'duel_done' && x.payload && x.payload.won && (x.payload.wall || x.payload.xp) && new Date(x.created_at).getTime() > cut)
-    .forEach((x) => duelReward({ id: x.payload.duel, wall: x.payload.wall, xp: x.payload.xp, opp: x.name, forfeit: x.payload.forfeit }));
+  hub.items.filter((x) => x.kind === 'duel_done' && x.payload && x.payload.won && (x.payload.wall || x.payload.ticket) && new Date(x.at).getTime() > cut)
+    .forEach((x) => duelReward({ id: x.payload.duel, wall: x.payload.wall, ticket: !!x.payload.ticket, xp: x.payload.xp, opp: x.name, forfeit: x.payload.forfeit }));
 }
 
 /* ---------- v22: thẻ nổi "có duel đang chờ bạn" (ngoài chuông thông báo) ---------- */
@@ -162,13 +203,14 @@ export function paintDuelWait() {
   const left = (t) => { const h = Math.max(0, Math.round((new Date(t) - Date.now()) / 3600000)); return h >= 1 ? `${h}h left` : 'less than 1h left'; };
   const html = `<div class="dw-h"><span class="dw-ic">${I.swords}</span><span class="grow"><b>${dwItems.length === 1 ? 'A duel is waiting for you' : `${dwItems.length} duels are waiting for you`}</b><small>${mini ? 'Tap to see' : 'Play to beat their score, or decline'}</small></span><button class="icon-btn sm dw-x" type="button" title="Later" aria-label="Later">${I.x}</button></div>
     <div class="dw-list">${dwItems.map((d) => `<div class="dw-i" data-id="${d.id}">${vipAv(d.opp ? d.opp.name : '?', d.opp && d.opp.avatar, d.opp ? d.opp.vip : 0)}<span class="grow"><b>${esc(d.opp ? d.opp.name : 'Someone')}${d.random ? ' <small>· random</small>' : ''}</b><small>Beat ${d.them && d.them.score != null ? d.them.score : '?'} pts · ${left(d.expires_at)}</small></span>
-      <button class="btn sm ghost dw-no" type="button">Decline</button><button class="btn sm acc dw-go" type="button">${I.swords} Play</button></div>`).join('')}</div>`;
+      <button class="btn sm ghost dw-no" type="button">Decline</button>${bestie.has() && !d.passed && (!d.opp || d.opp.uid !== bestie.B.brief.uid) ? `<button class="btn sm ghost dw-pass" type="button" title="Let ${esc(bestie.B.brief.name)} play it">${I.pass} Bestie</button>` : ''}<button class="btn sm acc dw-go" type="button">${I.swords} Play</button></div>`).join('')}</div>`;
   if (!el) { el = document.createElement('section'); el.className = 'dw'; el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
   el.classList.toggle('mini', mini); el.innerHTML = html;
   el.onclick = (e) => {
     if (el.classList.contains('mini')) { try { sessionStorage.removeItem(DW_MINI); } catch (er) {} sfx('tap'); paintDuelWait(); return; }
     if (e.target.closest('.dw-x')) { try { sessionStorage.setItem(DW_MINI, '1'); } catch (er) {} sfx('tap'); paintDuelWait(); return; }
     const row = e.target.closest('.dw-i'); if (!row) return; const id = +row.dataset.id;
+    if (e.target.closest('.dw-pass')) { const d = dwItems.find((x) => x.id === id); bestie.passDuel(id, d && d.opp ? d.opp.name : '').then((ok) => { if (ok) { dwItems = dwItems.filter((x) => x.id !== id); hub.duels = Math.max(0, (hub.duels || 1) - 1); dwN = hub.duels; paintDuelWait(); } }); return; }
     if (e.target.closest('.dw-go')) { sfx('tap'); try { sessionStorage.setItem('dcl_duel_autoplay', String(id)); } catch (er) {} el.remove(); location.hash = '#/duel/' + id; }
     else if (e.target.closest('.dw-no')) {
       const d = dwItems.find((x) => x.id === id); if (!d) return;
@@ -190,18 +232,30 @@ function text(n) {
     case 'friend_ok': return { t: `${n.name} is now your friend`, h: `${who} accepted your friend request`, ic: 'users', go: '#/friends' };
     case 'quiz': return { t: `${n.name} invited you to a live quiz`, h: `${who} invited you to the live quiz <b>${esc(p.title || '')}</b>`, ic: 'zap', act: [['Join', 'go'], ['Later', 'read']], go: '#/play/' + p.pin };
     case 'class': return { t: `${n.name} invited you to a class`, h: `${who} invited you to the class <b>${esc(p.name || '')}</b>`, ic: 'school', act: [['Join', 'go'], ['Later', 'read']], go: '#/classes/join/' + p.code };
-    case 'duel': return { t: `${n.name} challenged you to a duel`, h: `${who} challenged you to a duel. Same 10 questions, beat their score.`, ic: 'swords', act: [['Play', 'go']], go: '#/duel/' + p.duel };
+    case 'duel': return p.passed_by ? { t: `${p.passed_by} passed you a duel from ${n.name}`, h: `<b>${esc(p.passed_by)}</b> (your Bestie) passed you a duel from ${who}. Beat their score!`, ic: 'swords', act: [['Play', 'go']], go: '#/duel/' + p.duel }
+      : { t: `${n.name} challenged you to a duel`, h: `${who} challenged you to a duel. Same 10 questions, beat their score.${p.scored === false ? ' (Over today’s 10 scored duels: just for fun.)' : ''}`, ic: 'swords', act: [['Play', 'go']], go: '#/duel/' + p.duel };
+    case 'duel_passed': return { t: `${n.name} passed your duel to ${p.to}`, h: `${who} passed your duel to their Bestie <b>${esc(p.to || '')}</b>.`, ic: 'swords', go: '#/duel/' + p.duel };
+    case 'bestie_req': return { t: `${n.name} wants to be your Bestie`, h: `${who} wants to be your <b>Bestie</b>: share wallpapers, +10% XP when you both study, Bestie Adventure.`, ic: 'heart', act: [['Accept', 'bs-ok'], ['Decline', 'bs-no']] };
+    case 'bestie_ok': return { t: `${n.name} is now your Bestie!`, h: `${who} and you are now <b>Besties</b>. Try Bestie Adventure together!`, ic: 'heart', go: '#/adventure' };
+    case 'bestie_removed': return { t: `${n.name} removed you as Bestie`, h: `${who} is no longer your Bestie. You are still friends.`, ic: 'heart' };
+    case 'bestie_nudge': return { t: `${n.name} misses you!`, h: `${who} (your Bestie) misses you. Do one lesson today: you both get +10% XP.`, ic: 'heart', go: '#/' };
+    case 'adv_invite': return { t: `${n.name} wants to fight a boss together`, h: `${who} invited you to <b>Bestie Adventure</b>. Join within 90 seconds!`, ic: 'map', go: '#/adventure' };
+    case 'gquiz': return { t: `${n.name} started a group quiz`, h: `${who} started a quiz in your group <b>${esc(p.gname || '')}</b>. PIN ${esc(p.pin || '')}.`, ic: 'zap', act: [['Join', 'go']], go: '#/play/' + p.pin };
+    case 'rank_ticket': return { t: `Top ${p.rank} this week: +1 lucky spin ticket`, h: `You finished <b>#${p.rank}</b> in the ${esc({ en: 'English', zh: '中文', ielts: 'IELTS', duel: 'Duel', col: 'Top collector', bestie: 'Bestie' }[p.board] || p.board)} ranking this week. Reward: <b>1 lucky spin ticket</b>.`, ic: 'gift', act: [['Spin', 'spin']], go: '#/collection' };
+    case 'revoke': return { t: 'Your stars were adjusted', h: `${p.stars} ${p.lang === 'en' ? 'English' : ''} stars from the old Test out shortcut were removed (VIP ${p.vip_before} → ${p.vip_after}). XP and wallpapers are unchanged.`, ic: 'star' };
     case 'duel_done': {
       const prizeTxt = p.wall ? ` <b>${esc(w)}</b> was copied into your collection.` : p.xp ? ` +${p.xp} XP (they had no wallpaper you are missing).` : '';
       if (p.forfeit) return p.won ? { t: `${n.name} ran out of time. You win!`, h: `${who} did not answer your duel within 24 hours, so you win.${prizeTxt}`, ic: 'swords', go: '#/duel/' + p.duel, wall: p.wall } : { t: `You lost a duel to ${n.name} on time`, h: `You did not answer ${who}’s duel within 24 hours, so it counts as a loss. You keep all your wallpapers.`, ic: 'swords', go: '#/duel/' + p.duel };
-      if (p.won && p.prize === false) return { t: `You beat ${n.name}!`, h: `You beat ${who}. You already took today’s duel prize, so this win counts for the ranking only.`, ic: 'swords', go: '#/duel/' + p.duel };
+      if (p.ticket) return { t: `You beat ${n.name}! +1 lucky spin ticket`, h: `You beat ${who}${p.forfeit ? ' (they ran out of time)' : ''}. Today’s duel prize: <b>1 lucky spin ticket</b>${p.xp ? ` and +${p.xp} XP` : ''}.`, ic: 'swords', go: '#/duel/' + p.duel };
+      if (p.won && (p.prize === false || p.xp)) return { t: `You beat ${n.name}!`, h: `You beat ${who}.${p.xp ? ` +${p.xp} XP.` : ''} ${p.scored === false ? 'This one was over today’s 10 scored duels.' : 'You already took today’s ticket, so this win counts for XP and the weekly ranking.'}`, ic: 'swords', go: '#/duel/' + p.duel };
       return { t: p.draw ? `Duel with ${n.name}: draw` : p.won ? `You beat ${n.name}!` : `${n.name} won the duel`, h: p.draw ? `Your duel with ${who} ended in a draw. +2 VIP points each.` : p.won ? `You beat ${who}.${prizeTxt}` : `${who} won your duel. You keep everything; +1 VIP point.`, ic: 'swords', go: '#/duel/' + p.duel, wall: p.won ? p.wall : 0 };
     }
     case 'duel_declined': return { t: `${n.name} declined your duel`, h: `${who} declined your duel`, ic: 'swords', go: '#/duel' };
     case 'duel_pick': return { t: `${n.name} got a copy of ${w}`, h: `${who} won your duel and got a copy of <b>${esc(w)}</b> at random. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
-    case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
-    case 'update': return +p.v >= 21 ? { t: 'New: English B1+ and B2+', h: '<b>New update.</b> Two new English levels (24 units) for engineering and office life, 22 new wallpapers and cheaper XP prices. Your progress is safe.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
+    case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}${p.ticket ? ' and <b>1 lucky spin ticket</b>' : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
+    case 'update': return +p.v >= 23 ? { t: 'New: Bestie, Lucky spin and Adventure', h: '<b>Big update.</b> Pick a Bestie, spin chests for wallpapers, play Bestie Adventure together. Rankings now reset every Monday at 16:00.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
+      : +p.v >= 21 ? { t: 'New: English B1+ and B2+', h: '<b>New update.</b> Two new English levels (24 units) for engineering and office life, 22 new wallpapers and cheaper XP prices. Your progress is safe.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
       : { t: `New update: ${p.added || 'many'} new units`, h: `<b>New update.</b> ${p.added || 'Many'} new units with practical, everyday topics across English, 中文 and IELTS. Your progress is safe.`, ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) };
     case 'rank_reward': {
       const ws = p.walls || [], wn = ws.map((x) => walls.wallOf(x).name), course = { en: 'English', zh: '中文', ielts: 'IELTS', duel: 'Duel' }[p.board] || '';
@@ -245,6 +299,8 @@ function drawPanel(p) {
     const mark = () => { if (n.read) return; n.read = true; hub.unread = Math.max(0, hub.unread - 1); paintBadges(); call('learn_notifs_read', { p_ids: [n.id] }).catch(() => {}); };
     row.querySelectorAll('[data-a]').forEach((b) => b.addEventListener('click', async (e) => {
       e.stopPropagation(); const a = b.dataset.a;
+      if (a === 'bs-ok' || a === 'bs-no') { try { const j = await call('learn_bestie_respond', { p_uid: n.actor, p_accept: a === 'bs-ok' }); toast(j.ok ? (j.accepted ? `You and ${n.name} are Besties now!` : 'Request declined') : ({ youhave: 'You already have a Bestie.', theyhave: `${n.name} already has a Bestie.`, norequest: 'This request is no longer open.' }[j.error] || j.error)); sfx(j.accepted ? 'levelup' : 'tap'); n.read = true; hub.unread = Math.max(0, hub.unread - 1); paintBadges(); drawPanel(p); bestie.load(true).then(() => { renderRail(); if (j.accepted && bestie.B.brief) bestie.playFx('hearts', { them: { name: bestie.B.brief.name, avatar: bestie.B.brief.avatar }, title: `You and ${bestie.B.brief.name} are Besties!` }); }); } catch (er) { toast(er.message); } return; }
+      if (a === 'spin') { mark(); if (panelOff) panelOff(); gacha.spin(); return; }
       if (a === 'fr-ok' || a === 'fr-no') { try { await call('learn_friend_respond', { p_uid: n.actor, p_accept: a === 'fr-ok' }); toast(a === 'fr-ok' ? `You and ${n.name} are friends now` : 'Request declined'); sfx(a === 'fr-ok' ? 'ok' : 'tap'); n.read = true; hub.unread = Math.max(0, hub.unread - 1); paintBadges(); drawPanel(p); loadFriends(); } catch (er) { toast(er.message); } return; }
       mark();
       if (a === 'new' && t.fn) { if (panelOff) panelOff(); t.fn(); return; }
@@ -255,31 +311,33 @@ function drawPanel(p) {
   });
 }
 
-/* ---------- có gì mới (hiện 1 lần mỗi bản cập nhật nội dung) ---------- */
-const NEWS = { v: 21, levels: [
-  { lv: 'b1p', name: 'English B1+', sub: 'English for our engineering office', topics: ['Reading construction drawings', 'Beams, columns and loads', 'Timber trusses and wall panels', 'QA and QC checks', 'Daily stand-up with an overseas team', 'Timesheets, overtime and leave', 'Showing visitors around Ho Chi Minh City', 'Vietnamese food and culture explained'] },
-  { lv: 'b2p', name: 'English B2+', sub: 'Leading projects and people', topics: ['Steel moment connections', 'RFIs and design changes', 'Client kick-off meetings', 'Presenting your project to your boss', 'Recruitment and interviewing', 'Performance reviews and feedback', 'Pitching Vietnam to overseas clients', 'Cross-cultural communication'] },
-] };
-const NEWS_KEY = 'dcl_news_' + NEWS.v;
+/* ---------- có gì mới (hiện 1 lần mỗi bản cập nhật) ---------- */
+const NEWS_V = 23, NEWS_KEY = 'dcl_news_' + NEWS_V;
 const seenNews = () => { try { return localStorage.getItem(NEWS_KEY) === '1'; } catch (e) { return true; } };
 const markNews = () => { try { localStorage.setItem(NEWS_KEY, '1'); } catch (e) {} };
+export const newsSeen = seenNews;
 export function whatsNew(force) {
   if (!force && (seenNews() || !S.onboarded)) { if (!S.onboarded) markNews(); return; }
-  if (!force && document.querySelector('.ovl, .player, .sheet')) return;
+  if (!force && document.querySelector('.ovl, .player, .sheet, .tour')) { setTimeout(() => whatsNew(false), 3000); return; }
   markNews();
   if (acct) call('learn_notifs_read_kind', { p_kind: 'update' }).then(() => { hub.items.forEach((x) => { if (x.kind === 'update' && !x.read) { x.read = true; hub.unread = Math.max(0, hub.unread - 1); } }); paintBadges(); }).catch(() => {});
   sfx('quest');
+  const card = (ic, t, d) => `<section class="wn-k"><div class="wn-kh"><span class="wn-ic">${I[ic]}</span><b>${t}</b></div><p class="muted">${d}</p></section>`;
   sheet(`<div class="wn">
-    <div class="wn-h"><span class="wn-logo">${LOGO}</span><div><h2>Two new English levels</h2><p class="sub">B1+ and B2+: 24 units (192 lessons) built around an engineering office — drawings, steel and timber, client meetings, presenting to your boss, HR, and showing Vietnam to overseas visitors. Your progress and wallpapers are untouched.</p></div></div>
-    <div class="wn-c">${NEWS.levels.map((c) => `<section class="wn-k" data-l="en">
-      <div class="wn-kh"><b>${c.name}</b><span class="wn-n"><em>12</em> units</span></div>
-      <p class="muted" style="margin:0 0 6px">${esc(c.sub)}</p>
-      <ul>${c.topics.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-      <button class="btn sm ${S.lang === 'en' ? 'acc' : 'ghost'} wn-go" type="button" data-lv="${c.lv}">Open ${c.name.replace('English ', '')}</button>
-    </section>`).join('')}</div>
-    <p class="wn-note">${I.sparkle}<span>Also new: 22 wallpapers (72–93) in the B1+ and B2+ chests and bosses, wallpapers cost 40% less XP, duel questions come from the units you have studied (plus 2 general-knowledge questions), and the phone layout is easier to use.</span></p>
+    <div class="wn-h"><span class="wn-logo">${LOGO}</span><div><h2>Bestie, Lucky spin &amp; Adventure</h2><p class="sub">Learn together with a Bestie, spin chests for wallpapers and fight bosses side by side. Your progress, XP and wallpapers are safe.</p></div></div>
+    <div class="wn-c wn-6">
+      ${card('heart', 'Bestie · Learn together', 'Pick one friend as your Bestie. You share wallpapers automatically, both earn <b>+10% XP</b> per lesson on days you both study, and can pass a duel to each other (5 a day). If one of you is away 3+ days, lessons earn 10% less, so keep each other going!')}
+      ${card('map', 'Bestie Adventure', 'A big map for English and 中文 with regions and boss dots. You and your Bestie play live together: one sees the question, the other the answers; build sentences in relay; link words at the same time. Chests give XP, Bestie effects and spin tickets.')}
+      ${card('gift', 'Lucky spin', 'Unit and boss chests now give <b>spin tickets</b> instead of fixed wallpapers. Keep them or spin right away: the strip stops on a random wallpaper by rarity. A duplicate turns into XP. <b>Everyone gets 1 free ticket.</b>')}
+      ${card('trophy', 'Rankings', 'New <b>Top collector</b> and <b>Bestie</b> rankings. Every Monday at 16:00 (Hà Nội) all rankings pay out: the top 10 of each one get a spin ticket, plus the usual prizes.')}
+      ${card('swords', 'Duels', 'Your first 10 sent and 10 received duels each day score points and XP; after that you can still play for fun. Your first win each day gives a spin ticket.')}
+      ${card('users', 'Friends', 'Right-click (or tap) any name in Ranking and Friends for profile, message, duel, add friend or Bestie. Make friend groups and start a quick quiz: everyone in the group joins automatically.')}
+    </div>
+    <div class="foot-row wn-acts">${acct ? `<button class="btn ghost wn-spin" type="button">${I.zap} Spin my free ticket</button><button class="btn acc wn-bst" type="button">${I.heart} Pick a Bestie</button>` : '<button class="btn acc wn-ok" type="button">Got it</button>'}</div>
   </div>`, (el, close) => {
-    el.querySelectorAll('.wn-go').forEach((b) => b.addEventListener('click', () => { close(); C.goTo('en', b.dataset.lv); }));
+    const sp = el.querySelector('.wn-spin'); if (sp) sp.addEventListener('click', () => { close(); if (C.startTour) C.startTour('gacha', true); });
+    const bs = el.querySelector('.wn-bst'); if (bs) bs.addEventListener('click', () => { close(); if (C.startTour) C.startTour('bestie', true); });
+    const ok = el.querySelector('.wn-ok'); if (ok) ok.addEventListener('click', close);
   }, 'wide');
 }
 
@@ -296,9 +354,10 @@ function ranked() {
   return all;
 }
 /* ---------- bảng xếp hạng toàn máy chủ (trên danh sách bạn) ---------- */
-const RK_TABS = [['en', 'EN'], ['zh', '中文'], ['ielts', 'IELTS'], ['duel', 'Duel']];
+// v23: thêm Top collector (số hình nền) và Bestie (cặp Bestie theo sao Vượt ải). Tuần mới: 16:00 thứ Hai giờ Hà Nội, mọi bảng phát quà cùng lúc.
+const RK_TABS = [['en', 'EN'], ['zh', '中文'], ['ielts', 'IELTS'], ['duel', 'Duel'], ['col', 'Collector'], ['bestie', 'Bestie']];
 const rk = { tab: (() => { try { return localStorage.getItem('dcl_rk') || ''; } catch (e) { return ''; } })(), data: {}, at: {}, busy: '' };
-const rkTab = () => rk.tab || (['en', 'zh', 'ielts'].includes(S.lang) ? S.lang : 'en');
+const rkTab = () => (RK_TABS.some((t) => t[0] === rk.tab) ? rk.tab : (['en', 'zh', 'ielts'].includes(S.lang) ? S.lang : 'en'));
 export async function loadRank(board = rkTab(), force = false) {
   if (rk.busy === board || (!force && rk.data[board] && Date.now() - rk.at[board] < 60000)) return;
   rk.busy = board;
@@ -307,45 +366,42 @@ export async function loadRank(board = rkTab(), force = false) {
   document.querySelectorAll('.rk').forEach((el) => paintRank(el));
 }
 const medal = (n) => n <= 3 ? `<span class="rk-n m${n}">${n}</span>` : `<span class="rk-n">${n}</span>`;
+// thời điểm chốt tuần kế tiếp: 16:00 thứ Hai (giờ Hà Nội) = week_end + 16:00
+export function resetIn(d) {
+  const end = new Date((d && d.week_end ? d.week_end : '') + 'T16:00:00+07:00'); const ms = end - Date.now();
+  if (!(ms > 0)) return 'soon';
+  const dd = Math.floor(ms / 864e5), hh = Math.floor((ms % 864e5) / 36e5);
+  return dd ? `${dd}d ${hh}h` : `${hh}h ${Math.floor((ms % 36e5) / 6e4)}m`;
+}
 function rankRows(board) {
   const d = rk.data[board];
   if (!d) return '<p class="rk-load">Loading…</p>';
-  const duel = board === 'duel', unit = duel ? 'pts' : '★';
-  const items = d.items || [];
-  const rows = items.map((x) => `<div class="rk-i ${x.rel === 'me' ? 'me' : ''}" data-u="${x.uid}">${medal(x.rank)}<span class="rk-av">${vipAv(x.name, x.avatar, x.vip || 0)}</span>
-      <span class="rk-t"><b>${esc(x.name)}${x.rel === 'me' ? ' (you)' : ''}</b><small>${x.score} ${unit}${duel ? ` · ${x.wins}W / ${x.played}` : ''}</small></span>
-      ${x.rel !== 'me' ? `<button class="icon-btn sm rk-duel" type="button" title="Challenge ${esc(x.name)} to a duel" aria-label="Duel">${I.swords}</button>` : ''}${x.rel === 'none' ? `<button class="icon-btn sm rk-add" type="button" title="Add ${esc(x.name)} as a friend" aria-label="Add friend">${I.plus}</button>` : x.rel === 'sent' ? '<span class="rk-s">Sent</span>' : x.rel === 'incoming' ? '<a class="rk-s acc" href="#/friends">Accept</a>' : x.rel === 'friend' ? `<span class="rk-s ok" title="Friend">${I.check}</span>` : ''}</div>`).join('');
+  const items = d.items || [], unit = { duel: 'pts', col: 'wallpapers', bestie: '★ adventure' }[board] || '★';
+  let rows;
+  if (board === 'bestie') rows = items.map((x) => `<div class="rk-i pair ${x.rel === 'me' ? 'me' : ''}">${medal(x.rank)}<span class="rk-av2">${(x.pair || []).map((p) => vipAv(p.name, p.avatar, p.vip || 0)).join('')}</span>
+      <span class="rk-t"><b>${(x.pair || []).map((p) => `<span class="rk-pn" data-u="${p.uid}">${esc(p.name)}</span>`).join(' <i class="rk-amp">&amp;</i> ')}</b><small>${x.score} ${unit}</small></span></div>`).join('');
+  else rows = items.map((x) => `<div class="rk-i ${x.rel === 'me' ? 'me' : ''}" data-u="${x.uid}">${medal(x.rank)}<span class="rk-av">${vipAv(x.name, x.avatar, x.vip || 0)}</span>
+      <span class="rk-t"><b>${esc(x.name)}${x.rel === 'me' ? ' (you)' : ''}</b><small>${x.score} ${unit}${board === 'duel' ? ` · ${x.wins}W / ${x.played}` : ''}</small></span>${x.rel === 'friend' ? `<span class="rk-s ok" title="Friend">${I.check}</span>` : x.rel === 'sent' ? '<span class="rk-s">Sent</span>' : ''}</div>`).join('');
   const meIn = items.some((x) => x.rel === 'me');
   const me = d.me && !meIn ? `<div class="rk-i me out">${medal(d.me.rank)}<span class="rk-av">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, walls.myVip())}</span><span class="rk-t"><b>You</b><small>${d.me.score} ${unit}</small></span></div>` : '';
-  const empty = !items.length ? `<p class="rk-load">${duel ? 'No duels finished this week yet. Win one to take #1.' : 'Nobody has stars here yet. Finish a lesson to take #1.'}</p>` : '';
-  const end = new Date(d.week_end + 'T00:00:00+07:00'), days = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
-  const got = (d.mine || []).length;
-  const note = duel ? `Win 3 pts, draw 1. Resets in ${days} day${days === 1 ? '' : 's'}. The weekly top 10 get XP and a rare wallpaper.`
-    : `Stars from every lesson in this course. Each rank you reach pays once: #1 two wallpapers, #2 a rare one, #3 a random one, #4–10 XP.${got ? ` You have collected ${got}/10.` : ''}`;
-  return `<div class="rk-list">${rows}${empty}</div>${me}<p class="rk-note">${note}</p>`;
+  const empty = !items.length ? `<p class="rk-load">${{ duel: 'No duels finished this week yet. Win one to take #1.', col: 'Nobody has wallpapers yet.', bestie: 'No Bestie pair has beaten an Adventure boss yet. Be the first!' }[board] || 'Nobody has stars here yet. Finish a lesson to take #1.'}</p>` : '';
+  const got = (d.mine || []).length, when = `Prizes every Monday 16:00 (Hà Nội) · next in ${resetIn(d)}.`;
+  const note = { duel: `Win 3 pts, draw 1. Only your first 10 sent and 10 received duels each day count. ${when} Top 10: XP, a rare wallpaper and a lucky spin ticket.`,
+    col: `Number of wallpapers you own. ${when} Top 10: a lucky spin ticket.`, bestie: `Stars the two of you won in Bestie Adventure. ${when} Top 10 pairs: a lucky spin ticket each.` }[board]
+    || `Stars from every lesson in this course. ${when} Top 10 get a lucky spin ticket; each rank also pays once: #1 two wallpapers, #2 a rare one, #3 a random one, #4–10 XP.${got ? ` You have collected ${got}/10.` : ''}`;
+  return `<div class="rk-list">${rows}${empty}</div>${me}<p class="rk-note">${note}</p><p class="rk-tip">${I.more} Right-click (or tap) a name for profile, message, duel…</p>`;
 }
 function paintRank(el) {
   const b = rkTab();
   el.querySelectorAll('.rk-tabs button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.b === b));
   const body = el.querySelector('.rk-body'); if (body) body.innerHTML = rankRows(b);
-  el.querySelectorAll('.rk-duel').forEach((btn) => btn.addEventListener('click', (e) => {
-    e.stopPropagation(); const row = btn.closest('.rk-i'), d = rk.data[b], x = d && d.items.find((i) => String(i.uid) === row.dataset.u); if (!x) return;
-    try { sessionStorage.setItem('dcl_duel_target', JSON.stringify({ uid: x.uid, name: x.name, avatar: x.avatar, vip: x.vip, rel: x.rel })); } catch (er) {}
-    sfx('tap'); document.getElementById('sheet-root').innerHTML = ''; location.hash = '#/duel/new/' + x.uid;
-  }));
-  el.querySelectorAll('.rk-add').forEach((btn) => btn.addEventListener('click', async (e) => {
-    e.stopPropagation(); const row = btn.closest('.rk-i'), d = rk.data[b], x = d && d.items.find((i) => String(i.uid) === row.dataset.u); if (!x) return;
-    btn.disabled = true;
-    try {
-      const j = await call('learn_friend_request', { p_who: x.name });
-      if (j && j.ok) { x.rel = j.accepted ? 'friend' : 'sent'; sfx('ok'); toast(j.accepted ? `You and ${x.name} are friends now` : `Friend request sent to ${x.name}`); Object.values(rk.data).forEach((dd) => (dd.items || []).forEach((i) => { if (i.uid === x.uid) i.rel = x.rel; })); paintRank(el); if (j.accepted) loadFriends(); }
-      else { toast({ pending: 'Request already sent.', already: 'You are already friends.', limit: 'Friend list is full.' }[j && j.error] || 'Could not send the request.'); btn.disabled = false; }
-    } catch (er) { toast(er.message); btn.disabled = false; }
-  }));
+  const d = rk.data[b]; if (!d) return;
+  ctx.attach(el, '.rk-i[data-u]', (row) => { const x = d.items.find((i) => String(i.uid) === row.dataset.u); return x ? { uid: x.uid, name: x.name, avatar: x.avatar, vip: x.vip, rel: x.rel } : null; });
+  ctx.attach(el, '.rk-pn', (sp) => { for (const it of d.items) { const p = (it.pair || []).find((q) => String(q.uid) === sp.dataset.u); if (p) return { uid: p.uid, name: p.name, avatar: p.avatar, vip: p.vip }; } return null; });
 }
 function rankHTML() {
-  return `<section class="rk"><p class="rk-sub">Top 10 of all learners · stars per course, duel points per week</p>
-    <div class="rk-tabs seg" role="tablist">${RK_TABS.map(([k, l]) => `<button type="button" data-b="${k}" class="${k === 'zh' ? 'zh' : ''}" aria-pressed="${rkTab() === k}">${l}</button>`).join('')}</div>
+  return `<section class="rk"><p class="rk-sub">Top 10 of all learners · resets and pays out every Monday 16:00</p>
+    <div class="rk-tabs seg wrap" role="tablist">${RK_TABS.map(([k, l]) => `<button type="button" data-b="${k}" class="${k === 'zh' ? 'zh' : ''}" aria-pressed="${rkTab() === k}">${l}</button>`).join('')}</div>
     <div class="rk-body">${rankRows(rkTab())}</div></section>`;
 }
 function wireRank(r) {
@@ -368,13 +424,16 @@ function railInner() {
   const d = hub.friends;
   const all = d ? ranked() : [], on = all.filter((x) => !x.me && online(x.last_seen)), inc = d ? (d.items || []).filter((x) => x.incoming) : [];
   const sorted = [...all].sort((a, b) => (a.me ? -1 : b.me ? 1 : 0) || (online(b.last_seen) - online(a.last_seen)) || a.rank - b.rank);
-  const friends = !d ? '<p class="muted" style="padding:14px">Loading…</p>' : `<div class="rl-sub"><span class="rl-on"><i></i>${on.length} online</span><small>${all.length - 1} friend${all.length === 2 ? '' : 's'} · weekly XP</small></div>
+  const bb = bestie.B.brief;
+  const bcard = !d ? '' : bb ? `<button type="button" class="rl-bst" title="Bestie settings">${vipAv(bb.name, bb.avatar, bb.vip || 0)}<span class="grow"><b>${I.heart} ${esc(bb.name)}</b><small>${+bb.mult > 1 ? '+10% XP today' : +bb.mult < 1 ? `away ${bb.offline_days} days · −10% XP` : 'Bestie · study together for +10%'}</small></span><a class="btn sm acc rl-adv" href="#/adventure">${I.map}</a></button>`
+    : `<button type="button" class="rl-bst none">${I.heart}<span class="grow"><b>Pick a Bestie</b><small>${(d.items || []).some((x) => x.status === 'accepted') ? 'Share wallpapers, +10% XP, Adventure' : 'Add a friend first, then make them your Bestie'}</small></span>${I.chev}</button>`;
+  const friends = !d ? '<p class="muted" style="padding:14px">Loading…</p>' : `${bcard}<div class="rl-sub"><span class="rl-on"><i></i>${on.length} online</span><small>${all.length - 1} friend${all.length === 2 ? '' : 's'} · weekly XP · right-click a name</small></div>
     ${inc.length ? `<a class="rl-req" href="#/friends">${I.users}<span>${inc.length} friend request${inc.length > 1 ? 's' : ''}</span>${I.chev}</a>` : ''}
     <div class="rl-list">${sorted.map((x) => `<div class="rl-i ${x.me ? 'me' : ''} ${online(x.last_seen) ? 'on' : ''}" data-u="${x.uid}">
       <span class="rl-rk ${x.rank <= 3 ? 'top t' + x.rank : ''}">${x.rank}</span>
       <span class="rl-av">${vipAv(x.name, x.avatar, x.vip || 0)}${!x.me && online(x.last_seen) ? '<i class="dot"></i>' : ''}</span>
       <span class="rl-n"><b>${esc(x.name)}${x.me ? ' (you)' : ''}</b><small>${x.week_xp || 0} XP this week${x.me ? '' : online(x.last_seen) ? ' · online' : ` · ${ago(x.last_seen).replace(' ago', '')}`}</small></span>
-      ${x.me ? '' : `<span class="rl-a"><button class="icon-btn sm rl-chat" type="button" title="Send a message">${I.chat}</button><button class="icon-btn sm rl-duel" type="button" title="Challenge to a duel">${I.swords}</button><button class="icon-btn sm rl-gift" type="button" title="Share a wallpaper">${I.gift}</button></span>`}</div>`).join('')}</div>
+      ${bestie.B.brief && String(bestie.B.brief.uid) === String(x.uid) ? `<span class="rl-bf" title="Your Bestie">${I.heart}</span>` : ''}</div>`).join('')}</div>
     ${all.length < 2 ? `<div class="rl-empty"><p>No friends yet. ${d.me && d.me.code ? `Share your code <b>${esc(d.me.code)}</b>, or tap` : 'Tap'} + next to anyone in the Ranking.</p></div>` : ''}`;
   return `${railHead(on.length, inc.length)}
     <div class="rl-p" data-p="rank" ${railTab === 'rank' ? '' : 'hidden'}>${rankHTML()}<div class="rl-f"><a class="btn sm ghost rl-duels" href="#/duel">${I.swords} Duels</a><button class="btn sm ghost rl-gof" type="button">${I.users} My friends</button></div></div>
@@ -397,9 +456,8 @@ function wireRail(r) {
   r.querySelectorAll('.rl-t').forEach((b) => b.addEventListener('click', () => { if (railTab !== b.dataset.t) { sfx('tap'); setRailTab(r, b.dataset.t); } }));
   const gf = r.querySelector('.rl-gof'); if (gf) gf.addEventListener('click', () => { sfx('tap'); setRailTab(r, 'friends'); });
   const si = r.querySelector('.rl-in'); if (si) si.addEventListener('click', () => C.authSheet('login'));
-  r.querySelectorAll('.rl-duel').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('sheet-root').innerHTML = ''; location.hash = '#/duel/new/' + b.closest('.rl-i').dataset.u; }));
-  r.querySelectorAll('.rl-gift').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); walls.shareSheet(); }));
-  r.querySelectorAll('.rl-chat').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); const f = ranked().find((x) => String(x.uid) === b.closest('.rl-i').dataset.u); if (f) { document.getElementById('sheet-root').innerHTML = ''; chat.openDM(f); } }));
+  ctx.attach(r, '.rl-i[data-u]', (row) => { const f = ranked().find((x) => String(x.uid) === row.dataset.u); return f ? { uid: f.uid, name: f.name, avatar: f.avatar, vip: f.vip, rel: f.me ? 'me' : 'friend', last_seen: f.last_seen } : null; });
+  const bst = r.querySelector('.rl-bst'); if (bst) bst.addEventListener('click', (e) => { if (e.target.closest('.rl-adv')) return; sfx('open'); if (bst.classList.contains('none') && !(hub.friends && (hub.friends.items || []).some((x) => x.status === 'accepted'))) { document.getElementById('sheet-root').innerHTML = ''; location.hash = '#/friends'; return; } bestie.openSheet(); });
   const rm = r.querySelector('.rl-msg'); if (rm) rm.addEventListener('click', () => { document.getElementById('sheet-root').innerHTML = ''; chat.openChats(); });
   if (railTab === 'rank' || r.querySelector('.rk')) wireRank(r);
 }
@@ -410,6 +468,14 @@ export function railSheet(tab) {
   loadFriends();
 }
 
+// mở bảng xếp hạng ở một tab (vd. 'bestie')
+export function showRank(board) {
+  if (!acct) { C.authSheet('login'); return; }
+  rk.tab = board; try { localStorage.setItem('dcl_rk', board); } catch (e) {}
+  railTab = 'rank'; try { localStorage.setItem('dcl_rail_tab', 'rank'); } catch (e) {}
+  loadRank(board, true).then(() => renderRail()).catch(() => {});
+  if (!wide()) railSheet('rank'); else { ui.rail = true; setPref('dcl_rail', true); applyChrome(); renderRail(); }
+}
 /* ---------- mời bạn: quiz (PIN) hoặc lớp học ---------- */
 const INV_ERR = { notfriend: 'Only friends can be invited.', limit: 'Too many invites this hour. Try again later.', nogame: 'This game has ended.', notmember: 'You are not in this class.' };
 export async function inviteSheet(kind, payload, title) {

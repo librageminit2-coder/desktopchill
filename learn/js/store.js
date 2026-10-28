@@ -28,8 +28,8 @@ function fresh() {
     bossStars: {},     // sao tốt nhất của thử thách boss: "en|a1" → 1..3
     vipSeen: 0,        // cấp VIP đã chúc mừng
     bg: 0,             // hình nền đang dùng làm nền trang (0 = rừng)
-    tout: {},          // kiểm tra vượt chủ đề: "en-a1-1" → ngày trượt gần nhất
-    guide: {},         // hướng dẫn đã làm: tour (đổi nền + ảnh đại diện), friend, duel
+    guide: {},         // hướng dẫn đã làm: tour (đổi nền + ảnh đại diện), friend, bestie, gacha, …
+    fix: {},           // v23: rv = id lần thu hồi cuối đã áp (do máy chủ quyết định)
   };
 }
 function merge(base, add) {
@@ -60,6 +60,18 @@ export function save(now = false) {
   S.updated = Date.now();
   const w = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} subs.forEach((f) => { try { f(S); } catch (e) {} }); };
   clearTimeout(tSave); if (now) w(); else tSave = setTimeout(w, 250);
+}
+// v23: áp một lần thu hồi từ máy chủ: [chủ đề, số bài, sao còn lại] (0 = về chưa học). Trả về true nếu có thay đổi.
+export function applyRevoke(rv) {
+  if (!rv || !rv.id || ((S.fix && S.fix.rv) || 0) >= rv.id) return false;
+  (rv.items || []).forEach(([u, k, sv]) => {
+    if (!Array.isArray(S.done[u])) return;
+    if (!Array.isArray(S.stars[u])) S.stars[u] = new Array(LN).fill(0);
+    if (!sv) { S.done[u][k] = 0; S.stars[u][k] = 0; } else S.stars[u][k] = Math.min(Math.max(S.stars[u][k] || 1, 1), sv);
+  });
+  if (!S.fix || typeof S.fix !== 'object') S.fix = {};
+  S.fix.rv = rv.id; save(true);
+  return true;
 }
 export function replace(obj) { S = merge(fresh(), obj || {}); fixLevel(); save(true); }
 export function reset() { S = fresh(); save(true); }

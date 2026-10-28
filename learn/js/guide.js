@@ -1,10 +1,13 @@
 // Hướng dẫn bắt buộc 1 lần cho mỗi tài khoản: đổi hình nền trong Collection, rồi đổi ảnh đại diện.
 // Sau đó là 2 gợi ý (Add friends, Duels): không chặn màn hình, chỉ tắt khi người dùng bấm đúng nút đó.
 // Lưu trong tiến trình (S.guide) nên đồng bộ theo tài khoản: làm xong một lần thì máy khác cũng không hiện lại.
-import { S, save } from './store.js?v=25';
-import { acct } from './account.js?v=25';
-import { sfx } from './sound.js?v=25';
-import { toast } from './ui.js?v=25';
+import { S, save } from './store.js?v=26';
+import { acct } from './account.js?v=26';
+import { sfx } from './sound.js?v=26';
+import { toast, esc } from './ui.js?v=26';
+
+let C = null;
+export function init(ctx) { C = ctx; }
 
 const g = () => { if (!S.guide || typeof S.guide !== 'object') S.guide = {}; return S.guide; };
 const vis = (el) => { if (!el || !el.isConnected) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 4 && r.height > 4 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
@@ -93,7 +96,7 @@ function finish() {
   setTimeout(hints, 1200);
 }
 export function maybeStart() {
-  if (!acct || !S.onboarded || g().tour || cur >= 0 || startT) { if (g().tour) hints(); return; }
+  if (!acct || !S.onboarded || g().tour || cur >= 0 || startT) { if (g().tour) { hints(); v23(); } return; }
   startT = setTimeout(function check() {
     startT = 0;
     if (!acct || g().tour || cur >= 0) return;
@@ -109,7 +112,7 @@ export const touring = () => cur >= 0;
 /* ---------- gợi ý Add friends / Duels ---------- */
 const HINTS = [
   { id: 'friend', sels: ['.rl-addf', '.rl-t[data-t="friends"]', '.tb-friends', '.rail-btn'], title: 'Add friends', text: 'Find people by name or friend code, or tap + next to anyone in the Ranking. Friends can chat, duel and send each other wallpapers.' },
-  { id: 'duel', sels: ['.rl-duels', '.nav .mt[href="#/duel"]', '.dd a[href="#/duel"]'], title: 'Duels', text: 'You and a rival answer the same 10 questions. Up to 10 a day; your first win each day takes a wallpaper from their collection.' },
+  { id: 'duel', sels: ['.rl-duels', '.nav .mt[href="#/duel"]', '.dd a[href="#/duel"]'], title: 'Duels', text: 'You and a rival answer the same 10 questions. Your first 10 sent and 10 received duels a day score XP; your first win each day gives a lucky spin ticket.' },
 ];
 let hintT = 0, hintEl = null, hintOn = null;
 const hintClick = (e) => {
@@ -117,12 +120,12 @@ const hintClick = (e) => {
 };
 document.addEventListener('click', hintClick, true);
 function hints() {
-  if (hintT || !acct || !g().tour) return;
+  if (hintT || !acct || !g().tour || coach) return;
   hintT = setInterval(() => {
     const h = HINTS.find((x) => !g()[x.id]);
     if (!h || !acct) { clearInterval(hintT); hintT = 0; if (hintEl) hintEl.remove(); hintEl = null; return; }
     const inView = (x) => { const r = x.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.width > 4; };
-    const el = cur >= 0 || blocked() ? null : h.sels.map((s) => [...document.querySelectorAll(s)].find((x) => vis(x) && inView(x))).find(Boolean);
+    const el = cur >= 0 || coach || blocked() ? null : h.sels.map((s) => [...document.querySelectorAll(s)].find((x) => vis(x) && inView(x))).find(Boolean);
     if (!el) { if (hintEl) hintEl.classList.add('gone'); return; }
     if (!hintEl || hintOn !== h) { if (hintEl) hintEl.remove(); hintEl = document.createElement('div'); hintEl.className = 'hint'; hintEl.setAttribute('role', 'note'); hintEl.innerHTML = `<b>${h.title}</b><p>${h.text}</p><small>Tap the highlighted button to continue</small>`; document.body.appendChild(hintEl); hintOn = h; }
     hintEl.classList.remove('gone');
@@ -134,4 +137,87 @@ function hints() {
     hintEl.style.cssText = `left:${left}px;top:${top}px;width:${w}px;--ax:${Math.round(r.left + r.width / 2 - left)}px`;
     hintEl.classList.toggle('down', !up);
   }, 400);
+}
+
+/* ---------- v23: hướng dẫn lần đầu sau cập nhật (Lucky spin → Bạn bè / Bestie) ----------
+   Không chặn màn hình: vùng sáng + bong bóng có nút "Đưa tôi tới" và "Bỏ qua". Lưu vào S.guide nên chỉ hiện một lần. */
+let coach = null;
+const friendsN = () => { try { return (C && C.friends ? C.friends() : []).filter((f) => f.status === 'accepted').length; } catch (e) { return 0; } };
+const TOURS = {
+  gacha: () => [
+    { title: 'You have a free lucky spin!', text: 'Chests now give spin tickets instead of fixed wallpapers. Everyone got 1 free ticket. Your tickets live in Collection.',
+      el: () => first(['.hud .tk-chip', '.col-gp .gp-go', '.side .col-mini .cm-go', '.nav .mt[href="#/collection"]', '.tabbar a[href="#/collection"]']), go: '#/collection', done: () => route().startsWith('#/collection') && !!document.querySelector('.col-gp .gp-go') },
+    { title: 'Spin it', text: 'Tap “Spin now”. The strip stops on a random wallpaper; rarer ones are less likely. A duplicate becomes XP.',
+      el: () => first(['.col-gp .gp-go']), go: '#/collection', click: true, done: () => !!document.querySelector('.gs') || (C && C.tickets && C.tickets() === 0 && !!document.querySelector('.col-gp')) },
+  ],
+  bestie: () => friendsN() ? [
+    { title: 'Pick a Bestie', text: 'Choose one friend as your Bestie: shared wallpapers, +10% XP on days you both study, duel passes, effects and Bestie Adventure.',
+      el: () => first(['[data-bst]']), go: '#/bestie', done: () => /^#\/(friends|bestie)/.test(route()) && !!document.querySelector('[data-bst]') },
+    { title: 'Your Bestie panel', text: 'Tap “Make Bestie” next to a friend. They get a request; once they accept you are Besties. You can change effects, slogan and sharing here later, or remove your Bestie.',
+      el: () => first(['[data-bst]']), go: '#/bestie', done: () => false, last: true },
+  ] : [
+    { title: 'Start with a friend', text: 'A Bestie is picked from your friends, and you have none yet. Open Friends to add someone.',
+      el: () => first(['.rl-addf', '.nav .mt[href="#/friends"]', '.dd a[href="#/friends"]', '.tabbar a[href="#/friends"]']), go: '#/friends', done: () => route().startsWith('#/friends') && !!document.querySelector('.addf') },
+    { title: 'Add a friend here', text: 'Type their account name or friend code and send a request, or share your own code. You can also right-click (or tap) anyone in the Ranking › Add friend. When they accept, come back to Friends to make them your Bestie.',
+      el: () => first(['.addf']), go: '#/friends', done: () => false, last: true },
+  ],
+};
+function coachUI() {
+  if (coach && coach.root) return coach.root;
+  const root = document.createElement('div'); root.className = 'coach';
+  root.innerHTML = '<div class="co-ring"></div><div class="co-tip" role="dialog" aria-live="polite"><small class="co-k"></small><b class="co-t"></b><p class="co-p"></p><div class="co-b"><button type="button" class="btn ghost sm co-skip">Skip</button><button type="button" class="btn acc sm co-go"></button></div></div>';
+  document.body.appendChild(root);
+  root.querySelector('.co-skip').addEventListener('click', () => endCoach(true));
+  root.querySelector('.co-go').addEventListener('click', () => { const st = coach && coach.steps[coach.i]; if (!st) return; sfx('tap'); if (st.last) { endCoach(false); return; } if (!route().startsWith(st.go)) location.hash = st.go; else { const el = st.el(); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); if (st.click) el.click(); } } });
+  coach.root = root; return root;
+}
+function endCoach(skipped) {
+  if (!coach) return; const k = coach.kind;
+  clearInterval(coach.t); if (coach.root) coach.root.remove(); coach = null;
+  g()['v23_' + k] = Date.now(); save(true);
+  if (!skipped) sfx('levelup');
+  if (k === 'gacha' && !g().v23_bestie) setTimeout(() => startTour('bestie'), 1500);
+}
+function coachTick() {
+  if (!coach) return; const st = coach.steps[coach.i]; if (!st) { endCoach(false); return; }
+  if (st.done()) { coach.i++; coach.seen = 0; sfx('ok'); if (coach.i >= coach.steps.length) { endCoach(false); return; } return; }
+  const root = coachUI(), el = blocked() ? null : st.el(), ring = root.querySelector('.co-ring'), tip = root.querySelector('.co-tip');
+  root.querySelector('.co-k').textContent = `${coach.kind === 'gacha' ? 'Lucky spin' : 'Bestie'} · step ${coach.i + 1} of ${coach.steps.length}`;
+  root.querySelector('.co-t').textContent = st.title; root.querySelector('.co-p').textContent = st.text;
+  const go = root.querySelector('.co-go'); go.textContent = st.last ? 'Got it' : route().startsWith(st.go) ? 'Show me' : 'Take me there';
+  root.classList.toggle('hide', !!document.querySelector('.gs, .player, .qz-stage, .du-stage, .adv-stage'));
+  if (el && vis(el)) {
+    coach.seen = (coach.seen || 0) + 1;
+    const r = el.getBoundingClientRect(), pad = 6;
+    ring.style.cssText = `display:block;left:${r.left - pad}px;top:${r.top - pad}px;width:${r.width + pad * 2}px;height:${r.height + pad * 2}px`;
+    const tw = Math.min(330, innerWidth - 24), th = tip.offsetHeight || 150;
+    let tx = Math.min(Math.max(12, r.left + r.width / 2 - tw / 2), innerWidth - tw - 12), ty = r.bottom + 14;
+    if (ty + th > innerHeight - 8) ty = r.top - th - 14; if (ty < 8) { ty = innerHeight - th - 16; }
+    tip.style.cssText = `left:${tx}px;top:${ty}px;width:${tw}px`;
+  } else {
+    ring.style.display = 'none';
+    const tw = Math.min(330, innerWidth - 24); tip.style.cssText = `left:${innerWidth - tw - 16}px;top:${innerHeight - (tip.offsetHeight || 150) - 16}px;width:${tw}px`;
+  }
+}
+// kind: 'gacha' | 'bestie'; force = true khi người dùng tự bấm (vd. từ bảng "What's new")
+export function startTour(kind, force) {
+  if (!acct || !TOURS[kind]) return;
+  if (!force && g()['v23_' + kind]) return;
+  if (cur >= 0) return;
+  if (coach) { if (coach.kind === kind) return; clearInterval(coach.t); if (coach.root) coach.root.remove(); coach = null; }
+  if (hintEl) { hintEl.remove(); hintEl = null; hintOn = null; }
+  coach = { kind, steps: TOURS[kind](), i: 0, t: 0, root: null, seen: 0 };
+  coach.t = setInterval(coachTick, 300); coachTick();
+}
+// tự chạy một lần sau cập nhật, khi không có bảng nào đang mở
+let v23T = 0;
+function v23() {
+  if (v23T || coach || !acct) return;
+  v23T = setTimeout(function chk() {
+    v23T = 0; if (!acct || coach || cur >= 0) return;
+    if (g().v23_gacha && g().v23_bestie) return;
+    const newsOk = (() => { try { return localStorage.getItem('dcl_news_23') === '1'; } catch (e) { return true; } })();
+    if (!newsOk || blocked() || document.querySelector('.sheet, .ovl, .gs, .bmiss')) { v23T = setTimeout(chk, 4000); return; }
+    startTour(g().v23_gacha ? 'bestie' : 'gacha');
+  }, 3500);
 }

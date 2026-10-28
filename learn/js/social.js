@@ -1,13 +1,15 @@
 // Học cùng nhau: bạn bè, lớp học (giáo viên / trợ giảng / học viên), quiz trực tiếp kiểu “nhập PIN cùng chơi” và báo cáo.
 // Mọi dữ liệu đi qua các hàm RPC trên Supabase (xem learn/setup/learn_social.sql).
-import { I } from './icons.js?v=25';
-import { S, save, LN, unitProgress } from './store.js?v=25';
-import { acct, call, rpc, ensureToken } from './account.js?v=25';
-import { sfx, unlockAudio } from './sound.js?v=25';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=25';
-import * as hub from './hub.js?v=25';
-import * as chat from './chat.js?v=25';
-import * as walls from './walls.js?v=25';
+import { I } from './icons.js?v=26';
+import { S, save, LN, unitProgress } from './store.js?v=26';
+import { acct, call, rpc, ensureToken } from './account.js?v=26';
+import { sfx, unlockAudio } from './sound.js?v=26';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=26';
+import * as hub from './hub.js?v=26';
+import * as chat from './chat.js?v=26';
+import * as walls from './walls.js?v=26';
+import * as bestie from './bestie.js?v=26';
+import * as ctxm from './ctx.js?v=26';
 
 let C = null; // ngữ cảnh từ app.js
 export const counts = { get requests() { return hub.hub.requests || 0; }, set requests(v) { hub.hub.requests = v; }, rooms: 0 };
@@ -67,8 +69,9 @@ export async function friendsPage(args = []) {
     try { const j = await call('learn_friend_request', { p_who: code }); toast(j.ok ? (j.accepted ? 'You are now friends!' : 'Friend request sent') : errMsg(j)); } catch (e) { toast(e.message); }
   }
   loading(route, 'Friends');
-  let d; try { d = await call('learn_friends_list'); } catch (e) { return failed(route, 'Friends', e); }
-  if (location.hash.split('/')[1] !== 'friends') return;
+  let d, G; try { [d, G] = await Promise.all([call('learn_friends_list'), call('learn_group_list').catch(() => ({ items: [] })), bestie.load(true)]); } catch (e) { return failed(route, 'Friends', e); }
+  const groups = (G && G.items) || [];
+  if (!/^(friends|bestie)/.test(location.hash.split('/')[1] || '')) return;
   const items = d.items || [], me = d.me || {};
   const fr = items.filter((x) => x.status === 'accepted'), inc = items.filter((x) => x.incoming), out = items.filter((x) => x.status === 'pending' && !x.incoming);
   counts.requests = inc.length;
@@ -76,14 +79,15 @@ export async function friendsPage(args = []) {
   const val = (x) => lbMode === 'week' ? x.week_xp || 0 : lbMode === 'xp' ? (x.sum && x.sum.xp) || 0 : lbMode === 'streak' ? (x.sum && x.sum.streak) || 0 : (x.sum && x.sum.units) || 0;
   const unitLbl = { week: 'XP this week', xp: 'XP total', streak: 'day streak', units: 'units done' }[lbMode];
   const board = [...fr.map((x) => ({ ...x })), { ...me, me: true }].sort((a, b) => val(b) - val(a));
-  C.shell(route, `<div class="page-h"><div><h1 class="serif">Friends</h1><p>Study together. Friends see each other’s streak, XP and level — nothing else.</p></div></div>
+  C.shell(route, `<div class="page-h"><div><h1 class="serif">Friends</h1><p>Study together. Friends see each other’s streak, XP and level — nothing else. Right-click (or tap) a name for profile, message, duel and more.</p></div></div>
+  ${bestie.sectionHTML(items.filter((x) => x.status === 'accepted'))}
   <section class="panel fr-me">${vipAv(me.name, me.avatar, me.vip || 0, 'lg')}<div class="grow"><b style="font-size:1.1rem">${esc(me.name)}</b><small class="muted" style="display:block">Share your code or link so friends can add you</small></div>
     <span class="fr-code"><b>${esc(me.code || '')}</b><button class="icon-btn cp-code" type="button" title="Copy code">${I.copy}</button></span><button class="btn sm ghost cp-link" type="button">${I.link} Copy invite link</button></section>
   <div class="layout-in" style="display:grid;gap:14px;margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
     <section class="panel pad">
       <h3 class="sec-h">${I.chart} Leaderboard <em>${unitLbl}</em></h3>
       <div class="seg lb-mode" style="margin-bottom:12px">${[['week', 'This week'], ['xp', 'Total XP'], ['streak', 'Streak'], ['units', 'Units']].map(([k, l]) => `<button type="button" data-m="${k}" aria-pressed="${lbMode === k}">${l}</button>`).join('')}</div>
-      <div class="lb">${board.map((x, i) => `<div class="lb-row ${x.me ? 'me' : ''}"><span class="lb-rank ${i < 3 ? 'top t' + (i + 1) : ''}">${i + 1}</span>${vipAv(x.name, x.avatar, x.vip || 0)}<span class="lb-n"><b>${esc(x.name)}${x.me ? ' (you)' : ''}${!x.me && online(x.last_seen) ? '<i class="online" title="Online now"></i>' : ''}</b><small>${x.sum ? `${esc(levelLabel(x.sum))} · ${x.me ? 'now' : 'seen ' + ago(x.last_seen)}` : ''}</small></span><span class="lb-v">${val(x)}<small>${esc(unitLbl)}</small></span></div>`).join('')}</div>
+      <div class="lb">${board.map((x, i) => `<div class="lb-row ${x.me ? 'me' : ''}" data-u="${x.uid}"><span class="lb-rank ${i < 3 ? 'top t' + (i + 1) : ''}">${i + 1}</span>${vipAv(x.name, x.avatar, x.vip || 0)}<span class="lb-n"><b>${esc(x.name)}${x.me ? ' (you)' : ''}${!x.me && online(x.last_seen) ? '<i class="online" title="Online now"></i>' : ''}</b><small>${x.sum ? `${esc(levelLabel(x.sum))} · ${x.me ? 'now' : 'seen ' + ago(x.last_seen)}` : ''}</small></span><span class="lb-v">${val(x)}<small>${esc(unitLbl)}</small></span></div>`).join('')}</div>
       ${fr.length ? '' : '<p class="muted" style="margin-top:12px;font-size:.88rem">Add a friend to start a friendly race. The board resets every Monday.</p>'}
     </section>
     <div style="display:grid;gap:14px;align-content:start">
@@ -92,9 +96,10 @@ export async function friendsPage(args = []) {
         <form class="addf" style="display:flex;gap:8px" novalidate><input class="input who" placeholder="Friend code or exact name" maxlength="24" autocomplete="off" /><button class="btn acc" type="submit">Add</button></form>
         <p class="err addf-err" style="margin-top:6px"></p>
       </section>
+      ${groupsHTML(groups, fr)}
       ${inc.length ? `<section class="panel pad"><h3 class="sec-h">${I.users} Requests <em>${inc.length}</em></h3><div class="list">${inc.map((x) => `<div class="req-row">${avatar(x.name, x.avatar)}<span class="grow"><b>${esc(x.name)}</b><small class="muted">wants to be friends · ${ago(x.since)}</small></span><button class="btn sm acc fr-ok" data-u="${x.uid}" type="button">Accept</button><button class="icon-btn fr-no" data-u="${x.uid}" type="button" title="Decline">${I.x}</button></div>`).join('')}</div></section>` : ''}
       <section class="panel pad"><h3 class="sec-h">${I.users} Friends <em>${fr.length}</em></h3>
-        ${fr.length ? `<div class="list">${fr.map((x) => `<div class="row">${vipAv(x.name, x.avatar, x.vip || 0)}<span class="grow"><b>${esc(x.name)}${online(x.last_seen) ? '<i class="online"></i>' : ''}</b><small>${x.vip ? `VIP ${x.vip} · ` : ''}${esc(levelLabel(x.sum))} · ${x.sum.streak} day streak · ${x.walls || 0}/${walls.total()} wallpapers</small></span><a class="icon-btn" href="#/duel/new/${x.uid}" title="Challenge to a duel">${I.swords}</a><button class="icon-btn fr-gift" type="button" title="Share a wallpaper">${I.gift}</button><button class="icon-btn fr-rm" data-u="${x.uid}" data-n="${esc(x.name)}" type="button" title="Remove friend">${I.trash}</button></div>`).join('')}</div>` : '<p class="muted" style="font-size:.9rem">No friends yet. Share your code above.</p>'}
+        ${fr.length ? `<div class="list">${fr.map((x) => `<div class="row fr-row" data-u="${x.uid}">${vipAv(x.name, x.avatar, x.vip || 0)}<span class="grow"><b>${esc(x.name)}${online(x.last_seen) ? '<i class="online"></i>' : ''}${bestie.B.brief && bestie.B.brief.uid === x.uid ? ` <span class="tag-s bf">${I.heart} Bestie</span>` : ''}</b><small>${x.vip ? `VIP ${x.vip} · ` : ''}${esc(levelLabel(x.sum))} · ${x.sum.streak} day streak · ${x.walls || 0}/${walls.total()} wallpapers</small></span><button class="icon-btn fr-more" type="button" title="More: profile, message, duel, Bestie">${I.more}</button><button class="icon-btn fr-rm" data-u="${x.uid}" data-n="${esc(x.name)}" type="button" title="Remove friend">${I.trash}</button></div>`).join('')}</div>` : '<p class="muted" style="font-size:.9rem">No friends yet. Share your code above, or tap a name in the Ranking.</p>'}
         ${out.length ? `<h3 class="sec-h" style="margin-top:14px">Sent requests</h3><div class="list">${out.map((x) => `<div class="row">${avatar(x.name, x.avatar)}<span class="grow"><b>${esc(x.name)}</b><small>waiting · ${ago(x.since)}</small></span><button class="btn sm ghost fr-no" data-u="${x.uid}" type="button">Cancel</button></div>`).join('')}</div>` : ''}
       </section>
     </div>
@@ -109,9 +114,68 @@ export async function friendsPage(args = []) {
   });
   app.querySelectorAll('.fr-ok').forEach((b) => b.addEventListener('click', async () => { try { await call('learn_friend_respond', { p_uid: +b.dataset.u, p_accept: true }); sfx('ok'); toast('Friend added'); hub.poll(); friendsPage(); } catch (e) { toast(e.message); } }));
   app.querySelectorAll('.fr-no').forEach((b) => b.addEventListener('click', async () => { try { await call('learn_friend_respond', { p_uid: +b.dataset.u, p_accept: false }); hub.poll(); friendsPage(); } catch (e) { toast(e.message); } }));
-  app.querySelectorAll('.fr-gift').forEach((b) => b.addEventListener('click', () => walls.shareSheet()));
+  ctxm.attach(app, '.fr-row', (row) => { const x = fr.find((f) => String(f.uid) === row.dataset.u); return x ? { uid: x.uid, name: x.name, avatar: x.avatar, vip: x.vip, rel: 'friend', last_seen: x.last_seen } : null; });
+  ctxm.attach(app, '.lb-row[data-u]', (row) => { const x = board.find((f) => String(f.uid) === row.dataset.u); return x ? { uid: x.uid, name: x.name, avatar: x.avatar, vip: x.vip, rel: x.me ? 'me' : 'friend', last_seen: x.last_seen } : null; });
+  bestie.wireSection(app, () => friendsPage(['bestie']));
+  wireGroups(app, groups, fr);
+  if (args[0] === 'bestie' || location.hash.startsWith('#/bestie')) { const b = app.querySelector('[data-bst]'); if (b) setTimeout(() => b.scrollIntoView({ block: 'start', behavior: 'smooth' }), 150); }
   hub.hub.friends = d; hub.hub.fAt = Date.now(); hub.renderRail();
   app.querySelectorAll('.fr-rm').forEach((b) => b.addEventListener('click', async () => { if (!(await confirmBox('Remove friend?', `${b.dataset.n} will no longer see your progress.`, 'Remove', true))) return; try { await call('learn_friend_respond', { p_uid: +b.dataset.u, p_accept: false }); friendsPage(); } catch (e) { toast(e.message); } }));
+}
+/* ---------- v23: nhóm bạn bè + quiz nhanh (thành viên tự vào phòng chờ) ---------- */
+function groupsHTML(groups, fr) {
+  return `<section class="panel pad grp"><h3 class="sec-h">${I.users} Groups <em>${groups.length}</em><button class="btn sm ghost grp-new" type="button" ${fr.length ? '' : 'disabled title="Add friends first"'}>${I.plus} New group</button></h3>
+    ${groups.length ? `<div class="list">${groups.map((g) => `<div class="grp-i" data-g="${g.id}"><div class="grp-h"><b>${esc(g.name)}</b><small>${g.members.length} member${g.members.length === 1 ? '' : 's'} · ${g.members.filter((m) => online(m.last_seen)).length} online</small></div>
+      <div class="grp-av">${g.members.slice(0, 10).map((m) => `<span title="${esc(m.name)}" class="${online(m.last_seen) ? 'on' : ''}">${vipAv(m.name, m.avatar, m.vip || 0)}</span>`).join('')}</div>
+      <div class="grp-acts"><button class="btn sm acc grp-quiz" type="button">${I.zap} Quick quiz</button>${g.mine ? `<button class="btn sm ghost grp-edit" type="button">${I.edit} Edit</button>` : ''}<button class="btn sm ghost grp-leave" type="button">${g.mine ? 'Delete' : 'Leave'}</button></div></div>`).join('')}</div>`
+      : `<p class="muted" style="font-size:.9rem">${fr.length ? 'Put friends in a group, then start a quick quiz: everyone in the group who is online joins automatically.' : 'Add friends first, then put them in groups.'}</p>`}</section>`;
+}
+function groupSheet(g, fr, done) {
+  const on = new Set(g ? g.members.map((m) => m.uid) : []);
+  sheet(`<h2>${g ? 'Edit group' : 'New group'}</h2><p class="sub">Pick friends for this group (up to 29).</p>
+    <div class="field"><label for="gn">Group name</label><input class="input" id="gn" maxlength="40" value="${esc(g ? g.name : '')}" placeholder="e.g. Office English club"></div>
+    <div class="list grp-pick">${fr.map((f) => `<label class="row"><input type="checkbox" value="${f.uid}" ${on.has(f.uid) ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--acc)">${vipAv(f.name, f.avatar, f.vip || 0)}<span class="grow"><b>${esc(f.name)}</b></span></label>`).join('')}</div>
+    <p class="err"></p><button class="btn acc wide grp-save" type="button">Save group</button>`, (el, close) => {
+    el.querySelector('.grp-save').addEventListener('click', async () => {
+      const name = el.querySelector('#gn').value.trim(), ids = [...el.querySelectorAll('.grp-pick input:checked')].map((x) => +x.value), err = el.querySelector('.err');
+      if (!name) { err.textContent = 'Give the group a name.'; return; }
+      try { const j = await call('learn_group_save', { p_id: g ? g.id : null, p_name: name, p_members: ids }); if (!j.ok) { err.textContent = { toomany: 'Up to 29 friends per group.', limit: 'You can own up to 20 groups.', notowner: 'Only the group owner can edit it.' }[j.error] || j.error; return; } sfx('ok'); close(); done(); } catch (e) { err.textContent = e.message; }
+    });
+  });
+}
+async function quickQuiz(g) {
+  try { await bank(); } catch (e) { toast('Could not load questions'); return; }
+  const ids = shuffleArr(BANK.topics.map((t) => t.id)).slice(0, 3);
+  let questions = fromTopics(ids, 10);
+  try { const c = await C.course(S.lang), L = c.levels.find((x) => x.id === S.level[S.lang]) || c.levels[0]; const us = L.units.filter((u) => unitProgress(u.id) > 0); questions = shuffleArr([...questions.slice(0, 6), ...buildQuestions(S.lang, us.length ? us : L.units.slice(0, 3), { words: true, grammar: true, reading: false }, 4)]); } catch (e) {}
+  const settings = { ...lastSetup, time: 20, points: 'standard', speed: true, streak: true, show_q: true, shuffle: false, guests: false, late: true };
+  try {
+    const j = await call('learn_group_quiz', { p_id: g.id, p_title: `${g.name} quick quiz`, p_questions: questions, p_settings: settings });
+    if (!j.ok) { toast(errMsg(j)); return; }
+    sfx('levelup'); toast(`${j.invited} member${j.invited === 1 ? '' : 's'} invited. Online members join automatically.`);
+    location.hash = '#/host/' + j.host_key;
+  } catch (e) { toast(e.message); }
+}
+function wireGroups(root, groups, fr) {
+  const nb = root.querySelector('.grp-new'); if (nb) nb.addEventListener('click', () => groupSheet(null, fr, () => friendsPage()));
+  root.querySelectorAll('.grp-i').forEach((el) => {
+    const g = groups.find((x) => x.id === +el.dataset.g); if (!g) return;
+    el.querySelector('.grp-quiz').addEventListener('click', (e) => { e.currentTarget.disabled = true; quickQuiz(g); });
+    const ed = el.querySelector('.grp-edit'); if (ed) ed.addEventListener('click', () => groupSheet(g, fr, () => friendsPage()));
+    el.querySelector('.grp-leave').addEventListener('click', async () => { if (!(await confirmBox(g.mine ? `Delete “${g.name}”?` : `Leave “${g.name}”?`, g.mine ? 'The group is removed for everyone.' : 'You can be added again later.', g.mine ? 'Delete' : 'Leave', true))) return; try { await call('learn_group_leave', { p_id: g.id }); friendsPage(); } catch (e) { toast(e.message); } });
+  });
+}
+// quiz nhóm: tự vào phòng chờ với tên tài khoản
+export async function autoJoin(gq) {
+  if (!acct || !gq || !gq.pin) return;
+  let tok = null; try { tok = await ensureToken(); } catch (e) {}
+  let nick = acct.name.slice(0, 20), j = null;
+  for (let k = 0; k < 3; k++) { try { j = await rpc('learn_quiz_join', { p_pin: gq.pin, p_nick: nick, p_token: tok }); } catch (e) { break; } if (j && j.ok) break; if (j && j.error === 'nicktaken') nick = (acct.name.slice(0, 17) + ' ' + (k + 2)); else break; }
+  if (!j || !j.ok) { toast(`${gq.host || 'A friend'} started a group quiz · PIN ${gq.pin}`); return; }
+  setPKey(gq.pin, { pkey: j.pkey, nick: j.nick }); sfx('levelup');
+  toast(`Joining ${gq.host || 'your group'}’s quiz in ${gq.gname || 'your group'}…`);
+  document.getElementById('sheet-root').innerHTML = '';
+  location.hash = '#/play/' + gq.pin;
 }
 function levelLabel(sum) {
   if (!sum) return '';
@@ -177,6 +241,7 @@ export async function classPage(id, tab = 'stream') {
   if (!location.hash.startsWith('#/class/' + id)) return;
   if (!d.ok) { C.shell(route, `<div class="panel empty"><span class="e-ic">${I.lock}</span><h2>${esc(errMsg(d))}</h2><a class="btn acc" href="#/classes">Back to classes</a></div>`, null, { noCourse: true }); return; }
   roomCache = d;
+  bestie.checkHere('room', id).catch(() => {});
   const r = d.room, role = d.role, staff = role !== 'student', isOwner = r.owner === d.me;
   const students = d.members.filter((m) => m.role === 'student');
   const tabs = [['stream', 'Stream', 'flag'], ['chat', 'Chat', 'chat'], ['tasks', 'Assignments', 'list'], ['members', 'People', 'users'], ['quizzes', 'Quizzes', 'zap'], ...(staff ? [['report', 'Report', 'chart']] : [])];
@@ -587,7 +652,7 @@ export async function hostPage(key) {
         : `<div class="lb-empty"><span class="lb-dots"><i></i><i></i><i></i></span><p>Players appear here as soon as they enter the PIN.</p></div>`}
       </section>
     </div>`;
-    if (!qrMod) import('./qr.js?v=25').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
+    if (!qrMod) import('./qr.js?v=26').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
     const cp = inner.querySelector('.lb-copy');
     cp.addEventListener('click', async () => { await copyText(link, 'Join link copied'); cp.classList.add('done'); cp.querySelector('span').textContent = 'Copied'; setTimeout(() => { cp.classList.remove('done'); cp.querySelector('span').textContent = 'Copy join link'; }, 1600); });
     inner.querySelector('.lb-lock').addEventListener('click', () => doAct('lock'));
@@ -755,6 +820,8 @@ function playStage(pin, me) {
   const cleanupPolls = () => { timers.forEach((t) => { clearInterval(t); clearTimeout(t); }); timers.clear(); };
   const poll = async () => { try { const j = await rpc('learn_quiz_play_state', { p_pin: pin, p_pkey: me.pkey }); if (document.querySelector('.qz-stage')) apply(j); } catch (e) {} };
   poll(); every(poll, 1000);
+  // v23: Bestie cùng ở trong quiz → hiệu ứng ~2 giây (hỏi lại vài lần trong phòng chờ)
+  if (acct) { let tries = 0; const bq = async () => { if (!document.querySelector('.qz-stage') || tries++ > 24) return; if (await bestie.checkHere('quiz', pin)) return; if (phase === 'lobby' || !phase) later(bq, 5000); }; later(bq, 1500); }
   every(() => {
     if (!st) return;
     if (phase === 'count') { const s = Math.ceil(-(base + (performance.now() - baseAt)) / 1000); const cd = inner.querySelector('.countdown'); if (cd && s > 0 && cd.textContent !== String(s)) { cd.textContent = s; cd.style.animation = 'none'; void cd.offsetWidth; cd.style.animation = ''; } if (s <= 0) poll(); return; }

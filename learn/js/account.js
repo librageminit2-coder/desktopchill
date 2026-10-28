@@ -1,6 +1,6 @@
 // Tài khoản đơn giản: tên + mã PIN. Tiến trình lưu lên Supabase qua các hàm RPC.
 // Sau khi đăng nhập, máy chủ cấp một "token phiên" để dùng cho bạn bè, lớp học và quiz (không gửi PIN mỗi lần).
-import { S, onSave, replace } from './store.js?v=25';
+import { S, onSave, replace } from './store.js?v=26';
 const URL = 'https://phcmbgaozkaibqsttonc.supabase.co/rest/v1/rpc/';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoY21iZ2FvemthaWJxc3R0b25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODk3NTgsImV4cCI6MjEwNDk2NTc1OH0.Hvs0Gxebog5gcKILnSdT3g6nz6-GI0CEepmMJM0gCxo';
 const AKEY = 'dcl_account';
@@ -112,7 +112,9 @@ export async function push() {
   if (busy) { again = true; return; }
   busy = true; sync.state = 'saving'; emit();
   try {
-    const j = await rpc('learn_save', { p_name: acct.name, p_pin: acct.pin, p_data: S });
+    // v23: lưu bằng token phiên (nhẹ cho máy chủ); máy chủ cũ chưa có learn_save2 thì dùng cách cũ
+    let j = null;
+    try { j = await call('learn_save2', { p_data: S }); } catch (e) { if (/not ready/.test(e.message)) j = await rpc('learn_save', { p_name: acct.name, p_pin: acct.pin, p_data: S }); else throw e; }
     if (j && j.ok) { sync.state = 'ok'; sync.at = Date.now(); } else sync.state = 'err';
   } catch (e) { sync.state = 'err'; }
   busy = false; emit();
