@@ -2,7 +2,7 @@ import { I, LOGO } from './icons.js?v=26';
 import { sound, sfx, unlockAudio } from './sound.js?v=26';
 import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=26';
 import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=26';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call } from './account.js?v=26';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=26';
 import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=26';
 import * as social from './social.js?v=26';
 import { setVideo, setBg } from './scene.js?v=26';
@@ -638,6 +638,7 @@ async function home() {
   checkBadges();
 }
 function start(c, uid, k) {
+  pull(); // v23: lấy tiến độ mới nhất từ máy khác trước khi học
   if (!canStart(c, uid, k)) { toast('Lessons open one by one. Finish the glowing lesson first.'); return; }
   unlockAudio();
   const { u } = findUnit(c, uid);
@@ -1028,6 +1029,7 @@ async function welcome() {
 
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
+  pull();
   const before = questDone(), lv0 = playerLevel().lv;
   import('./lesson.js?v=26').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
@@ -1087,6 +1089,13 @@ const boot = walls.loadCat().catch(() => {});
 window.addEventListener('hashchange', render);
 onSync(() => { const el = document.querySelector('.sync'); if (el) el.textContent = `Level ${playerLevel().lv} · ${syncText()}`; });
 document.addEventListener('pointerdown', unlockAudio, { once: true });
+// v23: dữ liệu học từ máy khác vừa được gộp vào → vẽ lại trang (trừ khi đang học / chơi / mở bảng)
+onPulled(() => {
+  applySettings();
+  if (document.querySelector('.player, .qz-stage, .du-stage, .adv-stage, .ovl, .sheet, .gs') || document.body.classList.contains('quizzing')) return;
+  render();
+});
+if (acct) pull(true);
 boot.then(() => {
   render();
   setTimeout(() => { const r = location.hash || '#/'; if (!r.startsWith('#/play') && !r.startsWith('#/host')) hub.whatsNew(); }, 1400);

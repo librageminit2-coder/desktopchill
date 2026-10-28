@@ -1382,6 +1382,114 @@ create or replace function learn_adv_pending(p_uid bigint) returns jsonb languag
 $$;
 
 
+-- ============ 15. đồng bộ nhiều máy: GỘP dữ liệu học thay vì ghi đè ============
+-- Trước đây mỗi lần lưu, máy nào gửi lên cũng ghi đè cả khối dữ liệu → điện thoại còn bản cũ có thể xoá tiến độ vừa học trên máy tính.
+-- Nay máy chủ gộp: bài đã học / sao / rương / hình / huy hiệu lấy phần lớn hơn hoặc hợp lại; XP cộng phần XP theo ngày mà máy kia chưa có;
+-- cài đặt (khoá học đang chọn, nền, …) theo bản sửa sau cùng. learn_save2 trả lại bản đã gộp để máy cập nhật.
+create or replace function learn_jmax(a jsonb, b jsonb) returns jsonb language sql immutable as $$
+  select case when jsonb_typeof(a) = 'number' and jsonb_typeof(b) = 'number' then case when a::numeric >= b::numeric then a else b end
+    when jsonb_typeof(a) = 'number' and jsonb_typeof(b) is distinct from 'number' then a
+    when jsonb_typeof(b) = 'number' and jsonb_typeof(a) is distinct from 'number' then b
+    when jsonb_typeof(a) = 'string' and jsonb_typeof(b) = 'string' then case when (a #>> '{}') >= (b #>> '{}') then a else b end
+    else coalesce(b, a) end
+$$;
+create or replace function learn_jobj(a jsonb) returns jsonb language sql immutable as $$ select case when jsonb_typeof(a) = 'object' then a else '{}'::jsonb end $$;
+create or replace function learn_jobj_max(a jsonb, b jsonb) returns jsonb language sql immutable as $$
+  select coalesce(jsonb_object_agg(k, learn_jmax(learn_jobj(a)->k, learn_jobj(b)->k)), '{}'::jsonb)
+  from (select jsonb_object_keys(learn_jobj(a)) k union select jsonb_object_keys(learn_jobj(b))) t
+$$;
+create or replace function learn_jarr_max(a jsonb, b jsonb) returns jsonb language sql immutable as $$
+  select case when jsonb_typeof(a) is distinct from 'array' then b when jsonb_typeof(b) is distinct from 'array' then a
+    else (select coalesce(jsonb_agg(learn_jmax(a->i, b->i) order by i), '[]'::jsonb) from generate_series(0, greatest(jsonb_array_length(a), jsonb_array_length(b)) - 1) i) end
+$$;
+create or replace function learn_jobj_arrmax(a jsonb, b jsonb) returns jsonb language sql immutable as $$
+  select coalesce(jsonb_object_agg(k, learn_jarr_max(learn_jobj(a)->k, learn_jobj(b)->k)), '{}'::jsonb)
+  from (select jsonb_object_keys(learn_jobj(a)) k union select jsonb_object_keys(learn_jobj(b))) t
+$$;
+-- thẻ ôn từ: giữ thẻ đã ôn nhiều lần hơn, bằng nhau thì thẻ có hạn ôn muộn hơn
+create or replace function learn_jobj_srs(a jsonb, b jsonb) returns jsonb language sql immutable as $$
+  select coalesce(jsonb_object_agg(k, case when x is null then y when y is null then x
+      when coalesce((x->>'r')::numeric, 0) > coalesce((y->>'r')::numeric, 0) then x
+      when coalesce((x->>'r')::numeric, 0) < coalesce((y->>'r')::numeric, 0) then y
+      when coalesce((x->>'d')::numeric, 0) >= coalesce((y->>'d')::numeric, 0) then x else y end), '{}'::jsonb)
+  from (select k, learn_jobj(a)->k x, learn_jobj(b)->k y from (select jsonb_object_keys(learn_jobj(a)) k union select jsonb_object_keys(learn_jobj(b))) t) z
+$$;
+-- XP: lấy tổng của một bên + phần XP theo ngày mà bên kia có thêm
+create or replace function learn_xp_merge(o jsonb, n jsonb) returns jsonb language sql immutable as $$
+  with d as (select k, coalesce((learn_jobj(o->'days')->>k)::numeric, 0) a, coalesce((learn_jobj(n->'days')->>k)::numeric, 0) b
+    from (select jsonb_object_keys(learn_jobj(o->'days')) k union select jsonb_object_keys(learn_jobj(n->'days'))) t)
+  select to_jsonb(greatest(coalesce((o->>'xp')::numeric, 0) + coalesce((select sum(greatest(0, b - a)) from d), 0),
+                           coalesce((n->>'xp')::numeric, 0) + coalesce((select sum(greatest(0, a - b)) from d), 0)))
+$$;
+create or replace function learn_data_merge(o jsonb, n jsonb) returns jsonb language plpgsql immutable as $$
+declare ob jsonb := learn_jobj(o); base jsonb; r jsonb; nu boolean; so text; sn text;
+begin
+  if jsonb_typeof(n) is distinct from 'object' then return o; end if;
+  if ob = '{}'::jsonb then return n; end if;
+  nu := coalesce((n->>'updated')::numeric, 0) >= coalesce((ob->>'updated')::numeric, 0);
+  base := case when nu then ob || n else n || ob end;
+  so := coalesce(ob->'streak'->>'last', ''); sn := coalesce(n->'streak'->>'last', '');
+  r := base || jsonb_build_object(
+    'updated', learn_jmax(ob->'updated', n->'updated'),
+    'done', learn_jobj_arrmax(ob->'done', n->'done'),
+    'stars', learn_jobj_arrmax(ob->'stars', n->'stars'),
+    'xp', learn_xp_merge(ob, n),
+    'days', learn_jobj_max(ob->'days', n->'days'),
+    'srs', learn_jobj_srs(ob->'srs', n->'srs'),
+    'counts', learn_jobj_max(ob->'counts', n->'counts'),
+    'best', learn_jobj_max(ob->'best', n->'best'),
+    'wclaims', learn_jobj_max(ob->'wclaims', n->'wclaims'),
+    'bossStars', learn_jobj_max(ob->'bossStars', n->'bossStars'),
+    'walls', learn_jobj(ob->'walls') || learn_jobj(n->'walls'),
+    'chests', learn_jobj(ob->'chests') || learn_jobj(n->'chests'),
+    'boss', learn_jobj(ob->'boss') || learn_jobj(n->'boss'),
+    'badges', learn_jobj(ob->'badges') || learn_jobj(n->'badges'),
+    'guide', learn_jobj(ob->'guide') || learn_jobj(n->'guide'),
+    'minutes', learn_jmax(ob->'minutes', n->'minutes'),
+    'vipSeen', learn_jmax(ob->'vipSeen', n->'vipSeen'),
+    'dchest', learn_jmax(ob->'dchest', n->'dchest'),
+    'onboarded', to_jsonb(coalesce((ob->>'onboarded')::boolean, false) or coalesce((n->>'onboarded')::boolean, false)),
+    'streak', case when so > sn then ob->'streak' when so < sn then n->'streak' else learn_jobj_max(ob->'streak', n->'streak') end,
+    'daily', case when coalesce(ob->'daily'->>'d', '') > coalesce(n->'daily'->>'d', '') then ob->'daily'
+                  when coalesce(ob->'daily'->>'d', '') < coalesce(n->'daily'->>'d', '') then n->'daily' else learn_jobj_max(ob->'daily', n->'daily') end,
+    -- mốc thu hồi theo máy gửi lên: máy chưa áp thì máy chủ áp lại trên bản đã gộp
+    'fix', coalesce(n->'fix', '{}'::jsonb));
+  r := r || jsonb_build_object('words', to_jsonb((select count(*) from jsonb_object_keys(learn_jobj(r->'srs')))));
+  return jsonb_strip_nulls(r);
+exception when others then return n;
+end $$;
+
+create or replace function learn_save2(p_token text, p_data jsonb) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare uid bigint := learn_uid(p_token); d jsonb := p_data; o jsonb;
+begin
+  if d is null or jsonb_typeof(d) is distinct from 'object' then return jsonb_build_object('ok', false, 'error', 'bad'); end if;
+  if pg_column_size(d) > 300000 then return jsonb_build_object('ok', false, 'error', 'toobig'); end if;
+  select data into o from learn_users where id = uid for update;
+  d := learn_data_merge(o, d);
+  if pg_column_size(d) > 400000 then d := p_data; end if;
+  d := learn_revoke_apply(uid, d);
+  update learn_users set data = d, updated_at = now() where id = uid;
+  return jsonb_build_object('ok', true, 'rv', d->'fix'->'rv', 'data', d);
+end $$;
+-- bản cũ (máy còn chạy giao diện cũ) cũng gộp, không ghi đè
+create or replace function learn_save(p_name text, p_pin text, p_data jsonb)
+returns jsonb language plpgsql security definer set search_path = public, extensions as $$
+declare k text := lower(btrim(p_name)); e text; uid bigint; o jsonb; d jsonb;
+begin
+  if pg_column_size(p_data) > 300000 then return jsonb_build_object('ok', false, 'error', 'toobig'); end if;
+  e := learn_check(k, p_pin);
+  if e is not null then return jsonb_build_object('ok', false, 'error', e); end if;
+  select id, data into uid, o from learn_users where name_key = k for update;
+  d := learn_data_merge(o, p_data);
+  if pg_column_size(d) > 400000 then d := p_data; end if;
+  update learn_users set data = learn_revoke_apply(uid, d), updated_at = now() where id = uid;
+  return jsonb_build_object('ok', true);
+end $$;
+grant execute on function learn_save2(text, jsonb) to anon, authenticated;
+grant execute on function learn_save(text, text, jsonb) to anon, authenticated;
+
+
 -- ============ quyền (Bestie + Vượt ải) ============
 revoke all on learn_besties, learn_bestie_passes, learn_fx_catalog, learn_fx_owned, learn_adv_sessions, learn_adv_progress from anon, authenticated;
 revoke execute on function learn_bestie_row(bigint), learn_bestie_id(bigint), learn_today_vn(), learn_studied_today(learn_users), learn_bestie_mult(bigint), learn_fx_has(bigint, text),

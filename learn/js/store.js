@@ -74,6 +74,47 @@ export function applyRevoke(rv) {
   return true;
 }
 export function replace(obj) { S = merge(fresh(), obj || {}); fixLevel(); save(true); }
+
+/* ---------- v23: gộp dữ liệu của 2 máy (giống learn_data_merge trên máy chủ) ---------- */
+const isObj = (x) => x && typeof x === 'object' && !Array.isArray(x);
+const o_ = (x) => (isObj(x) ? x : {});
+const mx = (a, b) => (typeof a === 'number' && typeof b === 'number' ? Math.max(a, b) : typeof a === 'number' && typeof b !== 'number' ? a : typeof b === 'number' && typeof a !== 'number' ? b : typeof a === 'string' && typeof b === 'string' ? (a >= b ? a : b) : b ?? a);
+const keys2 = (a, b) => [...new Set([...Object.keys(o_(a)), ...Object.keys(o_(b))])];
+const objMax = (a, b) => { const r = {}; keys2(a, b).forEach((k) => { r[k] = mx(o_(a)[k], o_(b)[k]); }); return r; };
+const arrMax = (a, b) => (!Array.isArray(a) ? b : !Array.isArray(b) ? a : Array.from({ length: Math.max(a.length, b.length) }, (_, i) => mx(a[i], b[i])));
+const objArrMax = (a, b) => { const r = {}; keys2(a, b).forEach((k) => { r[k] = arrMax(o_(a)[k], o_(b)[k]); }); return r; };
+const srsMerge = (a, b) => { const r = {}; keys2(a, b).forEach((k) => { const x = o_(a)[k], y = o_(b)[k]; r[k] = !x ? y : !y ? x : (x.r || 0) !== (y.r || 0) ? ((x.r || 0) > (y.r || 0) ? x : y) : (x.d || 0) >= (y.d || 0) ? x : y; }); return r; };
+export function mergeData(o, n) {
+  if (!isObj(n)) return o; if (!isObj(o) || !Object.keys(o).length) return n;
+  const nu = (n.updated || 0) >= (o.updated || 0), r = nu ? { ...o, ...n } : { ...n, ...o };
+  const dO = o_(o.days), dN = o_(n.days); let plusN = 0, plusO = 0;
+  keys2(dO, dN).forEach((k) => { const a = +dO[k] || 0, b = +dN[k] || 0; plusN += Math.max(0, b - a); plusO += Math.max(0, a - b); });
+  const so = (o.streak && o.streak.last) || '', sn = (n.streak && n.streak.last) || '', dd = (x) => (x.daily && x.daily.d) || '';
+  Object.assign(r, {
+    updated: mx(o.updated, n.updated), done: objArrMax(o.done, n.done), stars: objArrMax(o.stars, n.stars),
+    xp: Math.max((+o.xp || 0) + plusN, (+n.xp || 0) + plusO), days: objMax(o.days, n.days), srs: srsMerge(o.srs, n.srs),
+    counts: objMax(o.counts, n.counts), best: objMax(o.best, n.best), wclaims: objMax(o.wclaims, n.wclaims), bossStars: objMax(o.bossStars, n.bossStars),
+    walls: { ...o_(o.walls), ...o_(n.walls) }, chests: { ...o_(o.chests), ...o_(n.chests) }, boss: { ...o_(o.boss), ...o_(n.boss) }, badges: { ...o_(o.badges), ...o_(n.badges) }, guide: { ...o_(o.guide), ...o_(n.guide) },
+    minutes: mx(o.minutes, n.minutes), vipSeen: mx(o.vipSeen, n.vipSeen), dchest: mx(o.dchest, n.dchest), onboarded: !!(o.onboarded || n.onboarded),
+    streak: so > sn ? o.streak : so < sn ? n.streak : objMax(o.streak, n.streak),
+    daily: dd(o) > dd(n) ? o.daily : dd(o) < dd(n) ? n.daily : objMax(o.daily, n.daily),
+    fix: isObj(n.fix) ? n.fix : o_(o.fix),
+  });
+  r.words = Object.keys(o_(r.srs)).length;
+  return r;
+}
+// nhận bản đã gộp từ máy chủ: gộp tiếp với dữ liệu trên máy (phòng khi vừa học thêm trong lúc chờ), lưu lại, KHÔNG gửi lên lại
+export function absorb(server) {
+  if (!isObj(server)) return false;
+  const before = JSON.stringify(S);
+  const m = mergeData(server, JSON.parse(before));
+  // giữ cài đặt / khoá học đang chọn theo bản sửa sau cùng
+  S = merge(fresh(), m); fixLevel();
+  const after = JSON.stringify(S);
+  if (after === before) return false;
+  try { localStorage.setItem(KEY, after); } catch (e) {}
+  return true;
+}
 export function reset() { S = fresh(); save(true); }
 
 /* ---------- XP, chuỗi ngày ---------- */

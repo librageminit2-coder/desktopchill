@@ -1,6 +1,6 @@
 // Tài khoản đơn giản: tên + mã PIN. Tiến trình lưu lên Supabase qua các hàm RPC.
 // Sau khi đăng nhập, máy chủ cấp một "token phiên" để dùng cho bạn bè, lớp học và quiz (không gửi PIN mỗi lần).
-import { S, onSave, replace } from './store.js?v=26';
+import { S, absorb, onSave, replace } from './store.js?v=26';
 const URL = 'https://phcmbgaozkaibqsttonc.supabase.co/rest/v1/rpc/';
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoY21iZ2FvemthaWJxc3R0b25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODk3NTgsImV4cCI6MjEwNDk2NTc1OH0.Hvs0Gxebog5gcKILnSdT3g6nz6-GI0CEepmMJM0gCxo';
 const AKEY = 'dcl_account';
@@ -78,9 +78,10 @@ export async function login(name, pin, remember = true) {
     throw new Error(m[j && j.error] || 'Could not sign in');
   }
   setAcct({ name: j.name || name, pin, remember });
-  // lấy bản mới hơn giữa máy này và máy chủ
-  if (j.data && (!S.updated || (j.data.updated || 0) >= S.updated || !S.onboarded)) replace(j.data);
-  else await push();
+  // v23: gộp dữ liệu máy này với máy chủ (không ghi đè bên nào), rồi lưu bản gộp lên
+  if (j.data && !S.onboarded) replace(j.data);
+  else if (j.data) absorb(j.data);
+  await push();
   sync.at = Date.now(); sync.state = 'ok'; emit();
   try { await auth(); } catch (e) {}
 }
@@ -115,10 +116,24 @@ export async function push() {
     // v23: lưu bằng token phiên (nhẹ cho máy chủ); máy chủ cũ chưa có learn_save2 thì dùng cách cũ
     let j = null;
     try { j = await call('learn_save2', { p_data: S }); } catch (e) { if (/not ready/.test(e.message)) j = await rpc('learn_save', { p_name: acct.name, p_pin: acct.pin, p_data: S }); else throw e; }
-    if (j && j.ok) { sync.state = 'ok'; sync.at = Date.now(); } else sync.state = 'err';
+    if (j && j.ok) { sync.state = 'ok'; sync.at = Date.now(); if (j.data && absorb(j.data)) pulled.forEach((f) => { try { f(); } catch (e) {} }); } else sync.state = 'err';
   } catch (e) { sync.state = 'err'; }
   busy = false; emit();
   if (again) { again = false; push(); }
+}
+// v23: lấy bản mới nhất từ máy chủ (gộp) khi mở trang, khi quay lại tab và vài phút một lần
+const pulled = new Set();
+export const onPulled = (f) => pulled.add(f);
+let lastPull = 0;
+export function pull(force = false) {
+  if (!acct || (!force && Date.now() - lastPull < 20000)) return;
+  lastPull = Date.now(); push();
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pull(); });
+  addEventListener('focus', () => pull());
+  addEventListener('pageshow', (e) => { if (e.persisted) pull(true); });
+  setInterval(() => { if (!document.hidden) pull(); }, 180000);
 }
 let t = null;
 onSave(() => { if (!acct) return; clearTimeout(t); t = setTimeout(push, 4000); });
