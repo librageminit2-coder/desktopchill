@@ -1,23 +1,23 @@
-import { I, LOGO } from './icons.js?v=26';
-import { sound, sfx, unlockAudio } from './sound.js?v=26';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=26';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=26';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=26';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=26';
-import * as social from './social.js?v=26';
-import { setVideo, setBg } from './scene.js?v=26';
-import * as walls from './walls.js?v=26';
-import * as hub from './hub.js?v=26';
-import * as duel from './duel.js?v=26';
-import * as chat from './chat.js?v=26';
-import * as guide from './guide.js?v=26';
-import * as acctui from './acctui.js?v=26';
-import * as gacha from './gacha.js?v=26';
-import * as bestie from './bestie.js?v=26';
-import * as ctxm from './ctx.js?v=26';
-import * as adv from './adv.js?v=26';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=26';
-import { mascot } from './mascot.js?v=26';
+import { I, LOGO } from './icons.js?v=27';
+import { sound, sfx, unlockAudio } from './sound.js?v=27';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=27';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=27';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=27';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=27';
+import * as social from './social.js?v=27';
+import { setVideo, setBg } from './scene.js?v=27';
+import * as walls from './walls.js?v=27';
+import * as hub from './hub.js?v=27';
+import * as duel from './duel.js?v=27';
+import * as chat from './chat.js?v=27';
+import * as guide from './guide.js?v=27';
+import * as acctui from './acctui.js?v=27';
+import * as gacha from './gacha.js?v=27';
+import * as bestie from './bestie.js?v=27';
+import * as ctxm from './ctx.js?v=27';
+import * as adv from './adv.js?v=27';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=27';
+import { mascot } from './mascot.js?v=27';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -98,7 +98,7 @@ function checkBadges() {
 // menu kiểu Steam: mục chính, rê chuột thì hiện menu con
 const MENU = [
   { label: 'Learn', href: '#/', ic: 'home', match: ['#/', '#/roadmap', '#/review', '#/practice'], items: [['#/', 'Journey map', 'home', 'Your lessons, chests and bosses'], ['#/roadmap', 'Roadmap', 'list', 'Every level and unit at a glance'], ['#/review', 'Review', 'cards', 'Word cards due today'], ['#/practice', 'Practice', 'target', 'Speed rounds, speaking, dictation']] },
-  { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All wallpapers', 'gallery', 'Everything you own and can still win'], ['#/collection/spin', 'Lucky spin', 'gift', 'Spin your tickets for wallpapers'], ['#/collection/en', 'English chests', 'book', 'Spin tickets in every unit'], ['#/collection/zh', '中文 chests', 'book', 'Spin tickets in every unit'], ['#/collection/ielts', 'IELTS chests', 'book', 'Spin tickets in every unit'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
+  { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All collection', 'gallery', 'Every wallpaper you own and can still win'], ['#/collection/spin', 'Lucky spin', 'gift', 'Spin your tickets for wallpapers'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
   { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel', '#/quiz', '#/adventure'], items: [['#/adventure', 'Bestie Adventure', 'map', 'Fight bosses together with your Bestie'], ['#/duel', 'Duels', 'swords', 'Same 10 questions, first win of the day: a spin ticket'], ['#/quiz', 'Live quiz', 'zap', 'Join with a PIN or host by topic']] },
   { label: 'Classes', href: '#/classes', ic: 'school', match: ['#/classes', '#/class'], items: [['#/classes', 'My classes', 'school', 'Assignments, stream and reports'], ['#/classes', 'Join a class', 'plus', 'Enter the code from your teacher']] },
 ];
@@ -494,7 +494,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=26').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=27').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -536,7 +536,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=26').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=27').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -992,37 +992,38 @@ async function welcome() {
   const avail = AVAIL.filter((k) => all[k]);
   let lang = avail.includes(S.lang) ? S.lang : 'en';
   const lv = { ...S.level }; avail.forEach((k) => { if (!all[k].levels.some((x) => x.id === lv[k])) lv[k] = all[k].levels[0].id; });
+  let mode = 'new';
   const draw = () => {
     const c = all[lang];
     document.documentElement.dataset.lang = lang;
-    app.innerHTML = `<div class="welcome">
+    const total = avail.reduce((a, k) => a + all[k].levels.reduce((b, L) => b + L.units.length, 0), 0);
+    // v24: một màn hình gọn, không phải cuộn: tạo tài khoản / đăng nhập ngay trên trang đầu
+    app.innerHTML = `<div class="welcome w2">
     <div class="w-hero">
       <span class="w-logo">${LOGO}<span>desktop<b>chill</b> learn</span></span>
-      <h1>Learn a language the way you <em>walk in a forest</em> — a little every day.</h1>
-      <p class="lead">English, Chinese and IELTS on one journey map. Five-minute lessons, role-play with pronunciation scoring, classes with your teacher and live quizzes with friends.</p>
-      <div class="w-stats"><span><b>${avail.reduce((a, k) => a + all[k].levels.reduce((b, L) => b + L.units.length, 0), 0)}</b><small>units</small></span><span><b>${avail.reduce((a, k) => a + all[k].levels.reduce((b, L) => b + L.units.length, 0), 0) * LN}</b><small>lessons</small></span><span><b>${BADGES.length}</b><small>badges</small></span></div>
-      <form class="w-join" novalidate><span class="muted" style="font-weight:600">Got a game PIN?</span><input class="input wpin" inputmode="numeric" maxlength="6" placeholder="PIN" aria-label="Game PIN" /><button class="btn sm acc" type="submit">${I.zap} Join game</button></form>
+      <h1>Learn a language the way you <em>walk in a forest</em>.</h1>
+      <p class="lead">English, 中文 and IELTS on one journey map: five-minute lessons, speaking practice, live quizzes and Bestie adventures.</p>
+      <div class="w-stats"><span><b>${total}</b><small>units</small></span><span><b>${total * LN}</b><small>lessons</small></span><span><b>${BADGES.length}</b><small>badges</small></span></div>
+      <form class="w-join" novalidate><span class="muted" style="font-weight:600">Game PIN?</span><input class="input wpin" inputmode="numeric" maxlength="6" placeholder="PIN" aria-label="Game PIN" /><button class="btn sm acc" type="submit">${I.zap} Join</button></form>
     </div>
-    <div class="w-card panel" data-lang="${lang}">
-      <div class="pick" role="group" aria-label="Choose a course">${avail.map((k) => `<button data-l="${k}" aria-pressed="${lang === k}"><span class="big ${k === 'zh' ? 'zh' : ''}">${esc(COURSES[k].name)}</span><small>${esc(COURSES[k].tag)}</small></button>`).join('')}</div>
-      <div class="field"><label>Start at</label><div class="list">${c.levels.map((L) => `<button class="row lvp ${lv[lang] === L.id ? 'sel' : ''}" data-lv="${L.id}"><span class="lvn">${esc(L.name)}</span><span class="grow"><b>${esc(L.title)}</b><small>${esc(L.desc)}</small></span>${lv[lang] === L.id ? I.check : ''}</button>`).join('')}</div>
-        ${c.levels[0].id !== lv[lang] ? `<p class="w-hint">${I.gift}<span>Starting higher is fine. Earlier levels keep their wallpapers, so you can go back and collect them any time.</span></p>` : ''}</div>
-      <button class="btn acc wide go" type="button">Enter the map</button>
-      <button class="btn ghost wide have" type="button">I already have an account</button>
+    <div class="w-card w-auth panel" data-lang="${lang}">
+      <div class="w-course"><div class="pick sm" role="group" aria-label="Choose a course">${avail.map((k) => `<button data-l="${k}" aria-pressed="${lang === k}" type="button"><span class="${k === 'zh' ? 'zh' : ''}">${esc(COURSES[k].name)}</span></button>`).join('')}</div>
+        <label class="w-lvl"><span>Start at</span><select class="input w-lv">${c.levels.map((L) => `<option value="${L.id}" ${lv[lang] === L.id ? 'selected' : ''}>${esc(L.name)} · ${esc(L.title)}</option>`).join('')}</select></label></div>
+      <div class="authwrap compact">${authForm(mode)}</div>
+      <div class="w-foot"><button class="linkb w-later" type="button">Try it first without an account</button><button class="linkb w-pin" type="button">${I.zap} Join a game</button></div>
     </div></div>`;
+    const setCourse = () => { S.lang = lang; S.level = { ...S.level, ...lv }; save(); };
+    setCourse();
     app.querySelectorAll('.pick button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); lang = b.dataset.l; draw(); }));
-    app.querySelectorAll('.lvp').forEach((b) => b.addEventListener('click', () => { sfx('tap'); lv[lang] = b.dataset.lv; draw(); }));
-    app.querySelector('.go').addEventListener('click', () => {
-      unlockAudio(); sfx('ok');
-      S.lang = lang; S.level = lv; save();
-      sheet(`<h2>Save your progress?</h2><p class="sub">Create an account with a name and PIN so you can pick up where you left off. No email needed.</p><div class="authwrap">${authForm('new')}</div><button class="btn ghost wide later" style="margin-top:10px">Later, let me try first</button>`, (el, close) => {
-        const finish = () => { close(); S.onboarded = true; save(true); applySettings(); location.hash = '#/'; render(); };
-        wireAuth(el, 'new', (m) => { toast(m === 'new' ? 'Account created' : 'Signed in'); finish(); });
-        el.querySelector('.later').addEventListener('click', finish);
-      });
-    });
+    app.querySelector('.w-lv').addEventListener('change', (e) => { lv[lang] = e.target.value; setCourse(); sfx('tap'); });
+    const finish = (keep) => { if (!keep) setCourse(); S.onboarded = true; save(true); applySettings(); location.hash = '#/'; render(); };
+    const card = app.querySelector('.w-auth');
+    wireAuth(card, mode, (m) => { toast(m === 'new' ? 'Account created, progress saved' : 'Signed in'); unlockAudio(); finish(m !== 'new'); });
+    card.addEventListener('click', (e) => { const t = e.target.closest('.tabs2 button'); if (t) { mode = t.dataset.m; card.classList.toggle('is-login', mode === 'login'); } });
+    card.classList.toggle('is-login', mode === 'login');
+    app.querySelector('.w-later').addEventListener('click', () => { unlockAudio(); sfx('ok'); finish(false); });
+    app.querySelector('.w-pin').addEventListener('click', () => sheet(`<h2>Join a live game</h2><p class="sub">Enter the 6-digit PIN on the host’s screen.</p><form class="w-join2" novalidate><input class="input wpin2" inputmode="numeric" maxlength="6" placeholder="PIN" aria-label="Game PIN" style="text-align:center;letter-spacing:.3em;font-weight:800;height:52px;font-size:1.2rem" /><button class="btn acc wide" type="submit" style="margin-top:12px">Join game</button></form>`, (el, close) => { const i = el.querySelector('.wpin2'); setTimeout(() => i.focus(), 100); el.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); const v = i.value.replace(/\D/g, ''); if (v.length === 6) { close(); location.hash = '#/play/' + v; } else toast('Enter the 6-digit game PIN'); }); }));
     app.querySelector('.w-join').addEventListener('submit', (e) => { e.preventDefault(); const v = app.querySelector('.wpin').value.replace(/\D/g, ''); if (v.length === 6) location.hash = '#/play/' + v; else toast('Enter the 6-digit game PIN'); });
-    app.querySelector('.have').addEventListener('click', () => sheet(`<h2>Sign in</h2><p class="sub">Enter the name and PIN you created.</p><div class="authwrap">${authForm('login')}</div>`, (el, close) => wireAuth(el, 'login', () => { close(); S.onboarded = true; save(true); applySettings(); location.hash = '#/'; render(); })));
   };
   draw();
 }
@@ -1031,7 +1032,7 @@ async function welcome() {
 function runQueue(unit, queue, lang) {
   pull();
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=26').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=27').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */

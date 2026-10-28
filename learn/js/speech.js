@@ -20,7 +20,7 @@ export const canSpeak = () => !!window.speechSynthesis;
 let curBtn = null;
 export function speak(text, lang, { rate = 1, btn = null } = {}) {
   return new Promise((res) => {
-    if (!window.speechSynthesis || !text) return res(false);
+    if (!window.speechSynthesis || !text || Date.now() - hardStop < 1000) return res(false);
     try { speechSynthesis.cancel(); } catch (e) {}
     const u = new SpeechSynthesisUtterance(text.replace(/\s+/g, lang === 'zh' ? '' : ' '));
     u.lang = LANG[lang] || lang; const v = pickVoice(lang); if (v) u.voice = v;
@@ -34,7 +34,12 @@ export function speak(text, lang, { rate = 1, btn = null } = {}) {
     speechSynthesis.speak(u);
   });
 }
-export function stopSpeak() { try { speechSynthesis.cancel(); } catch (e) {} }
+// hard = true khi thoát bài học: chặn các câu đang xếp hàng (đọc hội thoại liên tiếp) trong 1 giây và huỷ lại vài lần cho chắc
+let hardStop = 0;
+export function stopSpeak(hard = false) {
+  try { speechSynthesis.cancel(); } catch (e) {}
+  if (hard) { hardStop = Date.now(); [150, 450, 900].forEach((t) => setTimeout(() => { try { speechSynthesis.cancel(); } catch (e) {} }, t)); if (curBtn) curBtn.classList.remove('playing'); }
+}
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 export const canListen = () => !!SR;
@@ -189,3 +194,7 @@ export function compare(target, said, lang) {
   const score = m ? L[0][0] / Math.max(m, n * 0.85) : 0;
   return { score: Math.min(1, score), hit, tokens: A };
 }
+// đổi trang / rời trang → tắt giọng đọc đang phát
+addEventListener('hashchange', () => stopSpeak());
+addEventListener('pagehide', () => stopSpeak(true));
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopSpeak(); });

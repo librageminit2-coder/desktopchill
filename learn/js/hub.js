@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=26';
-import { S, save, applyRevoke } from './store.js?v=26';
-import * as chat from './chat.js?v=26';
-import * as acctui from './acctui.js?v=26';
-import { acct, call } from './account.js?v=26';
-import { sfx } from './sound.js?v=26';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=26';
-import * as walls from './walls.js?v=26';
-import * as bestie from './bestie.js?v=26';
-import * as gacha from './gacha.js?v=26';
-import * as ctx from './ctx.js?v=26';
+import { I, LOGO } from './icons.js?v=27';
+import { S, save, applyRevoke } from './store.js?v=27';
+import * as chat from './chat.js?v=27';
+import * as acctui from './acctui.js?v=27';
+import { acct, call } from './account.js?v=27';
+import { sfx } from './sound.js?v=27';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=27';
+import * as walls from './walls.js?v=27';
+import * as bestie from './bestie.js?v=27';
+import * as gacha from './gacha.js?v=27';
+import * as ctx from './ctx.js?v=27';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -392,7 +392,7 @@ function rankRows(board) {
   const note = { duel: `Win 3 pts, draw 1. Only your first 10 sent and 10 received duels each day count. ${when} Top 10: XP, a rare wallpaper and a lucky spin ticket.`,
     col: `Number of wallpapers you own. ${when} Top 10: a lucky spin ticket.`, bestie: `Stars the two of you won in Bestie Adventure. ${when} Top 10 pairs: a lucky spin ticket each.` }[board]
     || `Stars from every lesson in this course. ${when} Top 10 get a lucky spin ticket; each rank also pays once: #1 two wallpapers, #2 a rare one, #3 a random one, #4–10 XP.${got ? ` You have collected ${got}/10.` : ''}`;
-  return `<div class="rk-list">${rows}${empty}</div>${me}<p class="rk-note">${note}</p><p class="rk-tip">${I.more} Right-click (or tap) a name for profile, message, duel…</p>`;
+  return `<div class="rk-list">${rows}${empty}</div>${me}`;
 }
 function paintRank(el) {
   const b = rkTab();

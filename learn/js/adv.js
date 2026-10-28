@@ -2,13 +2,13 @@
 // Bản đồ rộng (kéo / cuộn để phóng to) với các vùng theo cấp độ. Mỗi vùng có 5 boss + 1 vua vùng (chấm đỏ).
 // Đề lấy từ toàn bộ bài học của cấp đó, 4 kiểu vòng phối hợp: Đồng tâm · Mảnh ghép · Tiếp sức · Nối đôi.
 // Người chưa có Bestie vẫn xem được bản đồ, kèm lời nhắc thêm Bestie.
-import { I } from './icons.js?v=26';
-import { S } from './store.js?v=26';
-import { acct, call } from './account.js?v=26';
-import { sfx } from './sound.js?v=26';
-import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=26';
-import * as bestie from './bestie.js?v=26';
-import * as gacha from './gacha.js?v=26';
+import { I } from './icons.js?v=27';
+import { S } from './store.js?v=27';
+import { acct, call } from './account.js?v=27';
+import { sfx } from './sound.js?v=27';
+import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=27';
+import * as bestie from './bestie.js?v=27';
+import * as gacha from './gacha.js?v=27';
 
 let C = null;
 export function init(ctx) {
@@ -66,42 +66,171 @@ const bossOpen = (map, r, n) => {
 };
 const starsOf = (map, r, n) => ((M && M.progress && M.progress[bossId(map, r, n)]) || {}).stars || 0;
 
-// đường viền vùng: một "hòn đảo" mềm, cố định theo hạt giống
-function blob(cx, cy, rad, seed) {
-  let s = seed * 9301 + 49297; const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-  const n = 14, pts = [];
-  for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2, r = rad * (0.82 + rnd() * 0.32); pts.push([cx + Math.cos(a) * r * 1.25, cy + Math.sin(a) * r]); }
-  let d = `M${((pts[0][0] + pts[n - 1][0]) / 2).toFixed(1)},${((pts[0][1] + pts[n - 1][1]) / 2).toFixed(1)}`;
+// ---------- v24: bản đồ vẽ tay kiểu game: đảo nhiều lớp (bóng, bãi cát, đất, điểm sáng), địa hình theo vùng,
+// đường mòn nối boss, cờ boss / pháo đài vua, mây che vùng chưa mở, biển có sóng, thuyền, la bàn ----------
+const rng = (seed) => { let s = (seed * 9301 + 49297) % 233280; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; };
+function blobPts(cx, cy, rad, seed, n = 18, sx = 1.25) {
+  const r = rng(seed), pts = [];
+  for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2, k = rad * (0.84 + r() * 0.28); pts.push([cx + Math.cos(a) * k * sx, cy + Math.sin(a) * k]); }
+  return pts;
+}
+function smooth(pts) {
+  const n = pts.length; let d = `M${((pts[0][0] + pts[n - 1][0]) / 2).toFixed(1)},${((pts[0][1] + pts[n - 1][1]) / 2).toFixed(1)}`;
   for (let i = 0; i < n; i++) { const p = pts[i], q = pts[(i + 1) % n]; d += ` Q${p[0].toFixed(1)},${p[1].toFixed(1)} ${((p[0] + q[0]) / 2).toFixed(1)},${((p[1] + q[1]) / 2).toFixed(1)}`; }
   return d + 'Z';
 }
-
+const blob = (cx, cy, rad, seed, sx) => smooth(blobPts(cx, cy, rad, seed, 18, sx));
+// bảng màu + kiểu địa hình cho từng vùng
+const THEMES = {
+  en: ['meadow', 'forest', 'peaks', 'isles', 'tundra', 'desert', 'citadel'],
+  zh: ['paddy', 'tea', 'river', 'karst', 'dragon', 'jade'],
+};
+const PAL = {
+  meadow: { a: '#9be07a', b: '#4fae5a', rim: '#f3e2a6', deco: ['tree', 'flower', 'tree', 'house'] },
+  forest: { a: '#5fbf74', b: '#22744a', rim: '#e8d79a', deco: ['pine', 'pine', 'tree', 'pine'] },
+  peaks: { a: '#b8c6c9', b: '#6f8a8f', rim: '#d9d3b8', deco: ['mount', 'mount', 'pine', 'mount'] },
+  isles: { a: '#7fdc9b', b: '#2fa37a', rim: '#fff0b8', deco: ['palm', 'palm', 'hut', 'palm'] },
+  tundra: { a: '#eef6fb', b: '#9cc3dc', rim: '#cfe7f2', deco: ['ice', 'snowpine', 'ice', 'snowpine'] },
+  desert: { a: '#f7d58a', b: '#d79a4a', rim: '#fbe7b5', deco: ['dune', 'cactus', 'dune', 'rock'] },
+  citadel: { a: '#a48bd6', b: '#5a3f8f', rim: '#d9c9ee', deco: ['spire', 'rock', 'spire', 'crystal'] },
+  paddy: { a: '#b4e88a', b: '#5aa94f', rim: '#efe2a8', deco: ['paddy', 'tree', 'paddy', 'house'] },
+  tea: { a: '#8fd68a', b: '#3d8f55', rim: '#e8dca0', deco: ['terrace', 'tree', 'terrace', 'pagoda'] },
+  river: { a: '#9ee0b8', b: '#3c9a86', rim: '#e3e0b0', deco: ['bamboo', 'bamboo', 'tree', 'bamboo'] },
+  karst: { a: '#a8d9a0', b: '#4f8a6a', rim: '#e0d6a8', deco: ['karst', 'karst', 'pine', 'karst'] },
+  dragon: { a: '#f2a07a', b: '#b84a3a', rim: '#f6dcae', deco: ['pagoda', 'lantern', 'tree', 'pagoda'] },
+  jade: { a: '#9fe3cc', b: '#2f8f7a', rim: '#dff3ea', deco: ['mount', 'crystal', 'pine', 'mount'] },
+};
+// các hình nhỏ trên đảo (vẽ bằng SVG, không dùng emoji để đều nét trên mọi máy)
+function deco(kind, x, y, k = 1) {
+  const t = (inner) => `<g class="dc" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${k.toFixed(2)})">${inner}</g>`;
+  switch (kind) {
+    case 'tree': return t('<ellipse cx="0" cy="4" rx="11" ry="4" fill="rgba(0,0,0,.18)"/><rect x="-2" y="-6" width="4" height="10" fill="#7a5233"/><circle cx="0" cy="-14" r="11" fill="#2f8a43"/><circle cx="-4" cy="-17" r="5" fill="#4fb35c"/>');
+    case 'pine': return t('<ellipse cx="0" cy="4" rx="10" ry="3.5" fill="rgba(0,0,0,.18)"/><rect x="-2" y="-4" width="4" height="8" fill="#6b4a2e"/><path d="M0,-30 L12,-4 L-12,-4Z" fill="#1f6a3e"/><path d="M0,-38 L9,-18 L-9,-18Z" fill="#2b8450"/>');
+    case 'snowpine': return t('<ellipse cx="0" cy="4" rx="10" ry="3.5" fill="rgba(0,0,0,.14)"/><rect x="-2" y="-4" width="4" height="8" fill="#6b4a2e"/><path d="M0,-30 L12,-4 L-12,-4Z" fill="#3f7a6a"/><path d="M0,-38 L9,-18 L-9,-18Z" fill="#4f8e7c"/><path d="M0,-38 L5,-27 L-5,-27Z" fill="#fff"/><path d="M-8,-10 L8,-10 L5,-6 L-5,-6Z" fill="#fff" opacity=".8"/>');
+    case 'flower': return t('<circle cx="-4" cy="0" r="3" fill="#ff8fb1"/><circle cx="3" cy="-2" r="3" fill="#ffd166"/><circle cx="0" cy="4" r="3" fill="#fff"/>');
+    case 'house': return t('<ellipse cx="0" cy="6" rx="14" ry="4" fill="rgba(0,0,0,.18)"/><rect x="-10" y="-8" width="20" height="14" fill="#f4e6c8"/><path d="M-14,-8 L0,-20 L14,-8Z" fill="#d0543a"/><rect x="-3" y="-2" width="6" height="8" fill="#7a5233"/>');
+    case 'mount': return t('<path d="M-34,6 L-6,-40 L22,6Z" fill="#7d8f96"/><path d="M-6,-40 L4,-24 L-2,-22 L-10,-26 L-16,-20Z" fill="#fff"/><path d="M-6,-40 L22,6 L4,6Z" fill="rgba(0,0,0,.18)"/><path d="M6,6 L24,-24 L42,6Z" fill="#91a3a9"/><path d="M24,-24 L30,-14 L20,-14Z" fill="#fff"/>');
+    case 'palm': return t('<ellipse cx="0" cy="4" rx="10" ry="3" fill="rgba(0,0,0,.18)"/><path d="M0,4 Q-3,-14 2,-30" stroke="#8a5a2b" stroke-width="4" fill="none"/><path d="M2,-30 Q-14,-34 -22,-24 M2,-30 Q16,-36 24,-26 M2,-30 Q-4,-44 -14,-46 M2,-30 Q10,-44 20,-44" stroke="#2f9e5a" stroke-width="5" fill="none" stroke-linecap="round"/>');
+    case 'hut': return t('<ellipse cx="0" cy="6" rx="14" ry="4" fill="rgba(0,0,0,.16)"/><rect x="-9" y="-6" width="18" height="12" fill="#c99a5b"/><path d="M-15,-6 L0,-20 L15,-6Z" fill="#e7c470"/>');
+    case 'ice': return t('<path d="M-16,6 L-8,-18 L0,6Z" fill="#dff3ff" stroke="#9cc8e0"/><path d="M-4,6 L6,-26 L16,6Z" fill="#c7e8fb" stroke="#8fbfd9"/>');
+    case 'dune': return t('<path d="M-30,6 Q-12,-14 6,6Z" fill="#e8b766"/><path d="M-6,6 Q14,-20 34,6Z" fill="#f2c97c"/><path d="M-6,6 Q14,-20 20,-6" stroke="#c98d40" fill="none"/>');
+    case 'cactus': return t('<ellipse cx="0" cy="4" rx="8" ry="3" fill="rgba(0,0,0,.18)"/><rect x="-3" y="-24" width="6" height="28" rx="3" fill="#3e9a5a"/><path d="M-3,-10 h-6 v-8" stroke="#3e9a5a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M3,-14 h6 v-8" stroke="#3e9a5a" stroke-width="5" fill="none" stroke-linecap="round"/>');
+    case 'rock': return t('<path d="M-14,6 L-10,-8 L2,-14 L14,-4 L12,6Z" fill="#8a7f78"/><path d="M2,-14 L14,-4 L12,6 L4,6Z" fill="rgba(0,0,0,.2)"/>');
+    case 'spire': return t('<ellipse cx="0" cy="6" rx="12" ry="4" fill="rgba(0,0,0,.2)"/><rect x="-6" y="-26" width="12" height="32" fill="#3d2a63"/><path d="M-9,-26 L0,-44 L9,-26Z" fill="#c9a0ff"/><rect x="-2" y="-16" width="4" height="6" fill="#ffd46a"/>');
+    case 'crystal': return t('<path d="M0,6 L-8,-6 L0,-26 L8,-6Z" fill="#8ef0d8" stroke="#3fb89c"/><path d="M10,6 L5,-2 L10,-14 L15,-2Z" fill="#b6fff0" stroke="#3fb89c"/>');
+    case 'paddy': return t('<path d="M-26,0 Q0,-10 26,0 Q0,10 -26,0Z" fill="#7cc95c" stroke="#e8f5c8" stroke-width="2"/><path d="M-18,0 h36 M-12,-4 h24 M-12,4 h24" stroke="#a7e07c"/>');
+    case 'terrace': return t('<path d="M-30,6 Q0,-4 30,6" stroke="#2f7d47" stroke-width="5" fill="none"/><path d="M-24,-2 Q0,-12 24,-2" stroke="#3f9a57" stroke-width="5" fill="none"/><path d="M-16,-10 Q0,-18 16,-10" stroke="#55b06a" stroke-width="5" fill="none"/>');
+    case 'bamboo': return t('<path d="M-6,6 V-34 M2,6 V-40 M10,6 V-30" stroke="#5fb36a" stroke-width="4"/><path d="M-6,-20 l-8,-4 M2,-28 l8,-5 M10,-16 l7,-4" stroke="#3f9a57" stroke-width="3" stroke-linecap="round"/>');
+    case 'karst': return t('<path d="M-22,6 Q-24,-30 -10,-36 Q0,-38 2,-20 Q4,-44 16,-42 Q28,-38 24,6Z" fill="#5f9c78"/><path d="M-10,-36 Q-2,-30 -4,-10" stroke="#8fd0a4" stroke-width="3" fill="none"/>');
+    case 'pagoda': return t('<ellipse cx="0" cy="6" rx="14" ry="4" fill="rgba(0,0,0,.2)"/><rect x="-7" y="-10" width="14" height="16" fill="#b8332a"/><path d="M-15,-10 Q0,-16 15,-10 L10,-6 L-10,-6Z" fill="#3a2a2a"/><rect x="-5" y="-22" width="10" height="12" fill="#c8402f"/><path d="M-12,-22 Q0,-28 12,-22 L8,-18 L-8,-18Z" fill="#3a2a2a"/><path d="M0,-34 V-26" stroke="#ffd46a" stroke-width="2"/>');
+    case 'lantern': return t('<path d="M0,-30 V-20" stroke="#5a3a1a"/><ellipse cx="0" cy="-12" rx="7" ry="9" fill="#ff4d3a"/><rect x="-4" y="-22" width="8" height="3" fill="#ffd46a"/><rect x="-4" y="-4" width="8" height="3" fill="#ffd46a"/>');
+    default: return '';
+  }
+}
+// ---------- v24b: bản đồ kiểu "diorama" pastel (theo mẫu Bestie Map): một vùng đất liền, sông uốn lượn, cầu gỗ,
+// mỗi boss là một bệ tròn màu kem có ngôi nhà nhỏ, vua vùng là nhà trên tảng đá lớn; vùng chưa mở phủ sương ----------
+const PASTEL = {
+  meadow: { g: '#e7ecb4', roof: '#4b5a78', tree: '#8cc5ac' }, forest: { g: '#d6e8b0', roof: '#5a4a3a', tree: '#6fae96' },
+  peaks: { g: '#e3e6d6', roof: '#4a5570', tree: '#9cc2bf' }, isles: { g: '#eef0be', roof: '#c27a4a', tree: '#7cc7a5' },
+  tundra: { g: '#eef3f2', roof: '#5a6a8a', tree: '#a9cfd0' }, desert: { g: '#f3e3b0', roof: '#b8643f', tree: '#a6c79a' },
+  citadel: { g: '#e8e0ea', roof: '#5b4a7a', tree: '#a7b8d6' },
+  paddy: { g: '#e4efb2', roof: '#4b5a78', tree: '#8cc5ac' }, tea: { g: '#d9ecb2', roof: '#3e5f4a', tree: '#76b896' },
+  river: { g: '#dcefc4', roof: '#4a6a78', tree: '#86c2b2' }, karst: { g: '#e2ecc6', roof: '#556b5a', tree: '#7fb7a0' },
+  dragon: { g: '#f2e2bf', roof: '#b0473a', tree: '#93c3a6' }, jade: { g: '#dcefe6', roof: '#2f7a6a', tree: '#8fd0bf' },
+};
+const riverY = (x, ph) => 640 + 105 * Math.sin(x / 300 + ph) + 30 * Math.sin(x / 120 + ph * 2);
+const riverPath = (ph) => { let d = ''; for (let x = -200; x <= W + 200; x += 40) d += `${d ? 'L' : 'M'}${x},${riverY(x, ph).toFixed(1)} `; return d; };
+// đồ vật vẽ kiểu đồ chơi gỗ: mặt trên sáng, cạnh tối, bóng mềm
+const pz = {
+  tree: (c, k) => `<g transform="scale(${k})"><ellipse cx="4" cy="2" rx="16" ry="6" fill="rgba(60,70,40,.18)"/><rect x="-2.5" y="-10" width="5" height="12" rx="2" fill="#b2583f"/><path d="M0,-58 C14,-58 20,-30 18,-18 C16,-8 -16,-8 -18,-18 C-20,-30 -14,-58 0,-58Z" fill="${c}"/><path d="M0,-58 C14,-58 20,-30 18,-18 C14,-12 6,-11 2,-11 C8,-24 8,-46 0,-58Z" fill="rgba(0,40,40,.12)"/></g>`,
+  pine: (c, k) => `<g transform="scale(${k})"><ellipse cx="3" cy="2" rx="12" ry="5" fill="rgba(60,70,40,.18)"/><rect x="-2" y="-8" width="4" height="10" fill="#b2583f"/><path d="M0,-50 L15,-10 Q0,-4 -15,-10Z" fill="${c}"/><path d="M0,-50 L15,-10 Q8,-7 3,-7Z" fill="rgba(0,40,40,.14)"/></g>`,
+  rock: (c, k) => `<g transform="scale(${k})"><ellipse cx="4" cy="3" rx="20" ry="6" fill="rgba(60,70,40,.16)"/><path d="M-18,2 C-22,-14 -8,-24 4,-22 C18,-20 22,-6 18,2Z" fill="#b9cfd8"/><path d="M4,-22 C18,-20 22,-6 18,2 L6,2 C10,-8 10,-16 4,-22Z" fill="#94b0bf"/></g>`,
+  bush: (c, k) => `<g transform="scale(${k})"><circle cx="-6" cy="-6" r="8" fill="${c}"/><circle cx="5" cy="-8" r="9" fill="${c}"/><circle cx="2" cy="-3" r="7" fill="rgba(0,40,40,.1)"/></g>`,
+  grass: (c, k) => `<g transform="scale(${k})" stroke="#9fb878" stroke-width="2" stroke-linecap="round"><path d="M-6,0 q-2,-10 -6,-14 M0,0 q0,-12 2,-18 M6,0 q2,-9 7,-12"/></g>`,
+  snowtree: (c, k) => `<g transform="scale(${k})"><ellipse cx="3" cy="2" rx="12" ry="5" fill="rgba(60,70,40,.14)"/><rect x="-2" y="-8" width="4" height="10" fill="#b2583f"/><path d="M0,-50 L15,-10 Q0,-4 -15,-10Z" fill="${c}"/><path d="M0,-50 L7,-32 Q0,-29 -7,-32Z" fill="#fff"/></g>`,
+  cactus: (c, k) => `<g transform="scale(${k})"><ellipse cx="2" cy="2" rx="9" ry="4" fill="rgba(60,70,40,.16)"/><rect x="-4" y="-30" width="8" height="32" rx="4" fill="#7cae86"/><path d="M-4,-14 h-6 v-8 M4,-18 h6 v-8" stroke="#7cae86" stroke-width="6" stroke-linecap="round" fill="none"/></g>`,
+};
+const TREE_OF = { tundra: 'snowtree', peaks: 'pine', forest: 'pine', desert: 'cactus', karst: 'pine', jade: 'pine' };
+// nhà nhỏ trên bệ boss (5 kiểu) — mái theo màu vùng
+function hut(kind, roof) {
+  const wall = '#f1e3c8', side = '#d8c3a0', door = '#7a4a32';
+  if (kind === 0) return `<path d="M-16,0 L0,-26 L16,0Z" fill="#d9844f"/><path d="M0,-26 L16,0 L8,0Z" fill="#b8643f"/><path d="M-4,0 L0,-8 L4,0Z" fill="#6a3a22"/>`; // lều
+  if (kind === 1) return `<rect x="-14" y="-20" width="28" height="20" fill="${wall}"/><rect x="6" y="-20" width="8" height="20" fill="${side}"/><path d="M-18,-20 L0,-34 L18,-20Z" fill="${roof}"/><rect x="-5" y="-11" width="8" height="11" fill="${door}"/><rect x="-12" y="-16" width="5" height="5" fill="#9fd0e8"/>`;
+  if (kind === 2) return `<rect x="-10" y="-34" width="20" height="34" fill="${wall}"/><rect x="4" y="-34" width="6" height="34" fill="${side}"/><path d="M-14,-34 L0,-46 L14,-34Z" fill="${roof}"/><rect x="-4" y="-26" width="6" height="6" fill="#9fd0e8"/><rect x="-4" y="-12" width="6" height="12" fill="${door}"/>`; // tháp
+  if (kind === 3) return `<rect x="-16" y="-18" width="32" height="18" fill="${wall}"/><rect x="8" y="-18" width="8" height="18" fill="${side}"/><path d="M-20,-18 h40 l-4,-12 h-32Z" fill="${roof}"/><path d="M-16,-18 h32 v5 h-32Z" fill="#e8a46a"/><path d="M-16,-13 h4 v-5 h4 v5 h4 v-5 h4 v5 h4 v-5 h4 v5 h4 v-5" fill="#fff" opacity=".7"/><rect x="-4" y="-10" width="8" height="10" fill="${door}"/>`; // quán
+  return `<rect x="-12" y="-16" width="24" height="16" fill="${wall}"/><path d="M-16,-16 L0,-30 L16,-16Z" fill="${roof}"/><circle cx="0" cy="-8" r="3" fill="#ffd166"/><path d="M-20,0 h40" stroke="#c9b48e" stroke-width="3"/>`; // nhà nhỏ
+}
+function platform(r, inner) {
+  return `<ellipse cx="6" cy="10" rx="${r + 4}" ry="${r * 0.55}" fill="rgba(70,70,40,.22)"/><ellipse cx="0" cy="6" rx="${r}" ry="${r * 0.55}" fill="#e3d2ae"/><ellipse cx="0" cy="0" rx="${r}" ry="${r * 0.55}" fill="#f7ecd4"/><ellipse cx="0" cy="-2" rx="${r * 0.62}" ry="${r * 0.34}" fill="#efe1c3"/>${inner}`;
+}
+function bossMark(n, st, ok, roof) {
+  const col = st ? '#2fbf71' : ok ? '#e5484d' : '#9a9a9a';
+  const flag = `<g class="adv-flag" transform="translate(${n === 6 ? 34 : 22},${n === 6 ? -40 : -22})"><path d="M0,0 V-26" stroke="#6a4a32" stroke-width="2.5"/><path d="M0,-26 l16,5 l-16,5Z" fill="${col}"/></g>`;
+  const badge = `<g transform="translate(0,${n === 6 ? 30 : 22})"><circle r="9" fill="${col}" stroke="#fff" stroke-width="2.5"/>${st ? '<path d="M-3.5,0 l2.5,2.5 l5,-5.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>' : ok ? '<path d="M-3,-3 l6,6 M3,-3 l-6,6" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>' : '<rect x="-3" y="-1.5" width="6" height="5" rx="1" fill="#fff"/><path d="M-2,-1.5 v-1.5 a2,2 0 0 1 4,0 v1.5" stroke="#fff" stroke-width="1.4" fill="none"/>'}</g>`;
+  if (n === 6) {
+    // vua vùng: tảng đá lớn + bậc thang + nhà mái cong
+    return `<circle r="62" class="adv-ring"/><g class="adv-dot k">${platform(58, `<g transform="translate(0,-4)"><path d="M-46,2 C-54,-26 -34,-48 -6,-50 C26,-52 50,-30 46,2Z" fill="#d7dde0"/><path d="M-6,-50 C26,-52 50,-30 46,2 L18,2 C26,-18 18,-40 -6,-50Z" fill="#b9c4ca"/><path d="M-14,2 h18 l-4,-22 h-10Z" fill="#c7cfd3"/><path d="M-12,-4 h14 M-11,-10 h12 M-10,-16 h10" stroke="#a9b3b8" stroke-width="2"/><g transform="translate(2,-44)"><rect x="-18" y="-24" width="36" height="24" fill="#c9875a"/><rect x="8" y="-24" width="10" height="24" fill="#a86a44"/><path d="M-26,-24 Q0,-38 26,-24 L20,-20 L-20,-20Z" fill="${roof}"/><rect x="-5" y="-14" width="10" height="14" fill="#5a3a24"/><rect x="-14" y="-18" width="6" height="6" fill="#ffe08a"/></g></g>`)}</g>${flag}${badge}`;
+  }
+  return `<circle r="40" class="adv-ring"/><g class="adv-dot">${platform(38, `<g transform="translate(0,-2)">${hut((n - 1) % 5, roof)}</g>`)}</g>${flag}${badge}`;
+}
 function mapSVG(map) {
-  const D = MAPS[map], R = D.regions;
-  let path = `M${R[0].c[0]},${R[0].c[1]}`; for (let i = 1; i < R.length; i++) { const a = R[i - 1].c, b = R[i].c; path += ` Q${(a[0] + b[0]) / 2 + (i % 2 ? 90 : -90)},${(a[1] + b[1]) / 2 + (i % 2 ? -60 : 60)} ${b[0]},${b[1]}`; }
+  const D = MAPS[map], R = D.regions, th = THEMES[map], ph = map === 'zh' ? 1.7 : 0.4;
   let front = 1; for (let r = 1; r <= R.length; r++) if (regionOpen(map, r)) front = r;
-  const deco = []; let s = map === 'zh' ? 7 : 3;
-  for (let i = 0; i < 70; i++) { s = (s * 9301 + 49297) % 233280; const x = (s / 233280) * W; s = (s * 9301 + 49297) % 233280; const y = (s / 233280) * H; deco.push(`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" class="adv-deco">${map === 'zh' ? ['🎋', '⛰️', '🏯', '🌊', '🍵'][i % 5] : ['🌲', '⛰️', '🏰', '🌊', '🌵'][i % 5]}</text>`); }
-  return `<svg class="adv-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" aria-label="${esc(D.name)} adventure map">
-    <defs><radialGradient id="advsea" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="var(--adv-sea1)"/><stop offset="1" stop-color="var(--adv-sea2)"/></radialGradient>
-      <filter id="advsh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".25"/></filter></defs>
+  // vị trí vùng theo dòng sông: cách sông ~320, phía còn nhiều chỗ
+  const n = R.length, pos = R.map((_, i) => { const x = 200 + i * ((W - 400) / (n - 1)); const ry = riverY(x, ph); const up = i % 2 === 0; return [x, Math.max(235, Math.min(1015, up ? ry - 315 : ry + 315))]; });
+  const river = riverPath(ph);
+  // cầu: nơi đường nối 2 vùng cắt qua sông
+  const bridges = [];
+  let route = `M${pos[0][0]},${pos[0][1]}`;
+  for (let i = 1; i < n; i++) {
+    const a = pos[i - 1], b = pos[i]; route += ` C${a[0] + 120},${a[1]} ${b[0] - 120},${b[1]} ${b[0]},${b[1]}`;
+    const sa = Math.sign(a[1] - riverY(a[0], ph)), sb = Math.sign(b[1] - riverY(b[0], ph));
+    if (sa !== sb) { let lo = 0, hi = 1; for (let k = 0; k < 24; k++) { const m = (lo + hi) / 2, x = a[0] + (b[0] - a[0]) * m, y = a[1] + (b[1] - a[1]) * m; if (Math.sign(y - riverY(x, ph)) === sa) lo = m; else hi = m; } const x = a[0] + (b[0] - a[0]) * lo; const ang = Math.atan2(riverY(x + 5, ph) - riverY(x - 5, ph), 10) * 180 / Math.PI + 90; bridges.push([x, riverY(x, ph), ang]); }
+  }
+  // cây, đá, bụi rải khắp đất liền (tránh sông, bệ boss, đường)
+  const rr = rng(map === 'zh' ? 91 : 37), items = [];
+  const bossXY = []; pos.forEach(([cx, cy]) => { BOSS_POS.forEach((p) => bossXY.push([cx + p[0], cy + p[1]])); bossXY.push([cx, cy]); });
+  for (let t = 0; t < 2600 && items.length < 230; t++) {
+    const x = rr() * W, y = rr() * H, ry = riverY(x, ph);
+    if (Math.abs(y - ry) < 95) continue;
+    if (bossXY.some(([bx, by]) => Math.hypot(bx - x, (by - y) * 1.3) < 62)) continue;
+    if (items.some(([ix, iy]) => Math.hypot(ix - x, iy - y) < 34)) continue;
+    const reg = pos.reduce((best, p, i) => (Math.hypot(p[0] - x, p[1] - y) < Math.hypot(pos[best][0] - x, pos[best][1] - y) ? i : best), 0);
+    const pal = PASTEL[th[reg]] || PASTEL.meadow, roll = rr();
+    const kind = roll < 0.5 ? (TREE_OF[th[reg]] || 'tree') : roll < 0.68 ? 'rock' : roll < 0.84 ? 'bush' : 'grass';
+    items.push([x, y, kind, pal.tree, 0.8 + rr() * 0.7, reg]);
+  }
+  items.sort((p, q) => p[1] - q[1]);
+  const deco = items.map(([x, y, k, c, s]) => `<g class="dc" transform="translate(${x.toFixed(0)},${y.toFixed(0)})">${pz[k](c, s.toFixed(2))}</g>`).join('');
+  const zones = pos.map(([cx, cy], i) => { const pal = PASTEL[th[i]] || PASTEL.meadow; return `<path d="${blob(cx, cy, 250, i * 13 + 5, 1.15)}" fill="${pal.g}" class="adv-zone"/>`; }).join('');
+  const regs = R.map((g, i) => {
+    const r = i + 1, open = regionOpen(map, r), [cx, cy] = pos[i], pal = PASTEL[th[i]] || PASTEL.meadow;
+    const order = [1, 2, 3, 4, 5].map((k) => [cx + BOSS_POS[k - 1][0], cy + BOSS_POS[k - 1][1]]);
+    let trail = `M${order[0][0]},${order[0][1]}`; for (let k = 1; k < 5; k++) { const a = order[k - 1], b = order[k]; trail += ` Q${(a[0] + b[0]) / 2 + 14},${(a[1] + b[1]) / 2 - 12} ${b[0]},${b[1]}`; }
+    trail += ` Q${(order[4][0] + cx) / 2 - 16},${(order[4][1] + cy) / 2 + 8} ${cx},${cy}`;
+    return `<g class="adv-reg ${open ? 'open' : 'locked'} th-${th[i]}" data-r="${r}">
+      <path d="${trail}" class="adv-trail"/>
+      ${[1, 2, 3, 4, 5, 6].map((k) => { const p = k === 6 ? [0, 0] : BOSS_POS[k - 1], x = cx + p[0], y = cy + p[1], st = starsOf(map, r, k), ok = bossOpen(map, r, k);
+        return `<g class="adv-boss ${k === 6 ? 'king' : ''} ${st ? 'beat' : ''} ${ok ? '' : 'shut'}" data-b="${r}-${k}" transform="translate(${x},${y})" tabindex="0" role="button" aria-label="${esc(bossName(map, r, k))}">${bossMark(k, st, ok, pal.roof)}${st ? `<text y="${k === 6 ? 62 : 48}" class="adv-st">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</text>` : ''}</g>`; }).join('')}
+      <g class="adv-sign" transform="translate(${cx},${cy + 186})"><path d="M-4,0 V34 M4,0 V34" stroke="#8a5a3a" stroke-width="5"/><rect x="-118" y="-30" width="236" height="50" rx="12" fill="#fbf3e2" stroke="#b9875a" stroke-width="3"/><text y="-6" class="adv-rn">${esc(g.name)}</text><text y="12" class="adv-rl">${esc(g.lv)} · ${esc(g.diff)}</text></g>
+      ${open ? '' : `<g class="adv-fog"><path d="${blob(cx, cy, 235, i * 13 + 5, 1.15)}"/>${[[-95, -70, 110], [95, 40, 120]].map(([dx, dy, w], q) => `<g class="adv-cloud" style="--q:${q}" transform="translate(${cx + dx},${cy + dy})"><circle cx="${-w * 0.42}" cy="${w * 0.06}" r="${w * 0.3}"/><circle cx="${-w * 0.08}" cy="${-w * 0.12}" r="${w * 0.42}"/><circle cx="${w * 0.36}" cy="${w * 0.02}" r="${w * 0.33}"/><rect x="${-w * 0.7}" y="0" width="${w * 1.4}" height="${w * 0.3}" rx="${w * 0.15}"/></g>`).join('')}<g transform="translate(${cx},${cy - 8})"><circle r="30" fill="#fbf3e2" stroke="#b9875a" stroke-width="3"/><rect x="-11" y="-3" width="22" height="16" rx="3" fill="#b9875a"/><path d="M-6,-3 v-6 a6,6 0 0 1 12,0 v6" stroke="#b9875a" stroke-width="4" fill="none"/></g></g>`}
+    </g>`;
+  }).join('');
+  const boats = [0.14, 0.47, 0.8].map((f, k) => { const x = f * W, y = riverY(x, ph); return `<g class="adv-boat" style="--d:${k * 2.3}s" transform="translate(${x.toFixed(0)},${y.toFixed(0)}) rotate(${(Math.atan2(riverY(x + 5, ph) - riverY(x - 5, ph), 10) * 180 / Math.PI).toFixed(0)})"><ellipse cx="2" cy="6" rx="22" ry="6" fill="rgba(0,40,60,.2)"/><path d="M-20,-4 Q0,10 20,-4 Z" fill="#f4f1ea"/><path d="M-20,-4 Q0,2 20,-4" stroke="#d9514a" stroke-width="3" fill="none"/></g>`; }).join('');
+  return `<svg class="adv-svg diorama" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" aria-label="${esc(D.name)} adventure map">
+    <defs><radialGradient id="advgr" cx="50%" cy="40%" r="85%"><stop offset="0" stop-color="#f2efc4"/><stop offset="1" stop-color="#d9d9a2"/></radialGradient>
+      <linearGradient id="advwater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb8c8"/><stop offset="1" stop-color="#4f8fa6"/></linearGradient>
+      <filter id="advsoft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="18"/></filter></defs>
     <g class="adv-cam">
-      <rect x="-600" y="-600" width="${W + 1200}" height="${H + 1200}" fill="url(#advsea)"/>
-      <g class="adv-decos">${deco.join('')}</g>
-      <path d="${path}" class="adv-road"/>
-      ${R.map((g, i) => { const r = i + 1, open = regionOpen(map, r); return `<g class="adv-reg ${open ? 'open' : 'locked'}" data-r="${r}">
-        <path d="${blob(g.c[0], g.c[1], 205, r * 7 + (map === 'zh' ? 3 : 0))}" fill="${g.col}" filter="url(#advsh)" class="adv-land"/>
-        <text x="${g.c[0]}" y="${g.c[1] + 196}" class="adv-rn">${esc(g.name)}</text>
-        <text x="${g.c[0]}" y="${g.c[1] + 226}" class="adv-rl">${esc(g.lv)} · ${esc(g.diff)}</text>
-        ${[1, 2, 3, 4, 5, 6].map((n) => { const p = n === 6 ? [0, 0] : BOSS_POS[n - 1], x = g.c[0] + p[0], y = g.c[1] + p[1], st = starsOf(map, r, n), ok = bossOpen(map, r, n);
-          return `<g class="adv-boss ${n === 6 ? 'king' : ''} ${st ? 'beat' : ''} ${ok ? '' : 'shut'}" data-b="${r}-${n}" transform="translate(${x},${y})" tabindex="0" role="button" aria-label="${esc(bossName(map, r, n))}">
-            <circle r="${n === 6 ? 34 : 22}" class="adv-ring"/><circle r="${n === 6 ? 22 : 13}" class="adv-dot"/>
-            ${n === 6 ? '<text y="-38" class="adv-crown">👑</text>' : ''}
-            ${st ? `<text y="${n === 6 ? 54 : 40}" class="adv-st">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</text>` : ''}
-          </g>`; }).join('')}
-        ${open ? '' : `<g class="adv-fog"><path d="${blob(g.c[0], g.c[1], 205, r * 7 + (map === 'zh' ? 3 : 0))}"/><text x="${g.c[0]}" y="${g.c[1] + 18}" class="adv-lock">🔒</text></g>`}
-      </g>`; }).join('')}
-      <g class="adv-us" transform="translate(${R[front - 1].c[0] - 150},${R[front - 1].c[1] - 250}) scale(2)">
+      <rect x="-600" y="-600" width="${W + 1200}" height="${H + 1200}" fill="url(#advgr)"/>
+      <g class="adv-zones" filter="url(#advsoft)">${zones}</g>
+      <path d="${route}" class="adv-road"/>
+      <path d="${river}" class="adv-bank"/><path d="${river}" class="adv-bank2"/><path d="${river}" class="adv-water"/><path d="${river}" class="adv-shine"/>
+      ${boats}
+      ${bridges.map(([x, y, a]) => `<g class="adv-bridge" transform="translate(${x.toFixed(0)},${y.toFixed(0)}) rotate(${a.toFixed(0)})"><rect x="-90" y="-17" width="180" height="34" rx="4" fill="#c98a5c"/><rect x="-90" y="-17" width="180" height="8" fill="#e0a77a"/>${Array.from({ length: 9 }, (_, k) => `<path d="M${-80 + k * 20},-17 V17" stroke="#a96c44" stroke-width="2"/>`).join('')}<rect x="-90" y="13" width="180" height="6" fill="#8f5a38"/></g>`).join('')}
+      <g class="adv-decs">${deco}</g>
+      ${regs}
+      <g class="adv-us" transform="translate(${pos[front - 1][0] - 150},${pos[front - 1][1] - 250}) scale(2)">
         <foreignObject x="0" y="0" width="150" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="adv-pair">${acct ? vipAv(acct.name, acct.avatar, 0) : ''}${M && M.bestie ? `<i>${I.heart}</i>${vipAv(M.bestie.name, M.bestie.avatar, M.bestie.vip || 0)}` : ''}</div></foreignObject>
       </g>
     </g></svg>`;

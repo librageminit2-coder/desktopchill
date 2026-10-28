@@ -1,8 +1,8 @@
 /* =========================================================
    v23 · Lucky spin · Bestie · Bestie Adventure · context menu · groups · drag tiles
    ========================================================= */
-:root { --bst: #ff7aa8; --bst-2: #ffb36b; --adv-sea1: #12363a; --adv-sea2: #071a1c; }
-:root[data-theme="light"] { --adv-sea1: #bfe6e6; --adv-sea2: #7fc3c8; }
+:root { --bst: #ff7aa8; --bst-2: #ffb36b; --adv-sea1: #2f9cc0; --adv-sea2: #0f3f5c; }
+:root[data-theme="light"] { --adv-sea1: #8fd6ee; --adv-sea2: #3d97c2; }
 
 /* ---------- bo góc mọi panel / nhãn ---------- */
 .hud, .tabbar, .dd, .bell-dd, .sheet, .cmenu, .hint, .toast, .edge-tab, .lb-row, .rk-i, .row, .seg, .seg button, .input, select.input, .tag-s, .fxb, .wn-k, .du-banner, .du-prize, .rl-bst, .bmini { border-radius: var(--r-m); }
@@ -311,7 +311,7 @@
 @keyframes advpulse { 0% { transform: scale(.8); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
 .adv-crown { text-anchor: middle; font-size: 30px; }
 .adv-st { text-anchor: middle; font: 800 18px var(--f-head); fill: var(--gold); paint-order: stroke; stroke: rgba(0, 0, 0, .6); stroke-width: 4px; }
-.adv-fog { cursor: not-allowed; } .adv-fog path { fill: rgba(10, 18, 22, .5); stroke: rgba(255, 255, 255, .25); stroke-width: 4; stroke-dasharray: 10 12; }
+.adv-fog { cursor: not-allowed; }
 .adv-lock { text-anchor: middle; font-size: 56px; }
 .adv-pair { display: flex; align-items: center; gap: 4px; padding: 4px 8px 4px 4px; border-radius: 999px; background: rgba(0, 0, 0, .55); width: max-content; animation: nodebob 2s ease-in-out infinite; }
 .adv-pair i { color: var(--bst); display: inline-flex; } .adv-pair i svg { width: 16px; height: 16px; fill: currentColor; }
@@ -459,3 +459,107 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
 .gt-tip.center .gt-b { justify-content: center; } .gt-tip.center .gt-go { min-width: 180px; height: 42px; font-size: .95rem; }
 .gt-go[hidden] { display: none; }
 .rk-err { display: grid; justify-items: center; gap: 8px; text-align: center; }
+
+/* số vé quay: màu đỏ cho dễ thấy */
+.tk-n { font-variant-numeric: tabular-nums; }
+.cm-spin .tk-n, .tk-chip .tk-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #e5383b; color: #fff; font-weight: 900; font-size: .8rem; box-shadow: 0 0 0 2px rgba(255, 255, 255, .85), 0 4px 10px rgba(229, 56, 59, .45); }
+.cm-spin:not(.has) .tk-n, .tk-chip:not(.has) .tk-n { background: rgba(229, 56, 59, .25); box-shadow: none; }
+.gp-h .tk-n { color: #e5383b; font-size: 1.25em; }
+
+/* ---------- v24: trang đầu gọn, không phải cuộn ---------- */
+.welcome.w2 { min-height: 100dvh; padding: 20px 16px; gap: 18px; align-content: center; }
+@media (min-width: 980px) { .welcome.w2 { grid-template-columns: minmax(0, 1fr) minmax(380px, 440px); gap: 48px; padding: 24px 32px; } }
+.w2 .w-hero { gap: 14px; }
+.w2 h1 { font-size: clamp(2.2rem, 5vw, 4.2rem); }
+.w2 .lead { font-size: 1rem; }
+.w2 .w-card { padding: 18px; gap: 12px; }
+.w-course { display: grid; gap: 10px; }
+.w2 .pick.sm { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.w2 .pick.sm button { padding: 8px 6px; min-height: 0; border-radius: 12px; text-align: center; font-weight: 800; font-size: .9rem; }
+.w-lvl { display: flex; align-items: center; gap: 10px; font-size: .82rem; font-weight: 700; color: var(--muted); }
+.w-lvl select { flex: 1; min-width: 0; height: 40px; }
+.w-auth.is-login .w-course, .w-auth.is-login .w-later { display: none; }
+.authwrap.compact .authf { margin-top: 10px !important; }
+.authwrap.compact .field { margin-bottom: 8px; }
+.authwrap.compact .field label { margin-bottom: 4px; font-size: .8rem; }
+.authwrap.compact .input { height: 42px; }
+.authwrap.compact .authf > p.muted:last-child { display: none; }
+.authwrap.compact .remember { margin: 2px 0 6px; font-size: .82rem; }
+.authwrap.compact .err:empty { display: none; }
+.w-foot { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.w-later, .w-pin { font-size: .86rem; color: var(--muted); } .w-pin svg { width: 14px; height: 14px; vertical-align: -2px; }
+@media (min-width: 980px) { .w-pin { display: none; } }
+@media (max-width: 979px) {
+  .w2 .w-hero { gap: 8px; }
+  .w2 h1 { font-size: clamp(1.7rem, 7vw, 2.4rem); }
+  .w2 .lead, .w2 .w-stats { display: none; }
+  .w2 .w-join { display: none; }
+  .welcome.w2 { padding: 12px 14px; gap: 12px; }
+  .authwrap.compact .input { height: 40px; } .authwrap.compact .field { margin-bottom: 6px; } .w2 .w-card { padding: 14px; gap: 10px; }
+  .authwrap.compact .field small:not(.nchk), .authwrap.compact .field .hint { display: none; }
+  .w2 .w-logo { font-size: .95rem; }
+}
+@media (max-height: 760px) and (min-width: 980px) { .w2 .w-stats { display: none; } .w2 h1 { font-size: clamp(2rem, 4vw, 3.4rem); } }
+@media (max-width: 979px) { .w-pin { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; } }
+
+/* ---------- v24: bản đồ Adventure vẽ tay ---------- */
+.adv-wave { fill: none; stroke: rgba(255, 255, 255, .28); stroke-width: 3; stroke-linecap: round; animation: advwave 6s ease-in-out infinite; }
+.adv-wave:nth-child(3n) { animation-delay: -2s; } .adv-wave:nth-child(3n+1) { animation-delay: -4s; }
+@keyframes advwave { 0%, 100% { transform: translateX(0); opacity: .25; } 50% { transform: translateX(14px); opacity: .6; } }
+.adv-road { fill: none; stroke: rgba(255, 244, 220, .75); stroke-width: 6; stroke-dasharray: 2 18; stroke-linecap: round; }
+.adv-foam { fill: none; stroke: rgba(255, 255, 255, .35); stroke-width: 18; stroke-linejoin: round; animation: advfoam 4s ease-in-out infinite; }
+@keyframes advfoam { 50% { stroke-width: 26px; stroke: rgba(255, 255, 255, .18); } }
+.adv-land { stroke: rgba(60, 40, 20, .35); stroke-width: 3; }
+.adv-beach { stroke: rgba(122, 82, 51, .35); stroke-width: 2; }
+.adv-trail { fill: none; stroke: #fff4dc; stroke-width: 7; stroke-dasharray: 12 10; stroke-linecap: round; opacity: .9; }
+.adv-reg.locked .adv-land, .adv-reg.locked .adv-decs, .adv-reg.locked .adv-beach { filter: saturate(.6) brightness(.9); }
+.adv-ribbon text { text-anchor: middle; }
+.adv-rn { font: 800 26px var(--f-head); fill: #4a2f17; letter-spacing: .02em; stroke: none; paint-order: normal; }
+.adv-rl { font: 800 15px var(--f-head); fill: #9a6b3a; letter-spacing: .08em; text-transform: uppercase; stroke: none; }
+.adv-cn { text-anchor: middle; font: 900 22px var(--f-head); fill: #7a5233; }
+.adv-boat { animation: advboat 7s ease-in-out infinite; animation-delay: var(--d); transform-box: fill-box; }
+@keyframes advboat { 0%, 100% { translate: 0 0; rotate: -3deg; } 50% { translate: 30px 6px; rotate: 3deg; } }
+.adv-cloud { fill: rgba(245, 249, 252, .82); filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .25)); animation: advcloud 12s ease-in-out infinite; animation-delay: calc(var(--q) * -2.4s); }
+@keyframes advcloud { 0%, 100% { translate: 0 0; } 50% { translate: 18px -6px; } }
+.adv-fog > path { fill: rgba(30, 40, 52, .18); }
+.adv-boss .adv-ring { fill: rgba(229, 57, 53, .22); stroke: rgba(255, 255, 255, .8); stroke-width: 2; }
+.adv-boss.beat .adv-ring { fill: rgba(47, 191, 113, .2); }
+.adv-boss.shut .adv-ring { fill: rgba(0, 0, 0, .15); stroke: rgba(255, 255, 255, .3); }
+.adv-boss .adv-dot { fill: none; stroke: none; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .35)); transition: transform .15s; transform-box: fill-box; transform-origin: 50% 100%; }
+.adv-boss:hover .adv-dot, .adv-boss:focus-visible .adv-dot { transform: translateY(-4px) scale(1.12); }
+.adv-boss:not(.shut):not(.beat) .adv-dot { animation: advbob 2.4s ease-in-out infinite; }
+@keyframes advbob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.adv-st { text-anchor: middle; font: 900 18px var(--f-head); fill: #ffc94a; stroke: #4a2f17; stroke-width: 4px; paint-order: stroke; }
+.adv-compass { opacity: .92; }
+.adv-wrap { border: 4px solid #7a5233; box-shadow: 0 0 0 2px #e9d5a8 inset, var(--shadow); }
+.adv-svg .dc { pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .adv-wave, .adv-foam, .adv-boat, .adv-cloud, .adv-boss .adv-dot { animation: none !important; } }
+
+/* ---------- v24b: bản đồ diorama pastel ---------- */
+.adv-svg.diorama { background: #e9e6b6; }
+.diorama .adv-zone { opacity: .85; }
+.diorama .adv-bank { fill: none; stroke: #ead9ac; stroke-width: 168; stroke-linecap: round; stroke-linejoin: round; }
+.diorama .adv-bank2 { fill: none; stroke: #d4bb8a; stroke-width: 140; stroke-linecap: round; stroke-linejoin: round; transform: translateY(8px); }
+.diorama .adv-water { fill: none; stroke: url(#advwater); stroke-width: 124; stroke-linecap: round; stroke-linejoin: round; }
+.diorama .adv-shine { fill: none; stroke: rgba(255, 255, 255, .45); stroke-width: 3; stroke-dasharray: 26 60; animation: advflow 6s linear infinite; }
+@keyframes advflow { to { stroke-dashoffset: -430; } }
+.diorama .adv-road { fill: none; stroke: #e5d3a8; stroke-width: 14; stroke-dasharray: none; stroke-linecap: round; opacity: .9; }
+.diorama .adv-trail { fill: none; stroke: #e2cfa2; stroke-width: 10; stroke-dasharray: 14 9; stroke-linecap: round; opacity: 1; }
+.diorama .adv-boss .adv-ring { fill: rgba(229, 72, 77, .14); stroke: rgba(229, 72, 77, .5); stroke-width: 2; }
+.diorama .adv-boss.beat .adv-ring { fill: rgba(47, 191, 113, .14); stroke: rgba(47, 191, 113, .5); }
+.diorama .adv-boss.shut .adv-ring { fill: transparent; stroke: transparent; animation: none; }
+.diorama .adv-boss .adv-dot { filter: drop-shadow(0 4px 6px rgba(80, 70, 40, .25)); transform-origin: 50% 60%; }
+.diorama .adv-boss.shut .adv-dot { filter: grayscale(.6) brightness(.95); }
+.diorama .adv-flag { animation: advflag 2s ease-in-out infinite; transform-box: fill-box; transform-origin: 0 100%; }
+@keyframes advflag { 50% { transform: skewY(-4deg); } }
+.diorama .adv-rn { fill: #6a4426; font-size: 24px; }
+.diorama .adv-rl { fill: #a5774c; font-size: 13px; }
+.diorama .adv-st { fill: #ffc94a; stroke: #6a4426; }
+.diorama .adv-reg.locked .adv-trail, .diorama .adv-reg.locked .adv-sign { filter: grayscale(.4); }
+.diorama .adv-fog > path { fill: rgba(245, 243, 235, .5); filter: blur(12px); }
+.diorama .adv-reg.locked .adv-boss { opacity: .75; }
+.diorama .adv-cloud { fill: rgba(255, 255, 255, .9); filter: drop-shadow(0 8px 10px rgba(90, 90, 70, .18)); }
+.diorama .adv-boat { animation: advboat2 8s ease-in-out infinite; animation-delay: var(--d); }
+@keyframes advboat2 { 50% { translate: 26px 4px; } }
+.adv-wrap:has(.diorama) { border-color: #b9875a; background: #e9e6b6; }
+@media (prefers-reduced-motion: reduce) { .diorama .adv-shine, .diorama .adv-flag { animation: none !important; } }

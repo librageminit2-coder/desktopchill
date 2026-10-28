@@ -1,13 +1,13 @@
 // Bộ máy bài học: tạo bài tập từ nội dung chủ đề và chạy từng bước
-import { I } from './icons.js?v=26';
-import { mascot } from './mascot.js?v=26';
-import { sfx } from './sound.js?v=26';
-import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=26';
+import { I } from './icons.js?v=27';
+import { mascot } from './mascot.js?v=27';
+import { sfx } from './sound.js?v=27';
+import { speak, stopSpeak, listen, stopListen, canListen, canSpeak, compare, norm, micMsg, micBlocked, MIC_HELP, listenLong, stopLong, micPolicyBlocked } from './speech.js?v=27';
 const FATAL_MIC = ['not-allowed', 'service-not-allowed', 'unsupported', 'network', 'audio-capture'];
 const micErrHTML = (code) => `<span class="mic-err">${esc(micMsg(code))}</span>${micBlocked(code) ? MIC_HELP : ''}`;
 const lvl = (mic) => (v) => mic.style.setProperty('--lv', v.toFixed(3));
-import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=26';
-import * as bestie from './bestie.js?v=26';
+import { S, addXP, markDone, addWords, save, bump, setStars } from './store.js?v=27';
+import * as bestie from './bestie.js?v=27';
 
 const $ = (s, r = document) => r.querySelector(s);
 const h = (str) => { const t = document.createElement('template'); t.innerHTML = str.trim(); return t.content.firstElementChild; };
@@ -685,7 +685,7 @@ export function runLesson({ unit, k = 0, lang, onExit, queue: given, custom = fa
     else if (e.key === 'Escape') quit();
   };
   document.addEventListener('keydown', onKey);
-  function close() { document.body.classList.remove('playing'); const cf = document.getElementById('confetti'); if (cf) cf.remove(); stopSpeak(); stopListen(); document.removeEventListener('keydown', onKey); root.remove(); document.body.style.overflow = ''; document.querySelectorAll('.gloss').forEach((g) => g.remove()); }
+  function close() { try { if (api && api.onLeave) api.onLeave(); } catch (e) {} document.body.classList.remove('playing'); const cf = document.getElementById('confetti'); if (cf) cf.remove(); stopSpeak(true); stopListen(); document.removeEventListener('keydown', onKey); root.remove(); document.body.style.overflow = ''; document.querySelectorAll('.gloss').forEach((g) => g.remove()); }
   function quit() {
     if (idx === 0 || confirmQuit()) { close(); onExit({ done: false }); }
   }

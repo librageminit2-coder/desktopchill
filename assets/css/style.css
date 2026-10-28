@@ -744,3 +744,29 @@ textarea.bk-inp { min-height: 74px; resize: vertical; }
 .booking-card::before { border-radius: 26px 26px 0 0; }
 .bk-done-img { display: block; width: 100%; max-width: 260px; margin: 0 auto 14px; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 10px 24px rgba(0,0,0,.18); }
 .bk-done-img[hidden] { display: none; }
+
+/* ===== nút sang trang học (desktopchill.com/learn) — luôn nổi bật ===== */
+.learn-cta { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 12px; margin-right: 6px; border-radius: 999px; font-weight: 800; font-size: .92rem; color: #fff; text-decoration: none; white-space: nowrap;
+  background: linear-gradient(120deg, #ff6a58, #ffab6b, #ff6a58); background-size: 220% 100%; box-shadow: 0 6px 22px rgba(255, 106, 88, .45), inset 0 1px 0 rgba(255, 255, 255, .35); animation: lcFlow 4s linear infinite; isolation: isolate; }
+.learn-cta::before { content: ""; position: absolute; inset: -4px; border-radius: inherit; z-index: -1; background: radial-gradient(closest-side, rgba(255, 140, 100, .55), transparent); animation: lcPulse 2.2s ease-in-out infinite; }
+.learn-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(255, 106, 88, .6), inset 0 1px 0 rgba(255, 255, 255, .35); }
+.learn-cta .lc-ic { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255, 255, 255, .25); font-size: .8rem; }
+.learn-cta .lc-badge { padding: 2px 7px; border-radius: 999px; background: #fff; color: #e2483a; font-size: .66rem; font-weight: 900; letter-spacing: .02em; }
+@keyframes lcFlow { to { background-position: -220% 0; } }
+@keyframes lcPulse { 0%, 100% { opacity: .35; transform: scale(.96); } 50% { opacity: .9; transform: scale(1.06); } }
+@media (max-width: 860px) { .learn-cta { height: 36px; padding: 0 12px 0 8px; font-size: .84rem; margin-right: 2px; } .learn-cta .lc-badge { display: none; } }
+@media (max-width: 420px) { .learn-cta .lc-ic { display: none; } .learn-cta { padding: 0 12px; } }
+@media (prefers-reduced-motion: reduce) { .learn-cta, .learn-cta::before { animation: none; } }
+.main-nav a { white-space: nowrap; }
+.learn-cta .lc-s { display: none; }
+@media (max-width: 1360px) { .main-nav a { padding: 8px 10px; } .learn-cta .lc-badge { display: none; } }
+@media (max-width: 1100px) { .main-nav a { padding: 8px 7px; font-size: .88rem; } }
+@media (max-width: 600px) { .learn-cta .lc-t { display: none; } .learn-cta .lc-s { display: inline; } .learn-cta { height: 34px; padding: 0 12px 0 6px; gap: 5px; } .learn-cta .lc-ic { display: inline-grid; width: 22px; height: 22px; } }
+@media (max-width: 1500px) { .learn-cta .lc-badge { display: none; } .main-nav a { padding: 8px 10px; } }
+@media (max-width: 1280px) { .main-nav a { padding: 8px 6px; font-size: .86rem; } .learn-cta { padding: 0 14px 0 8px; } }
+@media (max-width: 600px) { .learn-cta { display: none; } }
+.mcta-learn { color: #fff; background: linear-gradient(120deg, #ff6a58, #ffab6b, #ff6a58); background-size: 220% 100%; animation: lcFlow 4s linear infinite; box-shadow: 0 6px 18px rgba(255, 106, 88, .45); }
+.mcta-learn .ml-ic { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(255, 255, 255, .28); font-size: .75rem; }
+@media (max-width: 380px) { .mcta-btn { font-size: .82rem; gap: 5px; } .mcta-learn .ml-ic { display: none; } }
+.mcta-btn span { white-space: nowrap; }
+@media (max-width: 440px) { .mcta-learn .ml-ic { display: none; } .mobile-cta .mcta-btn { font-size: .84rem; gap: 6px; } .mobile-cta { gap: 6px; padding-left: 8px; padding-right: 8px; } }
