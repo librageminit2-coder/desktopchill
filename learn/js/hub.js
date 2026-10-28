@@ -98,6 +98,7 @@ export async function poll(first = false) {
     const hadB = bestie.has(); bestie.fromMe(j);
     if (bestie.has() && (first || !hadB)) bestie.load(true).then(() => bestie.maybeMissYou());
     revokeCheck(j.revoke);
+    if (j.gift && C.giftTour) C.giftTour(j.gift);
     pendingInvites(j);
     paintBadges();
     if (first || hub.unread > before) await loadNotifs(!first);
@@ -356,12 +357,13 @@ function ranked() {
 /* ---------- bảng xếp hạng toàn máy chủ (trên danh sách bạn) ---------- */
 // v23: thêm Top collector (số hình nền) và Bestie (cặp Bestie theo sao Vượt ải). Tuần mới: 16:00 thứ Hai giờ Hà Nội, mọi bảng phát quà cùng lúc.
 const RK_TABS = [['en', 'EN'], ['zh', '中文'], ['ielts', 'IELTS'], ['duel', 'Duel'], ['col', 'Collector'], ['bestie', 'Bestie']];
-const rk = { tab: (() => { try { return localStorage.getItem('dcl_rk') || ''; } catch (e) { return ''; } })(), data: {}, at: {}, busy: '' };
+const rk = { err: {}, tab: (() => { try { return localStorage.getItem('dcl_rk') || ''; } catch (e) { return ''; } })(), data: {}, at: {}, busy: '' };
 const rkTab = () => (RK_TABS.some((t) => t[0] === rk.tab) ? rk.tab : (['en', 'zh', 'ielts'].includes(S.lang) ? S.lang : 'en'));
 export async function loadRank(board = rkTab(), force = false) {
   if (rk.busy === board || (!force && rk.data[board] && Date.now() - rk.at[board] < 60000)) return;
   rk.busy = board;
-  try { const j = await call('learn_rank_board', { p_board: board }); if (j && j.ok) { rk.data[board] = j; rk.at[board] = Date.now(); } } catch (e) {}
+  // v23: lỗi / máy chủ chưa có bảng này → hiện thông báo + nút thử lại, không quay "Loading…" mãi
+  try { const j = await call('learn_rank_board', { p_board: board }); if (j && j.ok) { rk.data[board] = j; rk.at[board] = Date.now(); delete rk.err[board]; } else rk.err[board] = (j && j.error) || 'fail'; } catch (e) { rk.err[board] = e.message || 'fail'; }
   rk.busy = '';
   document.querySelectorAll('.rk').forEach((el) => paintRank(el));
 }
@@ -375,6 +377,7 @@ export function resetIn(d) {
 }
 function rankRows(board) {
   const d = rk.data[board];
+  if (!d && rk.err[board]) return `<div class="rk-load rk-err"><p>${rk.err[board] === 'board' || /not ready/i.test(rk.err[board]) ? 'This ranking opens with the new update. Check back soon.' : 'Could not load this ranking.'}</p><button type="button" class="btn sm ghost rk-retry" data-b="${board}">Try again</button></div>`;
   if (!d) return '<p class="rk-load">Loading…</p>';
   const items = d.items || [], unit = { duel: 'pts', col: 'wallpapers', bestie: '★ adventure' }[board] || '★';
   let rows;
@@ -395,6 +398,7 @@ function paintRank(el) {
   const b = rkTab();
   el.querySelectorAll('.rk-tabs button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.b === b));
   const body = el.querySelector('.rk-body'); if (body) body.innerHTML = rankRows(b);
+  const rt = el.querySelector('.rk-retry'); if (rt) rt.addEventListener('click', () => { delete rk.err[b]; paintRank(el); loadRank(b, true); });
   const d = rk.data[b]; if (!d) return;
   ctx.attach(el, '.rk-i[data-u]', (row) => { const x = d.items.find((i) => String(i.uid) === row.dataset.u); return x ? { uid: x.uid, name: x.name, avatar: x.avatar, vip: x.vip, rel: x.rel } : null; });
   ctx.attach(el, '.rk-pn', (sp) => { for (const it of d.items) { const p = (it.pair || []).find((q) => String(q.uid) === sp.dataset.u); if (p) return { uid: p.uid, name: p.name, avatar: p.avatar, vip: p.vip }; } return null; });

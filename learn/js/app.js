@@ -1083,7 +1083,7 @@ async function goTo(lang, lv, uid) {
 const ctx = { shell, render, authSheet, course, findUnit, curLevel, startLesson: (c, uid, k) => start(c, uid, k), COURSES, AVAIL, LN, lessonName, asideHTML, lvRing, goTo, badgesHTML, applyBg: setBg,
   spin: (o) => gacha.spin(o), setTickets: (n) => gacha.setLeft(n), tickets: () => gacha.G.left, tick: (q) => hub.tick(q), openDM: (f) => chat.openDM(f),
   friends: () => ((hub.hub.friends && hub.hub.friends.items) || []), loadFriends: () => hub.loadFriends(), autoJoin: (g) => social.autoJoin(g), advInvite: (a) => adv.invite(a),
-  startTour: (k, force) => guide.startTour(k, force), showRank: (b) => hub.showRank(b), gachaPanel: () => gacha.panelHTML(), wireGacha: (r) => gacha.wirePanel(r), gachaLoad: () => gacha.load(true) };
+  startTour: (k, force) => guide.startTour(k, force), giftTour: (gf) => guide.giftTour(gf), showRank: (b) => hub.showRank(b), gachaPanel: () => gacha.panelHTML(), wireGacha: (r) => gacha.wirePanel(r), gachaLoad: () => gacha.load(true) };
 social.init(ctx); walls.init(ctx); hub.init(ctx); duel.init(ctx); gacha.init(ctx); bestie.init(ctx); ctxm.init(ctx); adv.init(ctx); guide.init(ctx);
 const boot = walls.loadCat().catch(() => {});
 window.addEventListener('hashchange', render);

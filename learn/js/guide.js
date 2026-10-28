@@ -2,9 +2,10 @@
 // Sau đó là 2 gợi ý (Add friends, Duels): không chặn màn hình, chỉ tắt khi người dùng bấm đúng nút đó.
 // Lưu trong tiến trình (S.guide) nên đồng bộ theo tài khoản: làm xong một lần thì máy khác cũng không hiện lại.
 import { S, save } from './store.js?v=26';
-import { acct } from './account.js?v=26';
 import { sfx } from './sound.js?v=26';
 import { toast, esc } from './ui.js?v=26';
+import { acct, call } from './account.js?v=26';
+import * as walls from './walls.js?v=26';
 
 let C = null;
 export function init(ctx) { C = ctx; }
@@ -120,12 +121,12 @@ const hintClick = (e) => {
 };
 document.addEventListener('click', hintClick, true);
 function hints() {
-  if (hintT || !acct || !g().tour || coach) return;
+  if (hintT || !acct || !g().tour || coach || G.on) return;
   hintT = setInterval(() => {
     const h = HINTS.find((x) => !g()[x.id]);
     if (!h || !acct) { clearInterval(hintT); hintT = 0; if (hintEl) hintEl.remove(); hintEl = null; return; }
     const inView = (x) => { const r = x.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.width > 4; };
-    const el = cur >= 0 || coach || blocked() ? null : h.sels.map((s) => [...document.querySelectorAll(s)].find((x) => vis(x) && inView(x))).find(Boolean);
+    const el = cur >= 0 || coach || G.on || blocked() ? null : h.sels.map((s) => [...document.querySelectorAll(s)].find((x) => vis(x) && inView(x))).find(Boolean);
     if (!el) { if (hintEl) hintEl.classList.add('gone'); return; }
     if (!hintEl || hintOn !== h) { if (hintEl) hintEl.remove(); hintEl = document.createElement('div'); hintEl.className = 'hint'; hintEl.setAttribute('role', 'note'); hintEl.innerHTML = `<b>${h.title}</b><p>${h.text}</p><small>Tap the highlighted button to continue</small>`; document.body.appendChild(hintEl); hintOn = h; }
     hintEl.classList.remove('gone');
@@ -202,6 +203,8 @@ function coachTick() {
 // kind: 'gacha' | 'bestie'; force = true khi người dùng tự bấm (vd. từ bảng "What's new")
 export function startTour(kind, force) {
   if (!acct || !TOURS[kind]) return;
+  if (kind === 'gacha' && G.gift && !g().gift1) { giftTour(G.gift); return; }
+  if (G.on) return;
   if (!force && g()['v23_' + kind]) return;
   if (cur >= 0) return;
   if (coach) { if (coach.kind === kind) return; clearInterval(coach.t); if (coach.root) coach.root.remove(); coach = null; }
@@ -216,8 +219,108 @@ function v23() {
   v23T = setTimeout(function chk() {
     v23T = 0; if (!acct || coach || cur >= 0) return;
     if (g().v23_gacha && g().v23_bestie) return;
+    if (!g().gift1 || G.on) { v23T = setTimeout(chk, 6000); return; }
     const newsOk = (() => { try { return localStorage.getItem('dcl_news_23') === '1'; } catch (e) { return true; } })();
     if (!newsOk || blocked() || document.querySelector('.sheet, .ovl, .gs, .bmiss')) { v23T = setTimeout(chk, 4000); return; }
     startTour(g().v23_gacha ? 'bestie' : 'gacha');
   }, 3500);
+}
+
+/* ---------- v23: quà cho mọi người (1 vé quay + 1 hình rare) — hướng dẫn BẮT BUỘC nhận và quay vé ----------
+   Che cả màn hình, chỉ bấm được vào vùng sáng; không có nút bỏ qua. Xong thì báo máy chủ (learn_gift_seen). */
+const G = { gift: null, on: false, i: 0, t: 0, ui: null, miss: 0, startT: 0 };
+const vis2 = (el) => vis(el) && (() => { const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; })();
+const pick = (sels) => { for (const s of sels) { const el = [...document.querySelectorAll(s)].find(vis); if (el) return el; } return null; };
+const tk = () => { try { return C && C.tickets ? C.tickets() : 1; } catch (e) { return 1; } };
+function giftSteps(gift) {
+  const wid = gift.wall, wname = wid ? (walls.wallOf(wid) || {}).name || 'a rare wallpaper' : '';
+  return [
+    { id: 'intro', center: true, k: 'A gift for you', title: 'Free lucky spin + a rare wallpaper', btn: 'Claim my gifts',
+      html: () => `<div class="gt-gifts">${wid ? `<div class="gt-w">${walls.card(wid, { state: 'got', cls: 'mini' })}<small>Rare wallpaper<br><b>${esc(wname)}</b></small></div>` : ''}<div class="gt-t"><span>🎟️</span><small>1 free<br><b>lucky spin</b></small></div></div><p>Everyone gets these. Follow the steps to open your ticket and spin it. It takes 20 seconds.</p>` },
+    { id: 'chip', k: 'Step 1 of 4', title: 'Open your ticket', text: 'Your spin tickets live here. Tap it to open the Lucky spin.',
+      el: () => pick(['.hud .tk-chip.has', '.tk-chip.has', '.col-gp .gp-go', '.hud .tk-chip', '.tk-chip']), done: () => !!document.querySelector('.gs'), skip: () => tk() === 0 && !document.querySelector('.gs'), go: '#/collection' },
+    { id: 'spin', k: 'Step 2 of 4', title: 'Spinning…', text: 'The strip stops on a random wallpaper. Rarer ones are less likely, and a duplicate turns into XP.',
+      el: () => pick(['.gs-go:not([disabled])']), done: () => !document.querySelector('.gs') || !!document.querySelector('.gs-close:not([disabled])'), bottom: true },
+    { id: 'close', k: 'Step 3 of 4', title: 'Your prize is saved', text: 'It is already in your collection. Tap Close.',
+      el: () => pick(['.gs-close:not([disabled])']), done: () => !document.querySelector('.gs') },
+    { id: 'col', k: 'Step 4 of 4', title: 'Open Collection', text: 'Your rare gift and your new prize are in Collection.',
+      el: () => pick(['.nav .mt[href="#/collection"]', '.tabbar a[href="#/collection"]', '.side .col-mini .cm-go']), done: () => route().startsWith('#/collection') && !!document.querySelector('.col-body'), go: '#/collection' },
+    { id: 'see', k: 'All done', title: wid ? `${wname} is yours` : 'All done!', text: 'Tap any wallpaper you own and choose “Use as background” to put it behind your lessons. Chests, duels, quizzes and weekly rankings give more tickets.', btn: 'Finish', last: true,
+      el: () => (wid ? [...document.querySelectorAll(`.col-body .wcard[data-w="${wid}"]`)].find(vis) : null) || pick(['.col-gp']) },
+  ];
+}
+function gMount() {
+  if (G.ui) return G.ui;
+  const root = document.createElement('div'); root.className = 'tour gtour';
+  root.innerHTML = `<div class="tr-b t"></div><div class="tr-b r"></div><div class="tr-b b"></div><div class="tr-b l"></div><div class="tr-ring"></div><div class="tr-tip gt-tip" role="dialog" aria-live="polite"><small class="tr-k"></small><b class="tr-t"></b><div class="gt-body"></div><div class="gt-b"><button type="button" class="btn acc sm gt-go"></button></div></div>`;
+  document.body.appendChild(root);
+  ['pointerdown', 'click'].forEach((t) => root.querySelectorAll('.tr-b').forEach((b) => b.addEventListener(t, (e) => { e.stopPropagation(); e.preventDefault(); if (t === 'click') { const tip = root.querySelector('.tr-tip'); tip.classList.remove('shake'); void tip.offsetWidth; tip.classList.add('shake'); sfx('bad'); } })));
+  root.querySelector('.gt-go').addEventListener('click', () => { const st = G.steps[G.i]; if (!st) return; sfx('tap'); if (st.btn) { if (st.last) return gFinish(); G.i++; G.drawn = ''; gTick(); return; } if (st.go && !route().startsWith(st.go)) { document.getElementById('sheet-root').innerHTML = ''; location.hash = st.go; } else { const el = st.el && st.el(); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } });
+  G.ui = { root, ring: root.querySelector('.tr-ring'), tip: root.querySelector('.tr-tip'), bl: [...root.querySelectorAll('.tr-b')] };
+  return G.ui;
+}
+function gPlace(r) {
+  const u = G.ui, [t, rt, b, l] = u.bl;
+  if (!r) { t.style.cssText = 'left:0;top:0;width:100%;height:100%'; [rt, b, l].forEach((x) => { x.style.cssText = 'display:none'; }); u.ring.style.cssText = 'display:none'; return; }
+  const pad = 6, x = Math.max(0, r.left - pad), y = Math.max(0, r.top - pad), w = Math.min(innerWidth, r.right + pad) - x, h = Math.min(innerHeight, r.bottom + pad) - y;
+  t.style.cssText = `left:0;top:0;width:100%;height:${y}px`;
+  b.style.cssText = `left:0;top:${y + h}px;width:100%;height:${Math.max(0, innerHeight - y - h)}px`;
+  l.style.cssText = `left:0;top:${y}px;width:${x}px;height:${h}px`;
+  rt.style.cssText = `left:${x + w}px;top:${y}px;width:${Math.max(0, innerWidth - x - w)}px;height:${h}px`;
+  u.ring.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
+}
+function gTick() {
+  const st = G.steps[G.i]; if (!st) return gFinish();
+  if (st.skip && st.skip()) { G.i = G.steps.findIndex((x) => x.id === 'col'); G.drawn = ''; return; }
+  if (st.done && st.done()) { G.i++; G.miss = 0; G.drawn = ''; sfx('ok'); return; }
+  const u = gMount(), tip = u.tip;
+  if (G.drawn !== st.id) {
+    G.drawn = st.id;
+    tip.querySelector('.tr-k').textContent = st.k; tip.querySelector('.tr-t').textContent = st.title;
+    tip.querySelector('.gt-body').innerHTML = st.html ? st.html() : `<p>${esc(st.text)}</p>`;
+    const go = tip.querySelector('.gt-go'); go.textContent = st.btn || 'Show me'; go.hidden = !st.btn && !st.go;
+    tip.classList.toggle('center', !!st.center);
+  }
+  const go = tip.querySelector('.gt-go');
+  if (!st.btn) go.hidden = !st.go || route().startsWith(st.go);
+  if (st.center) { gPlace(null); const tw = Math.min(380, innerWidth - 24); tip.style.cssText = `left:${(innerWidth - tw) / 2}px;top:${Math.max(16, (innerHeight - (tip.offsetHeight || 300)) / 2)}px;width:${tw}px`; return; }
+  const el = st.el && st.el();
+  if (el && vis(el)) {
+    G.miss = 0;
+    if (!vis2(el) || (el.getBoundingClientRect().top < 70 && !el.closest('.hud, .tabbar, .ovl'))) el.scrollIntoView({ block: 'center' });
+    const r = el.getBoundingClientRect(); gPlace(r);
+    const tw = Math.min(330, innerWidth - 24), th = tip.offsetHeight || 140;
+    let tx = Math.min(Math.max(12, r.left + r.width / 2 - tw / 2), innerWidth - tw - 12), ty = r.bottom + 16;
+    if (st.bottom || ty + th > innerHeight - 8) ty = r.top - th - 16; if (ty < 8) ty = Math.min(innerHeight - th - 12, r.bottom + 16);
+    tip.style.cssText = `left:${tx}px;top:${ty}px;width:${tw}px`;
+  } else {
+    gPlace(null); const tw = Math.min(330, innerWidth - 24);
+    tip.style.cssText = `left:${(innerWidth - tw) / 2}px;top:${innerHeight - (tip.offsetHeight || 140) - 24}px;width:${tw}px`;
+    // không thấy nút (vd. HUD bị ẩn trên trang này) → tự mở Collection, nơi luôn có nút Spin
+    if (++G.miss > 12 && st.go && !route().startsWith(st.go)) { document.getElementById('sheet-root').innerHTML = ''; location.hash = st.go; G.miss = 0; }
+  }
+}
+function gFinish() {
+  clearInterval(G.t); G.t = 0; G.on = false; if (G.ui) { G.ui.root.remove(); G.ui = null; }
+  g().gift1 = Date.now(); g().v23_gacha = g().v23_gacha || Date.now(); save(true);
+  call('learn_gift_seen').catch(() => {});
+  sfx('levelup'); toast('Enjoy your new wallpapers!');
+  if (!g().v23_bestie) setTimeout(() => startTour('bestie'), 2500);
+}
+// gọi từ hub.poll (learn_me.gift). Chờ hướng dẫn đầu tiên (đổi nền + ảnh đại diện) và các bảng đang mở xong rồi mới chạy.
+export function giftTour(gift) {
+  if (!gift || !acct) return;
+  G.gift = gift;
+  if (gift.seen || g().gift1 || G.on || G.startT) return;
+  G.startT = setTimeout(function chk() {
+    G.startT = 0;
+    if (!acct || g().gift1 || G.on) return;
+    if (!S.onboarded || !g().tour || cur >= 0 || document.querySelector('.player, .qz-stage, .du-stage, .adv-stage, .du-vs, .gate, .sheet, .ovl') || route().startsWith('#/play') || route().startsWith('#/host')) { G.startT = setTimeout(chk, 2500); return; }
+    if (coach) { clearInterval(coach.t); if (coach.root) coach.root.remove(); coach = null; }
+    if (hintEl) { hintEl.remove(); hintEl = null; hintOn = null; }
+    walls.loadCat().catch(() => {}).then(() => {
+      G.on = true; G.i = 0; G.miss = 0; G.drawn = ''; G.steps = giftSteps(gift);
+      sfx('quest'); gMount(); G.t = setInterval(gTick, 250); gTick();
+    });
+  }, 1500);
 }

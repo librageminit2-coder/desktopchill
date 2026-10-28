@@ -791,6 +791,7 @@ begin
   pts := u.c_vpts + least(greatest(u.vip_bonus, 0), 150);
   perform learn_duel_resolve();
   perform learn_gacha_welcome(uid);
+  perform learn_gift_rare(uid);
   return jsonb_build_object('ok', true, 'uid', u.id, 'name', u.name, 'code', u.friend_code, 'avatar', coalesce(u.avatar, ''),
     'vip', learn_vip_level(pts), 'vip_pts', pts, 'bonus', u.vip_bonus, 'penalty', u.vip_penalty,
     'requests', (select count(*) from learn_friends where (a = uid or b = uid) and status = 'pending' and requester <> uid),
@@ -804,7 +805,7 @@ begin
     'groups', (select count(*) from learn_group_members where user_id = uid),
     'gquiz', learn_gquiz_pending(uid),
     'bestie', learn_bestie_brief(uid), 'bestie_in', (select count(*) from learn_besties where (a = uid or b = uid) and status = 'pending' and requester <> uid),
-    'adv', learn_adv_pending(uid),
+    'adv', learn_adv_pending(uid), 'gift', learn_gift_brief(uid),
     'revoke', (select jsonb_build_object('id', id, 'items', items, 'stars', stars, 'vip_before', vip_before, 'vip_after', vip_after, 'at', created_at) from learn_revokes where user_id = uid order by id desc limit 1));
 end $$;
 
@@ -1488,6 +1489,42 @@ begin
 end $$;
 grant execute on function learn_save2(text, jsonb) to anon, authenticated;
 grant execute on function learn_save(text, text, jsonb) to anon, authenticated;
+
+
+-- ============ 16. quà cho mọi người: 1 vé quay miễn phí + 1 hình nền rare (kể cả tài khoản tạo sau này) ============
+-- Vé: learn_gacha_welcome (nguồn 'welcome'). Hình: 1 hình rare ngẫu nhiên mà người đó chưa có, nguồn 'gift'.
+-- Trao khi người học mở trang (learn_me); bắt buộc đi hết hướng dẫn nhận + quay vé (giao diện), xong thì learn_gift_seen.
+create table if not exists learn_gifts (
+  user_id bigint not null references learn_users(id) on delete cascade,
+  kind text not null, wall int, created_at timestamptz not null default now(), seen_at timestamptz,
+  primary key (user_id, kind));
+alter table learn_gifts enable row level security;
+create or replace function learn_gift_rare(p_uid bigint) returns int language plpgsql as $$
+declare w int;
+begin
+  if p_uid is null then return null; end if;
+  select wall into w from learn_gifts where user_id = p_uid and kind = 'rare1';
+  if found then return w; end if;
+  select c.id into w from learn_wall_catalog c where c.rarity = 'rare'
+    and not exists (select 1 from learn_walls x where x.user_id = p_uid and x.wall = c.id) order by random() limit 1;
+  insert into learn_gifts(user_id, kind, wall) values (p_uid, 'rare1', w) on conflict do nothing;
+  if w is not null then insert into learn_walls(user_id, wall, source) values (p_uid, w, 'gift') on conflict do nothing; end if;
+  return w;
+end $$;
+create or replace function learn_gift_brief(p_uid bigint) returns jsonb language sql stable as $$
+  select jsonb_build_object('wall', g.wall, 'seen', g.seen_at is not null,
+    'ticket', exists (select 1 from learn_gacha x where x.user_id = p_uid and x.source = 'welcome'),
+    'ticket_used', exists (select 1 from learn_gacha x where x.user_id = p_uid and x.source = 'welcome' and x.spun_at is not null))
+  from learn_gifts g where g.user_id = p_uid and g.kind = 'rare1'
+$$;
+create or replace function learn_gift_seen(p_token text) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare uid bigint := learn_uid(p_token);
+begin
+  update learn_gifts set seen_at = coalesce(seen_at, now()) where user_id = uid and kind = 'rare1';
+  return jsonb_build_object('ok', true);
+end $$;
+grant execute on function learn_gift_seen(text) to anon, authenticated;
 
 
 -- ============ quyền (Bestie + Vượt ải) ============

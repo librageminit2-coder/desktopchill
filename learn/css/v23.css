@@ -444,3 +444,18 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
 .adv-note .grow > b { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .grp .sec-h em { margin-left: 6px; }
 @media (max-width: 640px) { .adv-map { aspect-ratio: 1 / 1.05; max-height: 70vh; } }
+
+/* ---------- quà cho mọi người: hướng dẫn bắt buộc ---------- */
+.gtour .gt-tip { max-width: calc(100vw - 24px); }
+.gtour .gt-tip.center { padding: 20px 20px 16px; text-align: center; }
+.gtour .gt-tip.center .tr-t { font-size: 1.3rem; }
+.gt-body p { margin: 0; font-size: .9rem; line-height: 1.45; color: #4A3A12; }
+.gt-gifts { display: flex; justify-content: center; align-items: stretch; gap: 12px; margin: 12px 0 14px; }
+.gt-w, .gt-t { display: grid; justify-items: center; align-content: start; gap: 6px; padding: 8px; border-radius: 16px; background: rgba(42, 28, 0, .06); }
+.gt-w { width: 170px; } .gt-w .wcard { width: 100%; }
+.gt-w small, .gt-t small { font-size: .74rem; color: #6b5420; line-height: 1.3; } .gt-w b, .gt-t b { color: #2A1C00; }
+.gt-t { width: 110px; align-content: center; } .gt-t span { font-size: 2.6rem; line-height: 1; animation: nodebob 1.6s ease-in-out infinite; }
+.gt-b { display: flex; justify-content: flex-end; margin-top: 10px; }
+.gt-tip.center .gt-b { justify-content: center; } .gt-tip.center .gt-go { min-width: 180px; height: 42px; font-size: .95rem; }
+.gt-go[hidden] { display: none; }
+.rk-err { display: grid; justify-items: center; gap: 8px; text-align: center; }
