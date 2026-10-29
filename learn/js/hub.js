@@ -1,23 +1,22 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=30';
-import { S, save, applyRevoke } from './store.js?v=30';
-import * as chat from './chat.js?v=30';
-import * as acctui from './acctui.js?v=30';
-import { acct, call } from './account.js?v=30';
-import { sfx } from './sound.js?v=30';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=30';
-import * as walls from './walls.js?v=30';
-import * as bestie from './bestie.js?v=30';
-import * as gacha from './gacha.js?v=30';
-import * as ctx from './ctx.js?v=30';
+import { I, LOGO } from './icons.js?v=31';
+import { S, save, applyRevoke } from './store.js?v=31';
+import * as chat from './chat.js?v=31';
+import * as acctui from './acctui.js?v=31';
+import { acct, call } from './account.js?v=31';
+import { sfx } from './sound.js?v=31';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=31';
+import * as walls from './walls.js?v=31';
+import * as bestie from './bestie.js?v=31';
+import * as gacha from './gacha.js?v=31';
+import * as ctx from './ctx.js?v=31';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
 const pref = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v === '1'; } catch (e) { return d; } };
 const setPref = (k, v) => { try { localStorage.setItem(k, v ? '1' : '0'); } catch (e) {} };
-// v24d: cột Ranking luôn mở trên màn hình rộng (không thu gọn được nữa); Today và Levels vẫn thu gọn như cũ
-export const ui = { rail: true, hud: pref('dcl_hud', true), side: pref('dcl_side', true), lcol: pref('dcl_lcol', true) };
+export const ui = { rail: pref('dcl_rail', true), hud: pref('dcl_hud', true), side: pref('dcl_side', true), lcol: pref('dcl_lcol', true) };
 
 export function init(ctx) {
   C = ctx;
@@ -71,7 +70,8 @@ export function applyChrome() {
 // thẻ dọc ở mép phải để mở lại cột Today / danh sách bạn
 function paintTabs() {
   const mk = (cls, html, fn) => { let t = document.querySelector('.' + cls); if (!t) { t = document.createElement('button'); t.type = 'button'; t.className = 'edge-tab ' + cls; t.addEventListener('click', fn); document.body.appendChild(t); } t.innerHTML = html; return t; };
-  const old = document.querySelector('.rail-tab'); if (old) old.remove();
+  const on = ranked().filter((x) => !x.me && online(x.last_seen)).length;
+  mk('rail-tab', `${I.trophy}<span>Ranking · Friends${on ? ` · ${on}` : ''}</span>`, () => toggleRail(true));
   mk('side-tab', `${I.target}<span>Today</span>`, () => toggleSide(true));
   mk('lv-tab', `${I.list}<span>Levels</span>`, () => toggleLcol(true));
   document.body.classList.toggle('has-side', !!document.querySelector('.layout > .side'));
@@ -82,7 +82,7 @@ export function toggleSide(v = !ui.side) { ui.side = v; setPref('dcl_side', v); 
 export function toggleHud(v = !ui.hud) { ui.hud = v; setPref('dcl_hud', v); applyChrome(); sfx('tap'); }
 export function toggleRail(v) {
   if (!wide()) { railSheet(); return; }
-  ui.rail = true; applyChrome();
+  ui.rail = v === undefined ? !ui.rail : v; setPref('dcl_rail', ui.rail); applyChrome(); sfx('tap');
 }
 
 /* ---------- hỏi máy chủ ---------- */
@@ -426,7 +426,7 @@ function railHead(onN, incN) {
   return `<div class="rl-tabs" role="tablist">
     <button type="button" role="tab" class="rl-t" data-t="rank" aria-selected="${railTab === 'rank'}">${I.trophy}<span>Ranking</span></button>
     <button type="button" role="tab" class="rl-t" data-t="friends" aria-selected="${railTab === 'friends'}">${I.users}<span>Friends</span>${incN ? `<i class="badge">${incN}</i>` : onN ? `<em class="rl-tn">${onN}</em>` : ''}</button>
-    ${acct ? `<button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}${msgN ? `<i class="badge">${msgN > 99 ? '99+' : msgN}</i>` : ''}</button>` : ''}</div>`;
+    ${acct ? `<button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}${msgN ? `<i class="badge">${msgN > 99 ? '99+' : msgN}</i>` : ''}</button>` : ''}<button class="icon-btn sm rl-x" type="button" title="Hide this panel" aria-label="Hide this panel">${I.chev}</button></div>`;
 }
 function railInner() {
   if (!acct) return `${railHead(0, 0)}<div class="rl-empty">${I.users}<p>Sign in to see the ranking, your friends and who is online.</p><button class="btn sm acc rl-in" type="button">Sign in</button></div>`;
@@ -461,6 +461,7 @@ export function renderRail() {
   applyChrome();
 }
 function wireRail(r) {
+  const x = r.querySelector('.rl-x'); if (x) x.addEventListener('click', () => toggleRail(false));
   r.querySelectorAll('.rl-t').forEach((b) => b.addEventListener('click', () => { if (railTab !== b.dataset.t) { sfx('tap'); setRailTab(r, b.dataset.t); } }));
   const gf = r.querySelector('.rl-gof'); if (gf) gf.addEventListener('click', () => { sfx('tap'); setRailTab(r, 'friends'); });
   const si = r.querySelector('.rl-in'); if (si) si.addEventListener('click', () => C.authSheet('login'));
