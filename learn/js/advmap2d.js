@@ -65,8 +65,8 @@ export async function mount(host, o) {
       const k = d.n === 6 ? 1.25 : 1; b.style.transform = P(d.boss[0], d.boss[1]); b.style.setProperty('--bw', `${(d.rx * 1.05 * k * s).toFixed(1)}px`);
       b.style.setProperty('--dy', `${((d.front[1] - d.boss[1]) * s).toFixed(1)}px`);
     });
-    signs.forEach((el, i) => { el.style.transform = P(Math.min(J.w * 0.84, Math.max(J.w * 0.16, R[i].sign[0])), R[i].sign[1]); });
-    if (fog) { const yb = R[firstLocked - 1].y0 - 60; fog.style.top = '0px'; fog.style.height = `${Math.max(0, (yb - top) * s)}px`; lockEl.style.top = `${Math.max(0, (yb - top) * s - 300 * s - 60)}px`; }
+    signs.forEach((el, i) => { const hw = el.offsetWidth / 2 + 10, x = Math.min(w - hw, Math.max(hw, R[i].sign[0] * s)); el.style.transform = `translate(${x.toFixed(1)}px,${((R[i].sign[1] - top) * s).toFixed(1)}px)`; });
+    if (fog) { const yb = R[firstLocked - 1].y0 - 60; fog.style.top = '0px'; fog.style.height = `${Math.max(0, (yb - top) * s)}px`; lockEl.style.top = `${Math.max(0, (yb - top) * s - 140 - 420 * s)}px`; }
     if (cur) { pin.style.display = ''; pin.style.transform = P(cur.boss[0], cur.boss[1] - (cur.n === 6 ? 150 : 115)); } else pin.style.display = 'none';
     const k = tip.dataset.k && els.find((e) => `${e.d.r}-${e.d.n}` === tip.dataset.k); if (k) tip.style.transform = `translate(${(k.d.boss[0] * s).toFixed(1)}px,${((k.d.boss[1] - top) * s - vp.scrollTop - (k.d.n === 6 ? 120 : 92) * s).toFixed(1)}px)`;
   }
