@@ -1,12 +1,12 @@
 // v23: Vòng quay may mắn (kiểu mở hòm CS:GO). Rương chủ đề / boss, duel, quiz, xếp hạng tuần và Vượt ải Bestie cho VÉ QUAY.
 // Vé lưu trong kho (máy chủ). Quay: dải hình chạy rồi dừng ngẫu nhiên; kết quả do máy chủ quyết định theo độ hiếm.
 // Trùng hình đã có → đổi thành XP. Đôi khi ra hiệu ứng Bestie.
-import { I } from './icons.js?v=38';
-import { acct, call } from './account.js?v=38';
-import { sfx } from './sound.js?v=38';
-import { esc, toast, overlay, burst } from './ui.js?v=38';
-import * as walls from './walls.js?v=38';
-import { FX, fxBadge } from './bestie.js?v=38';
+import { I } from './icons.js?v=39';
+import { acct, call } from './account.js?v=39';
+import { sfx } from './sound.js?v=39';
+import { esc, toast, overlay, burst } from './ui.js?v=39';
+import * as walls from './walls.js?v=39';
+import { FX, fxBadge } from './bestie.js?v=39';
 
 let C = null;
 export function init(ctx) { C = ctx; }

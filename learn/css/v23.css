@@ -712,13 +712,12 @@ body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
 @media (max-width: 640px) { .a3-av { width: 40px; height: 40px; font-size: 1.2rem; } .a3-sign { padding: 4px 10px; } .a3-sign b { font-size: .8rem; } }
 
 /* ---------- v26: nút bài học + rương quà 3D trên Journey ---------- */
-.node .face { background: url(../media/ui3d/node-todo.webp) 50% 58% / 128% no-repeat !important; border: 0 !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; color: #e8f0f2; }
-.node .face svg { transform: translateY(-9%); filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35)); }
-.node.cur .face { background-image: url(../media/ui3d/node-cur.webp) !important; color: #5a3600; }
-.node.done .face { background-image: url(../media/ui3d/node-done.webp) !important; color: #fff; }
-.node.test .face { background-image: url(../media/ui3d/node-test-sq.webp) !important; color: #fff; }
-.node.test.cur .face { background-image: url(../media/ui3d/node-cur-sq.webp) !important; color: #5a3600; }
-.node.test.done .face { background-image: url(../media/ui3d/node-done-sq.webp) !important; }
+/* v27c: nút bài học = kính trong suốt phẳng (làm mờ nền phía sau, viền mảnh, không bóng trắng) */
+.node .face { background: linear-gradient(160deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05)) !important; -webkit-backdrop-filter: blur(10px) saturate(1.35) !important; backdrop-filter: blur(10px) saturate(1.35) !important; border: 1px solid rgba(255, 255, 255, .34) !important; border-radius: 50% !important; box-shadow: 0 8px 22px rgba(0, 0, 0, .2) !important; color: #f4f8f6; }
+.node .face svg { transform: none; filter: none; opacity: .95; }
+.node.cur .face { background: linear-gradient(160deg, rgba(255, 214, 120, .5), rgba(242, 165, 46, .28)) !important; border-color: rgba(255, 228, 160, .75) !important; box-shadow: 0 0 0 5px rgba(255, 201, 74, .16), 0 8px 24px rgba(242, 165, 46, .28) !important; color: #fff; }
+.node.done .face { background: linear-gradient(160deg, rgba(255, 168, 120, .44), rgba(240, 120, 70, .24)) !important; border-color: rgba(255, 204, 176, .6) !important; color: #fff; }
+.node.test .face { border-radius: 20px !important; }
 .node.todo .face { opacity: 1; }
 .node:hover .face { filter: brightness(1.08); }
 .ch3d { position: relative; display: block; width: 100%; height: 100%; }
@@ -773,3 +772,26 @@ body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
 @media (hover: none) { .a2-tip { display: none; } }
 @media (max-width: 640px) { .a2-av { width: 40px; height: 40px; font-size: 1.2rem; } .a2-sign { padding: 4px 10px; } .a2-sign b { font-size: .8rem; } .a2-b { width: 22px; height: 22px; font-size: .68rem; } }
 @media (prefers-reduced-motion: reduce) { .a2-n .a2-boss, .a2-pin { animation: none; } }
+
+/* v27c: rương kính trong suốt (cùng kiểu nút bài học): thân + nắp vòm bằng kính mờ, đai và ổ khoá màu theo cấp; mở = nắp bật ra sau, ánh vàng bên trong */
+.chest.chg { position: relative; display: block; width: 100%; height: 100%; filter: none !important; opacity: 1 !important; --tc: 255, 196, 90; }
+.chest.chg.t2 { --tc: 176, 214, 240; } .chest.chg.t3 { --tc: 190, 150, 255; }
+.chg .g-body, .chg .g-lid { position: absolute; -webkit-backdrop-filter: blur(9px) saturate(1.35); backdrop-filter: blur(9px) saturate(1.35); background: linear-gradient(165deg, rgba(var(--tc), .34), rgba(var(--tc), .12)); border: 1px solid rgba(255, 255, 255, .38); }
+.chg .g-body { left: 6%; right: 6%; bottom: 8%; height: 50%; border-radius: 7px 7px 11px 11px; box-shadow: 0 8px 18px rgba(0, 0, 0, .2); }
+.chg .g-lid { left: 3%; right: 3%; bottom: 56%; height: 30%; border-radius: 48% 48% 6px 6px / 90% 90% 6px 6px; transform-origin: 50% 100%; transition: transform .45s var(--spring, ease); }
+.chg .g-band { position: absolute; top: 0; bottom: 0; width: 10%; background: rgba(var(--tc), .55); border-left: 1px solid rgba(255, 255, 255, .3); border-right: 1px solid rgba(255, 255, 255, .3); }
+.chg .g-band.l { left: 16%; } .chg .g-band.r { right: 16%; }
+.chg .g-lock { position: absolute; left: 50%; top: -14%; width: 18%; height: 40%; translate: -50% 0; border-radius: 5px; background: rgba(var(--tc), .8); border: 1px solid rgba(255, 255, 255, .55); box-shadow: 0 2px 6px rgba(0, 0, 0, .18); }
+.chg .g-lock::after { content: ""; position: absolute; left: 50%; top: 38%; width: 22%; height: 34%; translate: -50% 0; border-radius: 40% 40% 2px 2px; background: rgba(40, 30, 20, .55); }
+.chg .g-glow { position: absolute; left: 12%; right: 12%; bottom: 44%; height: 34%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 220, 120, .95), rgba(255, 190, 70, .35) 60%, transparent); opacity: 0; transition: opacity .3s; }
+.chg .g-coin { position: absolute; bottom: 52%; width: 13%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3c4, #f2b544 60%, #c98a1c); opacity: 0; transition: opacity .3s .1s; }
+.chg .g-coin.c1 { left: 30%; } .chg .g-coin.c2 { left: 43.5%; bottom: 55%; } .chg .g-coin.c3 { left: 57%; }
+.chg.open .g-lid, .popping .chg .g-lid { transform: translateY(-46%) rotate(-12deg) scaleY(.72); }
+.chg.open .g-glow, .popping .chg .g-glow, .chg.open .g-coin, .popping .chg .g-coin { opacity: 1; }
+.chg .rays { position: absolute; inset: -30%; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255, 214, 102, .5) 0 10deg, transparent 10deg 30deg); -webkit-mask: radial-gradient(circle, #000 30%, transparent 68%); mask: radial-gradient(circle, #000 30%, transparent 68%); opacity: 0; transition: opacity .3s; }
+.cp.ready .chg .rays { opacity: .75; animation: spin 6s linear infinite; }
+.cp.ready .chest.chg { box-shadow: none; } .cp.ready .chg .g-body, .cp.ready .chg .g-lid { border-color: rgba(255, 228, 160, .85); box-shadow: 0 0 18px rgba(255, 201, 74, .45); }
+.cp:not(.ready):not(.opened) .chg .g-body, .cp:not(.ready):not(.opened) .chg .g-lid { background: linear-gradient(165deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05)); }
+.cp:not(.ready):not(.opened) .chg .g-band, .cp:not(.ready):not(.opened) .chg .g-lock { background: rgba(255, 255, 255, .28); }
+.cp.opened .chg .g-body, .cp.opened .chg .g-lid { background: linear-gradient(165deg, rgba(var(--tc), .2), rgba(var(--tc), .06)); }
+.chg .rays { transform-origin: 50% 50%; fill: none; }

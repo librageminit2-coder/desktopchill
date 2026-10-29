@@ -1,9 +1,9 @@
 // Tài khoản: số điện thoại (bắt buộc) + email (tuỳ chọn), đổi tên, đổi PIN, quên PIN. Đăng nhập bằng tên tài khoản hoặc số điện thoại.
 // Tài khoản cũ chưa có số điện thoại: bắt buộc bổ sung trước khi học tiếp. PIN tạm do admin cấp: bắt buộc đổi.
-import { I } from './icons.js?v=38';
-import { acct, call, changePin, rename, forgot, acctErr, validEmail, validPhone, validName, validPin } from './account.js?v=38';
-import { sfx } from './sound.js?v=38';
-import { esc, toast, sheet } from './ui.js?v=38';
+import { I } from './icons.js?v=39';
+import { acct, call, changePin, rename, forgot, acctErr, validEmail, validPhone, validName, validPin } from './account.js?v=39';
+import { sfx } from './sound.js?v=39';
+import { esc, toast, sheet } from './ui.js?v=39';
 
 export const contactFields = (email = '', phone = '') => `
   <div class="field"><label for="ce">Email (optional)</label><input class="input" id="ce" type="email" autocomplete="email" maxlength="120" placeholder="name@example.com" value="${esc(email || '')}" /></div>
