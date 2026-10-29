@@ -4,12 +4,12 @@
 // • Bestie cũng học hôm nay → XP mỗi bài +10%. Bestie offline quá 3 ngày → XP mỗi bài −10% và hiện hộp thoại nhắc "Bestie của bạn đâu rồi?".
 // • Bị thách đấu: chuyển trận cho Bestie đấu thay (tối đa 5 lượt / ngày).
 // • Hiệu ứng Bestie + slogan: hiện ~2 giây khi hai người cùng vào một live quiz hoặc lớp học. Hiệu ứng mới có trong rương quà.
-import { I } from './icons.js?v=34';
-import { S, save, today } from './store.js?v=34';
-import { acct, call } from './account.js?v=34';
-import { sfx } from './sound.js?v=34';
-import { esc, toast, sheet, overlay, vipAv, ago, online, confirmBox } from './ui.js?v=34';
-import * as walls from './walls.js?v=34';
+import { I } from './icons.js?v=35';
+import { S, save, today } from './store.js?v=35';
+import { acct, call } from './account.js?v=35';
+import { sfx } from './sound.js?v=35';
+import { esc, toast, sheet, overlay, vipAv, ago, online, confirmBox } from './ui.js?v=35';
+import * as walls from './walls.js?v=35';
 
 let C = null;
 export function init(ctx) { C = ctx; }

@@ -603,7 +603,7 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
 .rail, .rail * { scrollbar-width: none; }
 .rail::-webkit-scrollbar, .rail *::-webkit-scrollbar { display: none; width: 0; height: 0; }
 /* v24h: cột Ranking · Friends có tiêu đề + mũi tên ẩn ở trên, giống Levels / Today */
-.layout > .rail-col { display: none; position: sticky; z-index: 3; top: calc(var(--hud-h) + 28px); flex: 0 0 var(--rail-w); width: var(--rail-w); flex-direction: column; gap: 10px; }
+.layout > .rail-col { display: none; position: sticky; z-index: 3; top: calc(var(--hud-h) + 28px); flex: 1 1 var(--rail-w); min-width: var(--rail-w); max-width: 460px; flex-direction: column; gap: 10px; }
 @media (min-width: 1500px) { body.rail-on .layout > .rail-col { display: flex; animation: railin .35s var(--ease); } }
 body.booted .layout > .rail-col { animation: none !important; }
 body.hud-off .layout > .rail-col { top: 58px; }
@@ -639,3 +639,34 @@ body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
 
 .adv-first.small { background: color-mix(in srgb, var(--glass) 80%, transparent); border-color: var(--line-2); padding: 10px 14px; }
 .adv-first.small .af-tk { font-size: 1.2rem; }
+
+/* ---------- v25: nhóm bạn bè trong cột Friends ---------- */
+.rl-grp { margin: 10px 8px 4px; padding: 10px; border-radius: var(--r-m); border: 1px solid var(--line); background: color-mix(in srgb, var(--glass) 70%, transparent); display: grid; gap: 6px; }
+.rl-gh { display: flex; align-items: center; gap: 8px; }
+.rl-gh b { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; }
+.rl-gh b svg { width: 16px; height: 16px; color: var(--acc); }
+.rl-gh small { flex: 1; min-width: 0; color: var(--muted); font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rl-gi { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 12px; }
+.rl-gi:hover { background: var(--glass); }
+.rl-gav { display: flex; flex: none; }
+.rl-gav > * { width: 26px !important; height: 26px !important; margin-left: -8px; font-size: .62rem; }
+.rl-gav > *:first-child { margin-left: 0; }
+.rl-gn { flex: 1; min-width: 0; display: grid; }
+.rl-gn b { font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rl-gn small { font-size: .7rem; color: var(--muted); }
+.rl-gn .ok { color: var(--ok); font-style: normal; }
+.rl-gq { flex: none; }
+.rl-gq svg { width: 14px; height: 14px; }
+.rl-gempty { font-size: .8rem; color: var(--muted); margin: 2px 2px 0; }
+.pc-grp svg { background: linear-gradient(140deg, #2fbf71, #8be0a8); }
+
+/* ---------- v25: bản đồ Adventure dạng quả cầu 3D ---------- */
+.adv-map.globe { aspect-ratio: auto; height: min(78vh, 860px); max-height: none; min-height: 420px; background: #dcecdc; touch-action: none; }
+.adv-map.globe canvas { display: block; width: 100%; height: 100%; cursor: grab; outline: none; user-select: none; -webkit-user-select: none; }
+.adv-map.globe canvas:focus-visible { box-shadow: inset 0 0 0 3px var(--acc); }
+.adv-wrap.globe { border: 4px solid #8a6a4a; box-shadow: 0 0 0 2px #efdcb4 inset, var(--shadow); background: #dcecdc; }
+.adv-wrap.globe .adv-tools { top: 50%; transform: translateY(-50%); right: 20px; }
+.adv-wrap.globe .adv-tools .icon-btn { background: rgba(255, 252, 240, .92); color: #5a3a24; border: 2px solid #c9a87a; box-shadow: 0 4px 12px rgba(60, 40, 20, .18); }
+.adv-wrap.globe .adv-tools .icon-btn svg { width: 20px; height: 20px; }
+.adv-a11y { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 640px) { .adv-map.globe { height: 72vh; min-height: 380px; } .adv-wrap.globe .adv-tools { top: 12px; transform: none; right: 14px; grid-auto-flow: column; } .adv-wrap.globe .adv-tools .icon-btn { width: 36px; height: 36px; } }

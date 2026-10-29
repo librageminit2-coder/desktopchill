@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=34';
-import { S, save, applyRevoke } from './store.js?v=34';
-import * as chat from './chat.js?v=34';
-import * as acctui from './acctui.js?v=34';
-import { acct, call, onLucky } from './account.js?v=34';
-import { sfx } from './sound.js?v=34';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=34';
-import * as walls from './walls.js?v=34';
-import * as bestie from './bestie.js?v=34';
-import * as gacha from './gacha.js?v=34';
-import * as ctx from './ctx.js?v=34';
+import { I, LOGO } from './icons.js?v=35';
+import { S, save, applyRevoke } from './store.js?v=35';
+import * as chat from './chat.js?v=35';
+import * as acctui from './acctui.js?v=35';
+import { acct, call, onLucky } from './account.js?v=35';
+import { sfx } from './sound.js?v=35';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=35';
+import * as walls from './walls.js?v=35';
+import * as bestie from './bestie.js?v=35';
+import * as gacha from './gacha.js?v=35';
+import * as ctx from './ctx.js?v=35';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -358,7 +358,28 @@ export function whatsNew(force) {
 /* ---------- danh sách bạn (cạnh phải) ---------- */
 export async function loadFriends() {
   if (!acct) return;
-  try { const j = await call('learn_friends_list'); if (j && j.ok) { hub.friends = j; hub.fAt = Date.now(); renderRail(); } } catch (e) {}
+  try {
+    const [j, g] = await Promise.all([call('learn_friends_list'), call('learn_group_list').catch(() => null)]);
+    if (g && g.ok !== false) hub.groups = g.items || [];
+    if (j && j.ok) { hub.friends = j; hub.fAt = Date.now(); renderRail(); }
+  } catch (e) {}
+}
+// v25: nhóm bạn bè ngay trong cột Friends: tạo nhóm, quiz nhanh với cả nhóm
+function groupsRail() {
+  const gs = hub.groups || [], fr = ((hub.friends && hub.friends.items) || []).filter((x) => x.status === 'accepted');
+  return `<div class="rl-grp"><div class="rl-gh"><b>${I.users} Groups</b><small>${gs.length ? `${gs.length} group${gs.length === 1 ? '' : 's'}` : 'Quiz your friends together'}</small><button class="btn sm ghost rl-gnew" type="button" ${fr.length ? '' : 'disabled title="Add friends first"'}>${I.plus} New</button></div>
+    ${gs.length ? gs.map((g) => { const on = g.members.filter((m) => online(m.last_seen)).length; return `<div class="rl-gi" data-g="${g.id}"><span class="rl-gav">${g.members.slice(0, 4).map((m) => vipAv(m.name, m.avatar, m.vip || 0)).join('')}</span><span class="rl-gn"><b>${esc(g.name)}</b><small>${g.members.length} member${g.members.length === 1 ? '' : 's'}${on ? ` · <i class="ok">${on} online</i>` : ''}</small></span><button class="btn sm acc rl-gq" type="button" title="Start a quick quiz: online members join automatically">${I.zap} Quiz</button>${g.mine ? `<button class="icon-btn sm rl-ge" type="button" title="Edit group" aria-label="Edit group">${I.edit}</button>` : ''}</div>`; }).join('')
+      : `<p class="rl-gempty">${fr.length ? 'Put friends in a group, then start a quick quiz: everyone online joins automatically.' : 'Add friends first, then make a group.'}</p>`}</div>`;
+}
+function wireGroupsRail(r) {
+  const fr = () => ((hub.friends && hub.friends.items) || []).filter((x) => x.status === 'accepted');
+  const done = () => { hub.fAt = 0; loadFriends(); };
+  const nb = r.querySelector('.rl-gnew'); if (nb) nb.addEventListener('click', () => { sfx('open'); if (C.groups) C.groups.sheet(null, fr(), done); });
+  r.querySelectorAll('.rl-gi').forEach((el) => {
+    const g = (hub.groups || []).find((x) => String(x.id) === el.dataset.g); if (!g) return;
+    el.querySelector('.rl-gq').addEventListener('click', (e) => { e.currentTarget.disabled = true; sfx('tap'); document.getElementById('sheet-root').innerHTML = ''; if (C.groups) C.groups.quiz(g); });
+    const ge = el.querySelector('.rl-ge'); if (ge) ge.addEventListener('click', () => { sfx('open'); if (C.groups) C.groups.sheet(g, fr(), done); });
+  });
 }
 function ranked() {
   const d = hub.friends; if (!d) return [];
@@ -453,6 +474,7 @@ function railInner() {
       <span class="rl-av">${vipAv(x.name, x.avatar, x.vip || 0)}${!x.me && online(x.last_seen) ? '<i class="dot"></i>' : ''}</span>
       <span class="rl-n"><b>${esc(x.name)}${x.me ? ' (you)' : ''}</b><small>${x.week_xp || 0} XP this week${x.me ? '' : online(x.last_seen) ? ' · online' : ` · ${ago(x.last_seen).replace(' ago', '')}`}</small></span>
       ${bestie.B.brief && String(bestie.B.brief.uid) === String(x.uid) ? `<span class="rl-bf" title="Your Bestie">${I.heart}</span>` : ''}</div>`).join('')}</div>
+    ${groupsRail()}
     ${all.length < 2 ? `<div class="rl-empty"><p>No friends yet. ${d.me && d.me.code ? `Share your code <b>${esc(d.me.code)}</b>, or tap` : 'Tap'} + next to anyone in the Ranking.</p></div>` : ''}`;
   return `${railHead(on.length, inc.length)}
     <div class="rl-p" data-p="rank" ${railTab === 'rank' ? '' : 'hidden'}>${rankHTML()}<div class="rl-f"><a class="btn sm ghost rl-duels" href="#/duel">${I.swords} Duels</a><button class="btn sm ghost rl-gof" type="button">${I.users} My friends</button></div></div>
@@ -478,6 +500,7 @@ function wireRail(r) {
   ctx.attach(r, '.rl-i[data-u]', (row) => { const f = ranked().find((x) => String(x.uid) === row.dataset.u); return f ? { uid: f.uid, name: f.name, avatar: f.avatar, vip: f.vip, rel: f.me ? 'me' : 'friend', last_seen: f.last_seen } : null; });
   const bst = r.querySelector('.rl-bst'); if (bst) bst.addEventListener('click', (e) => { if (e.target.closest('.rl-adv')) return; sfx('open'); if (bst.classList.contains('none') && !(hub.friends && (hub.friends.items || []).some((x) => x.status === 'accepted'))) { document.getElementById('sheet-root').innerHTML = ''; location.hash = '#/friends'; return; } bestie.openSheet(); });
   const rm = r.querySelector('.rl-msg'); if (rm) rm.addEventListener('click', () => { document.getElementById('sheet-root').innerHTML = ''; chat.openChats(); });
+  wireGroupsRail(r);
   if (railTab === 'rank' || r.querySelector('.rk')) wireRank(r);
 }
 export function railSheet(tab) {
