@@ -622,3 +622,4 @@ export function mount(host, o) {
     destroy,
   };
 }
+export { bossModel };

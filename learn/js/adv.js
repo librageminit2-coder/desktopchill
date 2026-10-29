@@ -2,15 +2,15 @@
 // Bản đồ rộng (kéo / cuộn để phóng to) với các vùng theo cấp độ. Mỗi vùng có 5 boss + 1 vua vùng (chấm đỏ).
 // Đề lấy từ toàn bộ bài học của cấp đó, 4 kiểu vòng phối hợp: Đồng tâm · Mảnh ghép · Tiếp sức · Nối đôi.
 // v24c: người chưa có Bestie chơi chế độ LONELY (một mình, cùng đề; máy chủ learn_adv_* với solo = true).
-import { I } from './icons.js?v=36';
-import { S } from './store.js?v=36';
-import { acct, call } from './account.js?v=36';
-import { sfx } from './sound.js?v=36';
-import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=36';
-import * as bestie from './bestie.js?v=36';
-import * as gacha from './gacha.js?v=36';
-import * as walls from './walls.js?v=36';
-import * as globe from './advglobe.js?v=36';
+import { I } from './icons.js?v=37';
+import { S } from './store.js?v=37';
+import { acct, call } from './account.js?v=37';
+import { sfx } from './sound.js?v=37';
+import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=37';
+import * as bestie from './bestie.js?v=37';
+import * as gacha from './gacha.js?v=37';
+import * as walls from './walls.js?v=37';
+import * as globe from './advglobe.js?v=37';
 
 let C = null;
 export function init(ctx) {
@@ -153,13 +153,10 @@ async function wireMap(box) {
     onBoss: (r, n) => bossSheet(r, n),
     onLocked: (r) => { sfx('tap'); toast(`Beat ${MAPS[map].regions[r - 2].king} in ${MAPS[map].regions[r - 2].name} to open ${MAPS[map].regions[r - 1].name}.`); },
   };
-  // v26: bản đồ 3D thật (WebGL); máy không hỗ trợ → bản đồ 2D
-  let m3 = null;
-  try { m3 = await import('./advmap3d.js?v=36'); if (!m3.supported()) m3 = null; } catch (e) { m3 = null; }
-  if (!box.isConnected) return;
-  try { G = m3 ? m3.mount(box, { ...opts, onFail: () => { try { G.destroy(); } catch (e) {} box.classList.remove('is3d'); G = globe.mount(box, opts); } }) : globe.mount(box, opts); }
-  catch (e) { console.error('3D map failed', e); m3 = null; G = globe.mount(box, opts); }
-  box.classList.toggle('is3d', !!m3);
+  // v27: bản đồ 2D vẽ sẵn (Blender) theo ảnh mẫu Bestie Map; lỗi tải → bản đồ canvas cũ
+  try { const m2 = await import('./advmap2d.js?v=37'); G = await m2.mount(box, opts); }
+  catch (e) { console.error('map image failed', e); if (!box.isConnected) return; box.classList.remove('is2d'); G = globe.mount(box, opts); }
+  if (!box.isConnected) { if (G) G.destroy(); return; }
   const wrap = box.parentElement;
   wrap.querySelector('.adv-up').addEventListener('click', () => { sfx('tap'); if (G) G.up(); });
   wrap.querySelector('.adv-dn').addEventListener('click', () => { sfx('tap'); if (G) G.down(); });

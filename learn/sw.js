@@ -2,7 +2,7 @@
 // • Tệp có số phiên bản (?v=…: js, css, dữ liệu khoá học) và ảnh / font: lấy từ bộ nhớ đệm trước, chỉ tải mạng khi chưa có.
 // • Trang HTML: thử mạng trước (tối đa 3 giây) để luôn nhận bản mới; mất mạng thì dùng bản đã lưu.
 // • Video hình nền (.mp4) và máy chủ dữ liệu (Supabase) đi thẳng mạng, không qua đây → chất lượng hình nền giữ nguyên.
-const CACHE = 'dcl-learn-v36';
+const CACHE = 'dcl-learn-v37';
 const KEEP = [CACHE, 'dcl-fonts'];
 
 self.addEventListener('install', (e) => { self.skipWaiting(); });
