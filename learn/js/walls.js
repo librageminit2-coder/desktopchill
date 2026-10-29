@@ -2,11 +2,11 @@
 // v23: rương không còn trao hình cố định mà trao VÉ QUAY (gacha.js). Bestie chia sẻ bộ sưu tập để dùng làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=31';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=31';
-import { acct, call, push } from './account.js?v=31';
-import { sfx } from './sound.js?v=31';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=31';
+import { I } from './icons.js?v=32';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=32';
+import { acct, call, push } from './account.js?v=32';
+import { sfx } from './sound.js?v=32';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=32';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }

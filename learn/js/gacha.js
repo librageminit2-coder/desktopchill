@@ -1,12 +1,12 @@
 // v23: Vòng quay may mắn (kiểu mở hòm CS:GO). Rương chủ đề / boss, duel, quiz, xếp hạng tuần và Vượt ải Bestie cho VÉ QUAY.
 // Vé lưu trong kho (máy chủ). Quay: dải hình chạy rồi dừng ngẫu nhiên; kết quả do máy chủ quyết định theo độ hiếm.
 // Trùng hình đã có → đổi thành XP. Đôi khi ra hiệu ứng Bestie.
-import { I } from './icons.js?v=31';
-import { acct, call } from './account.js?v=31';
-import { sfx } from './sound.js?v=31';
-import { esc, toast, overlay, burst } from './ui.js?v=31';
-import * as walls from './walls.js?v=31';
-import { FX, fxBadge } from './bestie.js?v=31';
+import { I } from './icons.js?v=32';
+import { acct, call } from './account.js?v=32';
+import { sfx } from './sound.js?v=32';
+import { esc, toast, overlay, burst } from './ui.js?v=32';
+import * as walls from './walls.js?v=32';
+import { FX, fxBadge } from './bestie.js?v=32';
 
 let C = null;
 export function init(ctx) { C = ctx; }
@@ -37,6 +37,8 @@ export const sourceLabel = (s) => {
   if (s.startsWith('quiz:')) return `Live quiz win · ${s.slice(5)}`;
   if (s.startsWith('week:')) { const [, b, d] = s.split(':'); return `Weekly top 10 · ${{ en: 'English', zh: '中文', ielts: 'IELTS', duel: 'Duel', col: 'Top collector', bestie: 'Bestie' }[b] || b} · ${d}`; }
   if (s.startsWith('adv:')) return 'Bestie Adventure king';
+  if (s.startsWith('adv-first:')) return 'Adventure · first win';
+  if (s === 'lesson') return 'Lucky lesson (10%)';
   return 'Ticket';
 };
 
