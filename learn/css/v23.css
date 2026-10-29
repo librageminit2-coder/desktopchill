@@ -602,11 +602,15 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
 /* ---------- v24d: cột Ranking luôn mở, không có thanh cuộn; nút mở bản đồ Adventure; thưởng lần đầu ---------- */
 .rail, .rail * { scrollbar-width: none; }
 .rail::-webkit-scrollbar, .rail *::-webkit-scrollbar { display: none; width: 0; height: 0; }
-/* nút thu gọn cột Ranking · Friends: rõ như nút của Today / Levels */
-.rail:not(.in-sheet) .rl-tabs .rl-x { width: 34px; height: 34px; border: 1px solid var(--line-2); background: var(--glass); color: var(--ink); }
-.rail:not(.in-sheet) .rl-tabs .rl-x:hover { background: var(--glass-3); border-color: var(--acc); color: var(--acc); }
-.rail:not(.in-sheet) .rl-tabs .rl-x svg { width: 18px; height: 18px; }
-.rail.in-sheet .rl-x { display: none; }
+/* v24h: cột Ranking · Friends có tiêu đề + mũi tên ẩn ở trên, giống Levels / Today */
+.layout > .rail-col { display: none; position: sticky; z-index: 3; top: calc(var(--hud-h) + 28px); flex: 0 0 var(--rail-w); width: var(--rail-w); flex-direction: column; gap: 10px; }
+@media (min-width: 1500px) { body.rail-on .layout > .rail-col { display: flex; animation: railin .35s var(--ease); } }
+body.booted .layout > .rail-col { animation: none !important; }
+body.hud-off .layout > .rail-col { top: 58px; }
+.rail-col > .rail { display: flex; position: static; width: auto; max-height: calc(100dvh - var(--hud-h) - 44px - 34px); }
+body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
+.rail-col > .col-h { min-height: 24px; }
+.rl-x { display: none !important; }
 .rk-adv { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 10px 12px; border-radius: 14px; text-decoration: none; color: inherit;
   background: linear-gradient(120deg, color-mix(in srgb, var(--acc) 26%, transparent), color-mix(in srgb, var(--gold) 18%, transparent)); border: 1px solid color-mix(in srgb, var(--acc) 45%, transparent); transition: transform .2s var(--ease), border-color .2s; }
 .rk-adv:hover { transform: translateY(-1px); border-color: var(--acc); }

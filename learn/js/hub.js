@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=33';
-import { S, save, applyRevoke } from './store.js?v=33';
-import * as chat from './chat.js?v=33';
-import * as acctui from './acctui.js?v=33';
-import { acct, call, onLucky } from './account.js?v=33';
-import { sfx } from './sound.js?v=33';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=33';
-import * as walls from './walls.js?v=33';
-import * as bestie from './bestie.js?v=33';
-import * as gacha from './gacha.js?v=33';
-import * as ctx from './ctx.js?v=33';
+import { I, LOGO } from './icons.js?v=34';
+import { S, save, applyRevoke } from './store.js?v=34';
+import * as chat from './chat.js?v=34';
+import * as acctui from './acctui.js?v=34';
+import { acct, call, onLucky } from './account.js?v=34';
+import { sfx } from './sound.js?v=34';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=34';
+import * as walls from './walls.js?v=34';
+import * as bestie from './bestie.js?v=34';
+import * as gacha from './gacha.js?v=34';
+import * as ctx from './ctx.js?v=34';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -436,7 +436,7 @@ function railHead(onN, incN) {
   return `<div class="rl-tabs" role="tablist">
     <button type="button" role="tab" class="rl-t" data-t="rank" aria-selected="${railTab === 'rank'}">${I.trophy}<span>Ranking</span></button>
     <button type="button" role="tab" class="rl-t" data-t="friends" aria-selected="${railTab === 'friends'}">${I.users}<span>Friends</span>${incN ? `<i class="badge">${incN}</i>` : onN ? `<em class="rl-tn">${onN}</em>` : ''}</button>
-    ${acct ? `<button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}${msgN ? `<i class="badge">${msgN > 99 ? '99+' : msgN}</i>` : ''}</button>` : ''}<button class="icon-btn sm rl-x" type="button" title="Hide this panel" aria-label="Hide this panel">${I.chev}</button></div>`;
+    ${acct ? `<button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}${msgN ? `<i class="badge">${msgN > 99 ? '99+' : msgN}</i>` : ''}</button>` : ''}</div>`;
 }
 function railInner() {
   if (!acct) return `${railHead(0, 0)}<div class="rl-empty">${I.users}<p>Sign in to see the ranking, your friends and who is online.</p><button class="btn sm acc rl-in" type="button">Sign in</button></div>`;
@@ -467,11 +467,11 @@ function setRailTab(r, t) {
 }
 // cột bạn bè nằm trong bố cục trang (cùng khoảng cách với các cột khác)
 export function renderRail() {
-  document.querySelectorAll('.layout > .rail').forEach((r) => { r.innerHTML = railInner(); wireRail(r); });
+  document.querySelectorAll('.layout > .rail-col > .rail').forEach((r) => { r.innerHTML = railInner(); wireRail(r); });
+  document.querySelectorAll('.layout > .rail-col .rail-x').forEach((b) => { if (!b.dataset.w) { b.dataset.w = 1; b.addEventListener('click', () => toggleRail(false)); } });
   applyChrome();
 }
 function wireRail(r) {
-  const x = r.querySelector('.rl-x'); if (x) x.addEventListener('click', () => toggleRail(false));
   r.querySelectorAll('.rl-t').forEach((b) => b.addEventListener('click', () => { if (railTab !== b.dataset.t) { sfx('tap'); setRailTab(r, b.dataset.t); } }));
   const gf = r.querySelector('.rl-gof'); if (gf) gf.addEventListener('click', () => { sfx('tap'); setRailTab(r, 'friends'); });
   const si = r.querySelector('.rl-in'); if (si) si.addEventListener('click', () => C.authSheet('login'));
