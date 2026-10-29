@@ -941,13 +941,7 @@ tr.row-click{cursor:pointer}
         <div class="hq-grid">
           <div class="card panel">
             <div class="panel-head"><div class="panel-title">Bộ Rainmeter Layout của shop</div></div>
-            <p class="hq-p hq-sm hq-dim">Cài file là có sẵn 4 layout trong Manage, tab Layouts (desktopchill Layout 1–4), tự bật Layout 1. Không cần load từng skin. File 73 MB, có trang tải riêng để gửi khách qua Zalo: desktopchill.com/rainmeter-layout.html</p>
-            <div class="hq-row">
-              <a class="btn btn-primary hq-sm-btn" href="https://github.com/librageminit2-coder/desktopchill/raw/main/files/desktopchill-Rainmeter-Layouts.rmskin" rel="noopener">Tải về</a>
-              <button class="btn btn-ghost hq-sm-btn" type="button" id="hqLayoutShare">Chia sẻ</button>
-              <button class="btn btn-ghost hq-sm-btn" type="button" id="hqLayoutCopy">Copy link</button>
-              <a class="btn btn-ghost hq-sm-btn" href="../rainmeter-layout.html" target="_blank" rel="noopener">Mở trang</a>
-            </div>
+            <p class="hq-p hq-sm hq-dim">Cài file là có sẵn 4 layout trong Manage, tab Layouts (desktopchill Layout 1–4), tự bật Layout 1. Không cần load từng skin. Không còn link tải công khai: shop tự cài khi làm cho khách.</p>
           </div>
           <div class="card panel"><div class="hq-h3">Cài và chỉnh</div><p class="hq-p hq-sm hq-dim">Nhấp đúp file .rmskin, hoặc Setup Kit mục 3 rồi mục 7. Chuột phải vào skin, chọn “Chỉnh tên, màu, kích cỡ” để sửa Ten, Scale, Color1, Accent.</p></div>
           <div class="card panel"><div class="hq-h3">Bán thêm</div><p class="hq-p hq-sm hq-dim">Bạn đang bán layout thêm 25k. Skin có tên khách là thứ khách không tự tải được, hợp để làm gói nâng cấp.</p></div>
@@ -2101,9 +2095,6 @@ function init(){
   renderGroups(); renderTalk(); renderImages();
   checklist($("#hqSkinCheck"),[["s1","Giấy phép không phải CC BY-NC (phi thương mại)"],["s2","Font không phải bản Personal Use hoặc DEMO"],["s3","Không dùng Update=16 hoặc nhiều plugin nặng"]],"skinCheck");
   renderContent();
-  const LAYOUT_URL="https://desktopchill.com/rainmeter-layout.html";
-  $("#hqLayoutCopy").onclick=async()=>{await copyText(LAYOUT_URL);say("Đã copy link, dán vào Zalo để gửi");};
-  $("#hqLayoutShare").onclick=async()=>{ if(navigator.share){ try{await navigator.share({title:"Bộ Rainmeter Layout — desktopchill",text:"Tải bộ Rainmeter Layout của desktopchill:",url:LAYOUT_URL});}catch(e){} } else { await copyText(LAYOUT_URL); say("Đã copy link, dán vào Zalo để gửi"); } };
   $("#hqVidAdd").onclick=()=>{const v={date:$("#hqvDate").value||isoDay(),pf:$("#hqvPf").value,fm:$("#hqvFm").value,tp:$("#hqvTp").value,hook:$("#hqvHook").value.trim(),view:+$("#hqvView").value||0,inbox:+$("#hqvInbox").value||0,won:+$("#hqvWon").value||0};
     hset("videos",hget("videos",[]).concat([v]));["hqvHook","hqvView","hqvInbox","hqvWon"].forEach(id=>{$("#"+id).value="";});renderVideos();say("Đã thêm video");};
   /* mở đúng tab khi vào bằng link #talk, #setup… */
