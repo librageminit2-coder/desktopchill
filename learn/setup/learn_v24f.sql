@@ -13,6 +13,12 @@ begin
   if ok = 0 then return null; end if;
   select * into b from learn_adv_parse(p_boss);
   tk := p_king or (b.region = 1 and b.n = 1) or random() < 0.10;
+  -- v24g: boss nhỏ khác (không phải boss đầu tiên, không phải vua) không tặng hình nền
+  if not (p_king or (b.region = 1 and b.n = 1)) then
+    update learn_adv_firsts set ticket = tk where user_id = p_uid and boss = p_boss;
+    if tk then perform learn_gacha_give(p_uid, 1, 'adv-first:' || p_boss); end if;
+    return -1;
+  end if;
   w := learn_pick_wall(p_uid, case when p_king then 'rare' end);
   if w is not null and learn_give_wall(p_uid, w, 'adv-first:' || p_boss) then
     update learn_adv_firsts set wall = w, ticket = tk where user_id = p_uid and boss = p_boss;
@@ -110,7 +116,7 @@ begin
     end if;
   end if;
   update learn_adv_sessions set reward = jsonb_build_object('stars', v_stars, 'xp', xp, 'fx_h', fh, 'fx_g', fg, 'ticket', tk, 'first', first, 'king', isking,
-    'first_h', wh is not null, 'first_g', wg is not null, 'wall_h', nullif(wh, 0), 'wall_g', nullif(wg, 0), 'tk_h', tkh, 'tk_g', tkg) where id = s.id;
+    'first_h', wh is not null, 'first_g', wg is not null, 'wall_h', case when wh > 0 then wh end, 'wall_g', case when wg > 0 then wg end, 'xpf_h', wh = 0, 'xpf_g', wg = 0, 'tk_h', tkh, 'tk_g', tkg) where id = s.id;
 end $$;
 
 

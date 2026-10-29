@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=32';
-import { S, save, applyRevoke } from './store.js?v=32';
-import * as chat from './chat.js?v=32';
-import * as acctui from './acctui.js?v=32';
-import { acct, call, onLucky } from './account.js?v=32';
-import { sfx } from './sound.js?v=32';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=32';
-import * as walls from './walls.js?v=32';
-import * as bestie from './bestie.js?v=32';
-import * as gacha from './gacha.js?v=32';
-import * as ctx from './ctx.js?v=32';
+import { I, LOGO } from './icons.js?v=33';
+import { S, save, applyRevoke } from './store.js?v=33';
+import * as chat from './chat.js?v=33';
+import * as acctui from './acctui.js?v=33';
+import { acct, call, onLucky } from './account.js?v=33';
+import { sfx } from './sound.js?v=33';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=33';
+import * as walls from './walls.js?v=33';
+import * as bestie from './bestie.js?v=33';
+import * as gacha from './gacha.js?v=33';
+import * as ctx from './ctx.js?v=33';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -264,8 +264,8 @@ function text(n) {
     case 'duel_pick': return { t: `${n.name} got a copy of ${w}`, h: `${who} won your duel and got a copy of <b>${esc(w)}</b> at random. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}${p.ticket ? ' and <b>1 lucky spin ticket</b>' : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
-    case 'update': return +p.v >= 27 ? { t: 'New: Lucky lessons', h: '<b>Every lesson can pay.</b> Each lesson you finish on the Journey map has a 10% chance of a lucky spin ticket. In Adventure, the first win on each boss gives a new wallpaper; the first boss and every region king also give a spin ticket, other bosses a 10% chance.', ic: 'gift', go: '#/' }
-      : +p.v >= 26 ? { t: 'New: Adventure rewards', h: '<b>Adventure is now in the main menu.</b> The first time you beat each boss you get a random wallpaper, alone or with your Bestie. The first boss and every region king also give a lucky spin ticket. The Adventure ranking now counts everyone.', ic: 'map', go: '#/adventure' }
+    case 'update': return +p.v >= 27 ? { t: 'New: Lucky lessons', h: '<b>Every lesson can pay.</b> Each lesson you finish on the Journey map has a 10% chance of a lucky spin ticket. In Adventure, the first win on the first boss and on every region king gives a new wallpaper and a spin ticket; other bosses have a 10% chance of a spin ticket.', ic: 'gift', go: '#/' }
+      : +p.v >= 26 ? { t: 'New: Adventure rewards', h: '<b>Adventure is now in the main menu.</b> The first win on the first boss and on every region king gives a random wallpaper and a lucky spin ticket, alone or with your Bestie. The Adventure ranking now counts everyone.', ic: 'map', go: '#/adventure' }
       : +p.v >= 25 ? { t: 'New: Lonely Adventure', h: '<b>No Bestie? You can still play.</b> Adventure now has a Lonely mode: fight the map bosses on your own with the same questions. On a phone, tap <b>Adventure</b> in the bottom bar.', ic: 'map', go: '#/adventure' }
       : +p.v >= 24 ? { t: 'New: 3 more English topics', h: '<b>New update.</b> English now has 4 topics: Engineering, Business &amp; Office, Travel &amp; Hospitality and Everyday Life. 120 new A1–A2 units with their own chests and wallpapers. Switch topics above the level list. Your progress is safe.', ic: 'sparkle', go: '#/' }
       : +p.v >= 23 ? { t: 'New: Bestie, Lucky spin and Adventure', h: '<b>Big update.</b> Pick a Bestie, spin chests for wallpapers, play Bestie Adventure together. Rankings now reset every Monday at 16:00.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
@@ -405,7 +405,7 @@ function rankRows(board) {
   const note = { duel: `Win 3 pts, draw 1. Only your first 10 sent and 10 received duels each day count. ${when} Top 10: XP, a rare wallpaper and a lucky spin ticket.`,
     col: `Number of wallpapers you own. ${when} Top 10: a lucky spin ticket.`, bestie: `Stars from Adventure bosses, alone or with your Bestie. ${when} Top 10: a lucky spin ticket.` }[board]
     || `Stars from every lesson in this course. ${when} Top 10 get a lucky spin ticket; each rank also pays once: #1 two wallpapers, #2 a rare one, #3 a random one, #4–10 XP.${got ? ` You have collected ${got}/10.` : ''}`;
-  const go = board === 'bestie' ? `<a class="rk-adv" href="#/adventure">${I.map}<span><b>Open Adventure map</b><small>First win on each boss: a new wallpaper, plus spin tickets</small></span>${I.chev}</a>` : '';
+  const go = board === 'bestie' ? `<a class="rk-adv" href="#/adventure">${I.map}<span><b>Open Adventure map</b><small>First boss and every king: a new wallpaper + a spin ticket</small></span>${I.chev}</a>` : '';
   return `${go}<div class="rk-list">${rows}${empty}</div>${me}`;
 }
 function paintRank(el) {

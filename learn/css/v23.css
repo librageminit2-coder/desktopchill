@@ -632,3 +632,6 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
   .tabbar a span, .tabbar .tb-rank span { font-size: .6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 }
 @media (max-width: 380px) { .tabbar .tb-play { flex-basis: 62px; } .tabbar a span, .tabbar .tb-rank span { font-size: .55rem; } }
+
+.adv-first.small { background: color-mix(in srgb, var(--glass) 80%, transparent); border-color: var(--line-2); padding: 10px 14px; }
+.adv-first.small .af-tk { font-size: 1.2rem; }

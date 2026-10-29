@@ -1,14 +1,14 @@
 // Khiêu chiến 1-1 không cần online cùng lúc: người A làm 10 câu (dễ → rất khó, 20 giây mỗi câu), kết quả lưu trên máy chủ,
 // người B nhận thông báo và làm cùng đề. Người thắng chọn 1 hình nền trong bộ sưu tập của người thua (người thua không mất gì).
 // v19: mỗi ngày 10 lượt khiêu chiến; chỉ trận thắng đầu tiên trong ngày có quà. Người nhận có 24 giờ, quá hạn bị xử thua và quà tự chuyển cho người thắng.
-import { I } from './icons.js?v=32';
-import { S, save } from './store.js?v=32';
-import { acct, call } from './account.js?v=32';
-import { sfx, unlockAudio } from './sound.js?v=32';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=32';
-import * as walls from './walls.js?v=32';
-import { hub, loadFriends } from './hub.js?v=32';
-import * as bestie from './bestie.js?v=32';
+import { I } from './icons.js?v=33';
+import { S, save } from './store.js?v=33';
+import { acct, call } from './account.js?v=33';
+import { sfx, unlockAudio } from './sound.js?v=33';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=33';
+import * as walls from './walls.js?v=33';
+import { hub, loadFriends } from './hub.js?v=33';
+import * as bestie from './bestie.js?v=33';
 
 let C = null;
 export function init(ctx) { C = ctx; }
