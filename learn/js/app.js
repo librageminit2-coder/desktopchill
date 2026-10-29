@@ -1,23 +1,23 @@
-import { I, LOGO } from './icons.js?v=29';
-import { sound, sfx, unlockAudio } from './sound.js?v=29';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=29';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=29';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=29';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=29';
-import * as social from './social.js?v=29';
-import { setVideo, setBg } from './scene.js?v=29';
-import * as walls from './walls.js?v=29';
-import * as hub from './hub.js?v=29';
-import * as duel from './duel.js?v=29';
-import * as chat from './chat.js?v=29';
-import * as guide from './guide.js?v=29';
-import * as acctui from './acctui.js?v=29';
-import * as gacha from './gacha.js?v=29';
-import * as bestie from './bestie.js?v=29';
-import * as ctxm from './ctx.js?v=29';
-import * as adv from './adv.js?v=29';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=29';
-import { mascot } from './mascot.js?v=29';
+import { I, LOGO } from './icons.js?v=30';
+import { sound, sfx, unlockAudio } from './sound.js?v=30';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=30';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=30';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=30';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=30';
+import * as social from './social.js?v=30';
+import { setVideo, setBg } from './scene.js?v=30';
+import * as walls from './walls.js?v=30';
+import * as hub from './hub.js?v=30';
+import * as duel from './duel.js?v=30';
+import * as chat from './chat.js?v=30';
+import * as guide from './guide.js?v=30';
+import * as acctui from './acctui.js?v=30';
+import * as gacha from './gacha.js?v=30';
+import * as bestie from './bestie.js?v=30';
+import * as ctxm from './ctx.js?v=30';
+import * as adv from './adv.js?v=30';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=30';
+import { mascot } from './mascot.js?v=30';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -128,12 +128,13 @@ function checkBadges() {
 // menu kiểu Steam: mục chính, rê chuột thì hiện menu con
 const MENU = [
   { label: 'Learn', href: '#/', ic: 'home', match: ['#/', '#/roadmap', '#/review', '#/practice'], items: [['#/', 'Journey map', 'home', 'Your lessons, chests and bosses'], ['#/roadmap', 'Roadmap', 'list', 'Every level and unit at a glance'], ['#/review', 'Review', 'cards', 'Word cards due today'], ['#/practice', 'Practice', 'target', 'Speed rounds, speaking, dictation']] },
+  { label: 'Adventure', href: '#/adventure', ic: 'map', match: ['#/adventure'], items: [] },
   { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All collection', 'gallery', 'Every wallpaper you own and can still win'], ['#/collection/spin', 'Lucky spin', 'gift', 'Spin your tickets for wallpapers'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
-  { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel', '#/quiz', '#/adventure'], items: [['#/adventure', 'Adventure map', 'map', 'Fight bosses with your Bestie, or alone in Lonely mode'], ['#/duel', 'Duels', 'swords', 'Same 10 questions, first win of the day: a spin ticket'], ['#/quiz', 'Live quiz', 'zap', 'Join with a PIN or host by topic']] },
+  { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel', '#/quiz'], items: [['#/duel', 'Duels', 'swords', 'Same 10 questions, first win of the day: a spin ticket'], ['#/quiz', 'Live quiz', 'zap', 'Join with a PIN or host by topic']] },
   { label: 'Classes', href: '#/classes', ic: 'school', match: ['#/classes', '#/class'], items: [['#/classes', 'My classes', 'school', 'Assignments, stream and reports'], ['#/classes', 'Join a class', 'plus', 'Enter the code from your teacher']] },
 ];
 // thanh dưới (điện thoại): Ranking và Friends là 2 tab riêng; trang Me mở bằng ảnh đại diện ở góc phải trên
-const TABS = [['#/', 'Learn', 'home'], ['rank', 'Ranking', 'trophy'], ['play', 'Play', 'swords'], ['friends', 'Friends', 'users'], ['#/collection', 'Collection', 'gallery']];
+const TABS = [['#/', 'Learn', 'home'], ['#/adventure', 'Adventure', 'map'], ['rank', 'Ranking', 'trophy'], ['play', 'Play', 'swords'], ['friends', 'Friends', 'users'], ['#/collection', 'Collection', 'gallery']];
 /* ---------- giao diện sáng / tối ---------- */
 const theme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
 function setTheme(t) {
@@ -175,6 +176,7 @@ function shell(route, inner, aside, opts = {}) {
   const badgeOf = (href) => href === '#/review' && dueN ? dueN : href === '#/duel' && duN ? duN : 0;
   const menu = MENU.map((m) => {
     const on = m.match.includes(cur), n = m.items.reduce((a, it) => a + badgeOf(it[0]), 0);
+    if (!m.items.length) return `<div class="mi solo ${on ? 'on' : ''}"><a class="mt" href="${m.href}" ${on ? 'aria-current="page"' : ''}>${I[m.ic]}<span>${m.label}</span></a></div>`;
     return `<div class="mi ${on ? 'on' : ''}"><a class="mt" href="${m.href}" ${on ? 'aria-current="page"' : ''}>${I[m.ic]}<span>${m.label}</span>${n ? `<i class="badge">${n > 99 ? '99+' : n}</i>` : ''}${I.chevDown}</a>
       <div class="dd" role="menu"><div class="dd-in panel solid">${m.items.map(([h, l, ic, d]) => `<a href="${h}" role="menuitem" class="${l === 'Join a class' ? 'dd-join' : ''}">${I[ic]}<span><b class="${/中文/.test(l) ? 'zhl' : ''}">${l}</b><small>${d}</small></span>${badgeOf(h) && l !== 'Join a class' ? `<i class="badge">${badgeOf(h)}</i>` : ''}</a>`).join('')}</div></div></div>`;
   }).join('');
@@ -242,9 +244,7 @@ function courseSheet() {
 function playSheet() {
   sfx('open');
   const duN = hub.hub.duels || 0, dueN = due(S.lang).length;
-  const bb = bestie.has();
   sheet(`<h2>Play</h2><div class="play-grid">
-    <a class="pc pc-adv" href="#/adventure">${I.map}<span class="pc-t"><b>${bb ? 'Bestie Adventure' : 'Lonely Adventure'}</b><small>${bb ? 'Fight map bosses together with your Bestie.' : 'Fight map bosses on your own. Pick a Bestie later to play as a pair.'}</small></span>${I.chev}</a>
     <a class="pc pc-duel" href="#/duel">${I.swords}<b>Duels</b><small>Same 10 questions. Beat a rival.</small>${duN ? `<i class="badge">${duN}</i>` : ''}</a>
     <a class="pc pc-quiz" href="#/quiz">${I.zap}<b>Live quiz</b><small>Join with a PIN or host one.</small></a>
     <a class="pc pc-prac" href="#/practice">${I.target}<b>Practice</b><small>Speed rounds and listening.</small></a>
@@ -526,7 +526,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=29').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=30').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -568,7 +568,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=29').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=30').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -1067,7 +1067,7 @@ async function welcome() {
 function runQueue(unit, queue, lang) {
   pull();
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=29').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=30').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */

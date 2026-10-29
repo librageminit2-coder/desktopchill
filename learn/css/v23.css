@@ -598,3 +598,33 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
 .as-link.solo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
 .as-link.solo .as-col { display: grid; gap: 8px; align-content: start; }
 .as-link.solo .as-col small { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; opacity: .65; }
+
+/* ---------- v24d: cột Ranking luôn mở, không có thanh cuộn; nút mở bản đồ Adventure; thưởng lần đầu ---------- */
+.rail, .rail * { scrollbar-width: none; }
+.rail::-webkit-scrollbar, .rail *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.rail-tab { display: none !important; }
+.rk-adv { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 10px 12px; border-radius: 14px; text-decoration: none; color: inherit;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--acc) 26%, transparent), color-mix(in srgb, var(--gold) 18%, transparent)); border: 1px solid color-mix(in srgb, var(--acc) 45%, transparent); transition: transform .2s var(--ease), border-color .2s; }
+.rk-adv:hover { transform: translateY(-1px); border-color: var(--acc); }
+.rk-adv > svg:first-child { flex: none; width: 22px; height: 22px; color: var(--acc); }
+.rk-adv > svg:last-child { flex: none; width: 16px; height: 16px; opacity: .7; }
+.rk-adv span { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.rk-adv b { font-size: .9rem; }
+.rk-adv small { font-size: .72rem; color: var(--muted); }
+.nav .mi.solo .mt { padding-right: 14px; }
+.adv-first { display: flex; align-items: center; gap: 12px; margin: 12px 0 0; padding: 12px 14px; border-radius: 14px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--gold) 22%, transparent), color-mix(in srgb, var(--acc) 14%, transparent)); border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent); }
+.adv-first .af-ic, .adv-first .af-tk { font-size: 1.5rem; line-height: 1; }
+.adv-first .grow { display: grid; gap: 2px; }
+.adv-first small { color: var(--muted); font-size: .8rem; }
+.as-first { display: grid; justify-items: center; gap: 4px; margin: 14px auto 4px; max-width: 260px; }
+.as-first > small { display: inline-flex; align-items: center; gap: 6px; color: var(--gold); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: .72rem; }
+.as-first > small svg { width: 14px; height: 14px; }
+.as-first .as-wc { width: 220px; animation: asfirst .7s var(--ease) both .2s; }
+.as-first > span { font-size: .8rem; color: var(--muted); }
+@keyframes asfirst { from { opacity: 0; transform: translateY(14px) scale(.85) rotate(-3deg); } to { opacity: 1; transform: none; } }
+@media (max-width: 900px) {
+  .tabbar a, .tabbar .tb-rank { min-width: 0; }
+  .tabbar a span, .tabbar .tb-rank span { font-size: .6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+}
+@media (max-width: 380px) { .tabbar .tb-play { flex-basis: 62px; } .tabbar a span, .tabbar .tb-rank span { font-size: .55rem; } }

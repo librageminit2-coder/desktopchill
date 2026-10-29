@@ -1,22 +1,23 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=29';
-import { S, save, applyRevoke } from './store.js?v=29';
-import * as chat from './chat.js?v=29';
-import * as acctui from './acctui.js?v=29';
-import { acct, call } from './account.js?v=29';
-import { sfx } from './sound.js?v=29';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=29';
-import * as walls from './walls.js?v=29';
-import * as bestie from './bestie.js?v=29';
-import * as gacha from './gacha.js?v=29';
-import * as ctx from './ctx.js?v=29';
+import { I, LOGO } from './icons.js?v=30';
+import { S, save, applyRevoke } from './store.js?v=30';
+import * as chat from './chat.js?v=30';
+import * as acctui from './acctui.js?v=30';
+import { acct, call } from './account.js?v=30';
+import { sfx } from './sound.js?v=30';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=30';
+import * as walls from './walls.js?v=30';
+import * as bestie from './bestie.js?v=30';
+import * as gacha from './gacha.js?v=30';
+import * as ctx from './ctx.js?v=30';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
 const pref = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v === '1'; } catch (e) { return d; } };
 const setPref = (k, v) => { try { localStorage.setItem(k, v ? '1' : '0'); } catch (e) {} };
-export const ui = { rail: pref('dcl_rail', true), hud: pref('dcl_hud', true), side: pref('dcl_side', true), lcol: pref('dcl_lcol', true) };
+// v24d: cột Ranking luôn mở trên màn hình rộng (không thu gọn được nữa); Today và Levels vẫn thu gọn như cũ
+export const ui = { rail: true, hud: pref('dcl_hud', true), side: pref('dcl_side', true), lcol: pref('dcl_lcol', true) };
 
 export function init(ctx) {
   C = ctx;
@@ -70,8 +71,7 @@ export function applyChrome() {
 // thẻ dọc ở mép phải để mở lại cột Today / danh sách bạn
 function paintTabs() {
   const mk = (cls, html, fn) => { let t = document.querySelector('.' + cls); if (!t) { t = document.createElement('button'); t.type = 'button'; t.className = 'edge-tab ' + cls; t.addEventListener('click', fn); document.body.appendChild(t); } t.innerHTML = html; return t; };
-  const on = ranked().filter((x) => !x.me && online(x.last_seen)).length;
-  mk('rail-tab', `${I.trophy}<span>Ranking · Friends${on ? ` · ${on}` : ''}</span>`, () => toggleRail(true));
+  const old = document.querySelector('.rail-tab'); if (old) old.remove();
   mk('side-tab', `${I.target}<span>Today</span>`, () => toggleSide(true));
   mk('lv-tab', `${I.list}<span>Levels</span>`, () => toggleLcol(true));
   document.body.classList.toggle('has-side', !!document.querySelector('.layout > .side'));
@@ -82,7 +82,7 @@ export function toggleSide(v = !ui.side) { ui.side = v; setPref('dcl_side', v); 
 export function toggleHud(v = !ui.hud) { ui.hud = v; setPref('dcl_hud', v); applyChrome(); sfx('tap'); }
 export function toggleRail(v) {
   if (!wide()) { railSheet(); return; }
-  ui.rail = v === undefined ? !ui.rail : v; setPref('dcl_rail', ui.rail); applyChrome(); sfx('tap');
+  ui.rail = true; applyChrome();
 }
 
 /* ---------- hỏi máy chủ ---------- */
@@ -255,7 +255,8 @@ function text(n) {
     case 'duel_pick': return { t: `${n.name} got a copy of ${w}`, h: `${who} won your duel and got a copy of <b>${esc(w)}</b> at random. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}${p.ticket ? ' and <b>1 lucky spin ticket</b>' : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
-    case 'update': return +p.v >= 25 ? { t: 'New: Lonely Adventure', h: '<b>No Bestie? You can still play.</b> Adventure now has a Lonely mode: fight the map bosses on your own with the same questions. On a phone, open it from <b>Play</b> in the bottom bar.', ic: 'map', go: '#/adventure' }
+    case 'update': return +p.v >= 26 ? { t: 'New: Adventure rewards', h: '<b>Adventure is now in the main menu.</b> The first time you beat each boss you get a random wallpaper and a lucky spin ticket, alone or with your Bestie. The Adventure ranking now counts everyone.', ic: 'map', go: '#/adventure' }
+      : +p.v >= 25 ? { t: 'New: Lonely Adventure', h: '<b>No Bestie? You can still play.</b> Adventure now has a Lonely mode: fight the map bosses on your own with the same questions. On a phone, tap <b>Adventure</b> in the bottom bar.', ic: 'map', go: '#/adventure' }
       : +p.v >= 24 ? { t: 'New: 3 more English topics', h: '<b>New update.</b> English now has 4 topics: Engineering, Business &amp; Office, Travel &amp; Hospitality and Everyday Life. 120 new A1–A2 units with their own chests and wallpapers. Switch topics above the level list. Your progress is safe.', ic: 'sparkle', go: '#/' }
       : +p.v >= 23 ? { t: 'New: Bestie, Lucky spin and Adventure', h: '<b>Big update.</b> Pick a Bestie, spin chests for wallpapers, play Bestie Adventure together. Rankings now reset every Monday at 16:00.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
       : +p.v >= 21 ? { t: 'New: English B1+ and B2+', h: '<b>New update.</b> Two new English levels (24 units) for engineering and office life, 22 new wallpapers and cheaper XP prices. Your progress is safe.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
@@ -358,7 +359,7 @@ function ranked() {
 }
 /* ---------- bảng xếp hạng toàn máy chủ (trên danh sách bạn) ---------- */
 // v23: thêm Top collector (số hình nền) và Bestie (cặp Bestie theo sao Vượt ải). Tuần mới: 16:00 thứ Hai giờ Hà Nội, mọi bảng phát quà cùng lúc.
-const RK_TABS = [['en', 'EN'], ['zh', '中文'], ['ielts', 'IELTS'], ['duel', 'Duel'], ['col', 'Collector'], ['bestie', 'Bestie']];
+const RK_TABS = [['en', 'EN'], ['zh', '中文'], ['ielts', 'IELTS'], ['duel', 'Duel'], ['col', 'Collector'], ['bestie', 'Adventure']];
 const rk = { err: {}, tab: (() => { try { return localStorage.getItem('dcl_rk') || ''; } catch (e) { return ''; } })(), data: {}, at: {}, busy: '' };
 const rkTab = () => (RK_TABS.some((t) => t[0] === rk.tab) ? rk.tab : (['en', 'zh', 'ielts'].includes(S.lang) ? S.lang : 'en'));
 export async function loadRank(board = rkTab(), force = false) {
@@ -381,25 +382,27 @@ function rankRows(board) {
   const d = rk.data[board];
   if (!d && rk.err[board]) return `<div class="rk-load rk-err"><p>${rk.err[board] === 'board' || /not ready/i.test(rk.err[board]) ? 'This ranking opens with the new update. Check back soon.' : 'Could not load this ranking.'}</p><button type="button" class="btn sm ghost rk-retry" data-b="${board}">Try again</button></div>`;
   if (!d) return '<p class="rk-load">Loading…</p>';
-  const items = d.items || [], unit = { duel: 'pts', col: 'wallpapers', bestie: '★ adventure' }[board] || '★';
+  const items = d.items || [], unit = { duel: 'pts', col: 'wallpapers', bestie: '★ Adventure' }[board] || '★';
   let rows;
-  if (board === 'bestie') rows = items.map((x) => `<div class="rk-i pair ${x.rel === 'me' ? 'me' : ''}">${medal(x.rank)}<span class="rk-av2">${(x.pair || []).map((p) => vipAv(p.name, p.avatar, p.vip || 0)).join('')}</span>
+  if (board === 'bestie' && items.some((x) => x.pair)) rows = items.map((x) => `<div class="rk-i pair ${x.rel === 'me' ? 'me' : ''}">${medal(x.rank)}<span class="rk-av2">${(x.pair || []).map((p) => vipAv(p.name, p.avatar, p.vip || 0)).join('')}</span>
       <span class="rk-t"><b>${(x.pair || []).map((p) => `<span class="rk-pn" data-u="${p.uid}">${esc(p.name)}</span>`).join(' <i class="rk-amp">&amp;</i> ')}</b><small>${x.score} ${unit}</small></span></div>`).join('');
   else rows = items.map((x) => `<div class="rk-i ${x.rel === 'me' ? 'me' : ''}" data-u="${x.uid}">${medal(x.rank)}<span class="rk-av">${vipAv(x.name, x.avatar, x.vip || 0)}</span>
       <span class="rk-t"><b>${esc(x.name)}${x.rel === 'me' ? ' (you)' : ''}</b><small>${x.score} ${unit}${board === 'duel' ? ` · ${x.wins}W / ${x.played}` : ''}</small></span>${x.rel === 'friend' ? `<span class="rk-s ok" title="Friend">${I.check}</span>` : x.rel === 'sent' ? '<span class="rk-s">Sent</span>' : ''}</div>`).join('');
   const meIn = items.some((x) => x.rel === 'me');
   const me = d.me && !meIn ? `<div class="rk-i me out">${medal(d.me.rank)}<span class="rk-av">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, walls.myVip())}</span><span class="rk-t"><b>You</b><small>${d.me.score} ${unit}</small></span></div>` : '';
-  const empty = !items.length ? `<p class="rk-load">${{ duel: 'No duels finished this week yet. Win one to take #1.', col: 'Nobody has wallpapers yet.', bestie: 'No Bestie pair has beaten an Adventure boss yet. Be the first!' }[board] || 'Nobody has stars here yet. Finish a lesson to take #1.'}</p>` : '';
+  const empty = !items.length ? `<p class="rk-load">${{ duel: 'No duels finished this week yet. Win one to take #1.', col: 'Nobody has wallpapers yet.', bestie: 'Nobody has beaten an Adventure boss yet. Your first win gives a wallpaper and a spin ticket!' }[board] || 'Nobody has stars here yet. Finish a lesson to take #1.'}</p>` : '';
   const got = (d.mine || []).length, when = `Prizes every Monday 16:00 (Hà Nội) · next in ${resetIn(d)}.`;
   const note = { duel: `Win 3 pts, draw 1. Only your first 10 sent and 10 received duels each day count. ${when} Top 10: XP, a rare wallpaper and a lucky spin ticket.`,
-    col: `Number of wallpapers you own. ${when} Top 10: a lucky spin ticket.`, bestie: `Stars the two of you won in Bestie Adventure. ${when} Top 10 pairs: a lucky spin ticket each.` }[board]
+    col: `Number of wallpapers you own. ${when} Top 10: a lucky spin ticket.`, bestie: `Stars from Adventure bosses, alone or with your Bestie. ${when} Top 10: a lucky spin ticket.` }[board]
     || `Stars from every lesson in this course. ${when} Top 10 get a lucky spin ticket; each rank also pays once: #1 two wallpapers, #2 a rare one, #3 a random one, #4–10 XP.${got ? ` You have collected ${got}/10.` : ''}`;
-  return `<div class="rk-list">${rows}${empty}</div>${me}`;
+  const go = board === 'bestie' ? `<a class="rk-adv" href="#/adventure">${I.map}<span><b>Open Adventure map</b><small>First win on each boss: a wallpaper + a spin ticket</small></span>${I.chev}</a>` : '';
+  return `${go}<div class="rk-list">${rows}${empty}</div>${me}`;
 }
 function paintRank(el) {
   const b = rkTab();
   el.querySelectorAll('.rk-tabs button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.b === b));
   const body = el.querySelector('.rk-body'); if (body) body.innerHTML = rankRows(b);
+  const ga = el.querySelector('.rk-adv'); if (ga) ga.addEventListener('click', () => { sfx('tap'); const sr = document.getElementById('sheet-root'); if (sr && el.closest('.in-sheet')) sr.innerHTML = ''; });
   const rt = el.querySelector('.rk-retry'); if (rt) rt.addEventListener('click', () => { delete rk.err[b]; paintRank(el); loadRank(b, true); });
   const d = rk.data[b]; if (!d) return;
   ctx.attach(el, '.rk-i[data-u]', (row) => { const x = d.items.find((i) => String(i.uid) === row.dataset.u); return x ? { uid: x.uid, name: x.name, avatar: x.avatar, vip: x.vip, rel: x.rel } : null; });
@@ -423,7 +426,7 @@ function railHead(onN, incN) {
   return `<div class="rl-tabs" role="tablist">
     <button type="button" role="tab" class="rl-t" data-t="rank" aria-selected="${railTab === 'rank'}">${I.trophy}<span>Ranking</span></button>
     <button type="button" role="tab" class="rl-t" data-t="friends" aria-selected="${railTab === 'friends'}">${I.users}<span>Friends</span>${incN ? `<i class="badge">${incN}</i>` : onN ? `<em class="rl-tn">${onN}</em>` : ''}</button>
-    ${acct ? `<button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}${msgN ? `<i class="badge">${msgN > 99 ? '99+' : msgN}</i>` : ''}</button>` : ''}<button class="icon-btn sm rl-x" type="button" title="Hide">${I.chev}</button></div>`;
+    ${acct ? `<button class="icon-btn sm rl-msg" type="button" title="Messages" aria-label="Messages">${I.chat}${msgN ? `<i class="badge">${msgN > 99 ? '99+' : msgN}</i>` : ''}</button>` : ''}</div>`;
 }
 function railInner() {
   if (!acct) return `${railHead(0, 0)}<div class="rl-empty">${I.users}<p>Sign in to see the ranking, your friends and who is online.</p><button class="btn sm acc rl-in" type="button">Sign in</button></div>`;
@@ -458,7 +461,6 @@ export function renderRail() {
   applyChrome();
 }
 function wireRail(r) {
-  const x = r.querySelector('.rl-x'); if (x) x.addEventListener('click', () => toggleRail(false));
   r.querySelectorAll('.rl-t').forEach((b) => b.addEventListener('click', () => { if (railTab !== b.dataset.t) { sfx('tap'); setRailTab(r, b.dataset.t); } }));
   const gf = r.querySelector('.rl-gof'); if (gf) gf.addEventListener('click', () => { sfx('tap'); setRailTab(r, 'friends'); });
   const si = r.querySelector('.rl-in'); if (si) si.addEventListener('click', () => C.authSheet('login'));
