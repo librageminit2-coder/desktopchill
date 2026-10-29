@@ -712,11 +712,12 @@ body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
 @media (max-width: 640px) { .a3-av { width: 40px; height: 40px; font-size: 1.2rem; } .a3-sign { padding: 4px 10px; } .a3-sign b { font-size: .8rem; } }
 
 /* ---------- v26: nút bài học + rương quà 3D trên Journey ---------- */
-/* v27c: nút bài học = kính trong suốt phẳng (làm mờ nền phía sau, viền mảnh, không bóng trắng) */
-.node .face { background: linear-gradient(160deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05)) !important; -webkit-backdrop-filter: blur(10px) saturate(1.35) !important; backdrop-filter: blur(10px) saturate(1.35) !important; border: 1px solid rgba(255, 255, 255, .34) !important; border-radius: 50% !important; box-shadow: 0 8px 22px rgba(0, 0, 0, .2) !important; color: #f4f8f6; }
-.node .face svg { transform: none; filter: none; opacity: .95; }
-.node.cur .face { background: linear-gradient(160deg, rgba(255, 214, 120, .5), rgba(242, 165, 46, .28)) !important; border-color: rgba(255, 228, 160, .75) !important; box-shadow: 0 0 0 5px rgba(255, 201, 74, .16), 0 8px 24px rgba(242, 165, 46, .28) !important; color: #fff; }
-.node.done .face { background: linear-gradient(160deg, rgba(255, 168, 120, .44), rgba(240, 120, 70, .24)) !important; border-color: rgba(255, 204, 176, .6) !important; color: #fff; }
+/* v27c: nút bài học = khối kính màu dày (3D: cạnh dày phía dưới, đổ bóng khối bên trong, không vệt bóng trắng), vẫn thấy nhẹ nền phía sau */
+.node .face { --g1: 168, 192, 200; --g2: 96, 124, 134; --g3: 34, 52, 60; background: radial-gradient(120% 95% at 50% 18%, rgba(var(--g1), .72), rgba(var(--g2), .66) 58%, rgba(var(--g3), .74)) !important; -webkit-backdrop-filter: blur(8px) saturate(1.3) !important; backdrop-filter: blur(8px) saturate(1.3) !important; border: 1px solid rgba(255, 255, 255, .3) !important; border-radius: 50% !important; box-shadow: inset 0 -7px 12px rgba(var(--g3), .45), inset 0 5px 9px rgba(var(--g1), .35), 0 6px 0 rgba(var(--g3), .78), 0 13px 18px rgba(0, 0, 0, .28) !important; color: #f4f8f6; translate: 0 -3px; }
+.node .face svg { transform: none; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .3)); }
+.node.cur .face { --g1: 255, 226, 150; --g2: 246, 178, 58; --g3: 168, 104, 14; color: #fff; }
+.node.done .face { --g1: 255, 196, 160; --g2: 240, 128, 76; --g3: 158, 66, 30; color: #fff; }
+.node.cur .face { box-shadow: inset 0 -7px 12px rgba(var(--g3), .45), inset 0 5px 9px rgba(var(--g1), .35), 0 6px 0 rgba(var(--g3), .78), 0 0 0 6px rgba(255, 201, 74, .16), 0 13px 22px rgba(242, 165, 46, .32) !important; }
 .node.test .face { border-radius: 20px !important; }
 .node.todo .face { opacity: 1; }
 .node:hover .face { filter: brightness(1.08); }
@@ -774,14 +775,14 @@ body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
 @media (prefers-reduced-motion: reduce) { .a2-n .a2-boss, .a2-pin { animation: none; } }
 
 /* v27c: rương kính trong suốt (cùng kiểu nút bài học): thân + nắp vòm bằng kính mờ, đai và ổ khoá màu theo cấp; mở = nắp bật ra sau, ánh vàng bên trong */
-.chest.chg { position: relative; display: block; width: 100%; height: 100%; filter: none !important; opacity: 1 !important; --tc: 255, 196, 90; }
-.chest.chg.t2 { --tc: 176, 214, 240; } .chest.chg.t3 { --tc: 190, 150, 255; }
-.chg .g-body, .chg .g-lid { position: absolute; -webkit-backdrop-filter: blur(9px) saturate(1.35); backdrop-filter: blur(9px) saturate(1.35); background: linear-gradient(165deg, rgba(var(--tc), .34), rgba(var(--tc), .12)); border: 1px solid rgba(255, 255, 255, .38); }
-.chg .g-body { left: 6%; right: 6%; bottom: 8%; height: 50%; border-radius: 7px 7px 11px 11px; box-shadow: 0 8px 18px rgba(0, 0, 0, .2); }
-.chg .g-lid { left: 3%; right: 3%; bottom: 56%; height: 30%; border-radius: 48% 48% 6px 6px / 90% 90% 6px 6px; transform-origin: 50% 100%; transition: transform .45s var(--spring, ease); }
-.chg .g-band { position: absolute; top: 0; bottom: 0; width: 10%; background: rgba(var(--tc), .55); border-left: 1px solid rgba(255, 255, 255, .3); border-right: 1px solid rgba(255, 255, 255, .3); }
+.chest.chg { position: relative; display: block; width: 100%; height: 100%; filter: none !important; opacity: 1 !important; --tc: 236, 168, 78; --td: 140, 82, 26; }
+.chest.chg.t2 { --tc: 150, 192, 222; --td: 52, 86, 116; } .chest.chg.t3 { --tc: 168, 124, 240; --td: 74, 40, 140; }
+.chg .g-body, .chg .g-lid { position: absolute; -webkit-backdrop-filter: blur(8px) saturate(1.3); backdrop-filter: blur(8px) saturate(1.3); background: linear-gradient(170deg, rgba(var(--tc), .72), rgba(var(--tc), .5) 55%, rgba(var(--td), .7)); border: 1px solid rgba(255, 255, 255, .32); }
+.chg .g-body { left: 6%; right: 6%; bottom: 12%; height: 48%; border-radius: 7px 7px 11px 11px; box-shadow: inset 0 -6px 10px rgba(var(--td), .45), inset 0 3px 6px rgba(255, 255, 255, .12), 0 5px 0 rgba(var(--td), .8), 0 12px 16px rgba(0, 0, 0, .26); }
+.chg .g-lid { box-shadow: inset 0 -5px 8px rgba(var(--td), .4), inset 0 4px 7px rgba(255, 255, 255, .14), 0 3px 0 rgba(var(--td), .7); left: 3%; right: 3%; bottom: 58%; height: 30%; border-radius: 48% 48% 6px 6px / 90% 90% 6px 6px; transform-origin: 50% 100%; transition: transform .45s var(--spring, ease); }
+.chg .g-band { position: absolute; top: 0; bottom: 0; width: 10%; background: linear-gradient(90deg, rgba(var(--td), .55), rgba(var(--td), .85)); border-left: 1px solid rgba(255, 255, 255, .3); border-right: 1px solid rgba(255, 255, 255, .3); }
 .chg .g-band.l { left: 16%; } .chg .g-band.r { right: 16%; }
-.chg .g-lock { position: absolute; left: 50%; top: -14%; width: 18%; height: 40%; translate: -50% 0; border-radius: 5px; background: rgba(var(--tc), .8); border: 1px solid rgba(255, 255, 255, .55); box-shadow: 0 2px 6px rgba(0, 0, 0, .18); }
+.chg .g-lock { position: absolute; left: 50%; top: -14%; width: 18%; height: 40%; translate: -50% 0; border-radius: 5px; background: linear-gradient(rgba(255, 236, 170, .95), rgba(214, 160, 50, .95)); border: 1px solid rgba(255, 255, 255, .55); box-shadow: 0 2px 6px rgba(0, 0, 0, .18); }
 .chg .g-lock::after { content: ""; position: absolute; left: 50%; top: 38%; width: 22%; height: 34%; translate: -50% 0; border-radius: 40% 40% 2px 2px; background: rgba(40, 30, 20, .55); }
 .chg .g-glow { position: absolute; left: 12%; right: 12%; bottom: 44%; height: 34%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 220, 120, .95), rgba(255, 190, 70, .35) 60%, transparent); opacity: 0; transition: opacity .3s; }
 .chg .g-coin { position: absolute; bottom: 52%; width: 13%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3c4, #f2b544 60%, #c98a1c); opacity: 0; transition: opacity .3s .1s; }
@@ -791,7 +792,6 @@ body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
 .chg .rays { position: absolute; inset: -30%; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255, 214, 102, .5) 0 10deg, transparent 10deg 30deg); -webkit-mask: radial-gradient(circle, #000 30%, transparent 68%); mask: radial-gradient(circle, #000 30%, transparent 68%); opacity: 0; transition: opacity .3s; }
 .cp.ready .chg .rays { opacity: .75; animation: spin 6s linear infinite; }
 .cp.ready .chest.chg { box-shadow: none; } .cp.ready .chg .g-body, .cp.ready .chg .g-lid { border-color: rgba(255, 228, 160, .85); box-shadow: 0 0 18px rgba(255, 201, 74, .45); }
-.cp:not(.ready):not(.opened) .chg .g-body, .cp:not(.ready):not(.opened) .chg .g-lid { background: linear-gradient(165deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05)); }
-.cp:not(.ready):not(.opened) .chg .g-band, .cp:not(.ready):not(.opened) .chg .g-lock { background: rgba(255, 255, 255, .28); }
-.cp.opened .chg .g-body, .cp.opened .chg .g-lid { background: linear-gradient(165deg, rgba(var(--tc), .2), rgba(var(--tc), .06)); }
+.cp:not(.ready):not(.opened) .chg { --tc: 150, 166, 170; --td: 52, 64, 70; }
+.cp.opened .chg .g-body, .cp.opened .chg .g-lid { opacity: .88; }
 .chg .rays { transform-origin: 50% 50%; fill: none; }
