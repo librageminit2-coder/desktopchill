@@ -1,23 +1,23 @@
-import { I, LOGO } from './icons.js?v=35';
-import { sound, sfx, unlockAudio } from './sound.js?v=35';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=35';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=35';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=35';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=35';
-import * as social from './social.js?v=35';
-import { setVideo, setBg } from './scene.js?v=35';
-import * as walls from './walls.js?v=35';
-import * as hub from './hub.js?v=35';
-import * as duel from './duel.js?v=35';
-import * as chat from './chat.js?v=35';
-import * as guide from './guide.js?v=35';
-import * as acctui from './acctui.js?v=35';
-import * as gacha from './gacha.js?v=35';
-import * as bestie from './bestie.js?v=35';
-import * as ctxm from './ctx.js?v=35';
-import * as adv from './adv.js?v=35';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=35';
-import { mascot } from './mascot.js?v=35';
+import { I, LOGO } from './icons.js?v=36';
+import { sound, sfx, unlockAudio } from './sound.js?v=36';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=36';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=36';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=36';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=36';
+import * as social from './social.js?v=36';
+import { setVideo, setBg } from './scene.js?v=36';
+import * as walls from './walls.js?v=36';
+import * as hub from './hub.js?v=36';
+import * as duel from './duel.js?v=36';
+import * as chat from './chat.js?v=36';
+import * as guide from './guide.js?v=36';
+import * as acctui from './acctui.js?v=36';
+import * as gacha from './gacha.js?v=36';
+import * as bestie from './bestie.js?v=36';
+import * as ctxm from './ctx.js?v=36';
+import * as adv from './adv.js?v=36';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=36';
+import { mascot } from './mascot.js?v=36';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -128,7 +128,7 @@ function checkBadges() {
 // menu kiểu Steam: mục chính, rê chuột thì hiện menu con
 const MENU = [
   { label: 'Learn', href: '#/', ic: 'home', match: ['#/', '#/roadmap', '#/review', '#/practice'], items: [['#/', 'Journey map', 'home', 'Your lessons, chests and bosses'], ['#/roadmap', 'Roadmap', 'list', 'Every level and unit at a glance'], ['#/review', 'Review', 'cards', 'Word cards due today'], ['#/practice', 'Practice', 'target', 'Speed rounds, speaking, dictation']] },
-  { label: 'Adventure', href: '#/adventure', ic: 'map', match: ['#/adventure'], items: [] },
+  { label: 'Adventure', href: '#/adventure', ic: 'map', match: ['#/adventure'], items: [], hot: true },
   { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All collection', 'gallery', 'Every wallpaper you own and can still win'], ['#/collection/spin', 'Lucky spin', 'gift', 'Spin your tickets for wallpapers'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
   { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel', '#/quiz'], items: [['#/duel', 'Duels', 'swords', 'Same 10 questions, first win of the day: a spin ticket'], ['#/quiz', 'Live quiz', 'zap', 'Join with a PIN or host by topic'], ['#/friends/groups', 'Group quiz', 'users', 'Make a friend group and start a quick quiz together']] },
   { label: 'Classes', href: '#/classes', ic: 'school', match: ['#/classes', '#/class'], items: [['#/classes', 'My classes', 'school', 'Assignments, stream and reports'], ['#/classes', 'Join a class', 'plus', 'Enter the code from your teacher']] },
@@ -172,11 +172,11 @@ function shell(route, inner, aside, opts = {}) {
   const playOn = ['#/duel', '#/quiz', '#/practice', '#/review'].includes(cur), rankN = (hub.hub.msgs || 0) + (reqN || 0);
   const tab = ([href, label, ic]) => href === 'play' ? `<button type="button" class="tb-play ${playOn ? 'on' : ''}" aria-label="Play">${I[ic]}<span>${label}</span>${duN ? `<i class="badge">${duN}</i>` : ''}</button>`
     : href === 'rank' || href === 'friends' ? `<button type="button" class="tb-rank tb-${href}" data-t="${href}" aria-label="${label}">${I[ic]}<span>${label}</span>${href === 'friends' && rankN ? `<i class="badge">${rankN > 99 ? '99+' : rankN}</i>` : ''}</button>`
-    : `<a href="${href}" ${cur === href || (href === '#/classes' && cur === '#/class') ? 'aria-current="page"' : ''}>${I[ic]}<span>${label}</span></a>`;
+    : `<a href="${href}" class="${href === '#/adventure' ? 'tb-adv' : ''}" ${cur === href || (href === '#/classes' && cur === '#/class') ? 'aria-current="page"' : ''}>${I[ic]}<span>${label}</span></a>`;
   const badgeOf = (href) => href === '#/review' && dueN ? dueN : href === '#/duel' && duN ? duN : 0;
   const menu = MENU.map((m) => {
     const on = m.match.includes(cur), n = m.items.reduce((a, it) => a + badgeOf(it[0]), 0);
-    if (!m.items.length) return `<div class="mi solo ${on ? 'on' : ''}"><a class="mt" href="${m.href}" ${on ? 'aria-current="page"' : ''}>${I[m.ic]}<span>${m.label}</span></a></div>`;
+    if (!m.items.length) return `<div class="mi solo ${m.hot ? 'hot' : ''} ${on ? 'on' : ''}"><a class="mt" href="${m.href}" ${on ? 'aria-current="page"' : ''}>${I[m.ic]}<span>${m.label}</span>${m.hot ? '<i class="mt-spark" aria-hidden="true"></i>' : ''}</a></div>`;
     return `<div class="mi ${on ? 'on' : ''}"><a class="mt" href="${m.href}" ${on ? 'aria-current="page"' : ''}>${I[m.ic]}<span>${m.label}</span>${n ? `<i class="badge">${n > 99 ? '99+' : n}</i>` : ''}${I.chevDown}</a>
       <div class="dd" role="menu"><div class="dd-in panel solid">${m.items.map(([h, l, ic, d]) => `<a href="${h}" role="menuitem" class="${l === 'Join a class' ? 'dd-join' : ''}">${I[ic]}<span><b class="${/中文/.test(l) ? 'zhl' : ''}">${l}</b><small>${d}</small></span>${badgeOf(h) && l !== 'Join a class' ? `<i class="badge">${badgeOf(h)}</i>` : ''}</a>`).join('')}</div></div></div>`;
   }).join('');
@@ -339,40 +339,29 @@ function openDailyChest(btn) {
 }
 
 /* ---------- rương & hình minh hoạ ---------- */
+// v26: rương 3D (ảnh render sẵn từ mô hình three.js): t1 gỗ–đồng, t2 bạc, t3 tím–vàng; có ảnh đóng và mở
 function chestSVG(open = false, tier = '') {
-  // rương gỗ bọc kim loại: thân, nắp vòm, đai vàng, góc bọc, khoá đá quý
-  return `<svg class="chest ch2 ${open ? 'open' : ''} ${tier}" viewBox="0 0 80 72" aria-hidden="true">
-    <defs><linearGradient id="chW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B8733A"/><stop offset=".55" stop-color="#8A4F22"/><stop offset="1" stop-color="#5A3013"/></linearGradient>
-      <linearGradient id="chL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CD8645"/><stop offset="1" stop-color="#8A4F22"/></linearGradient>
-      <linearGradient id="chG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0B3"/><stop offset=".45" stop-color="#FFC94A"/><stop offset="1" stop-color="#B9860F"/></linearGradient>
-      <radialGradient id="chJ" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#C9FFF6"/><stop offset=".5" stop-color="#2DD4BF"/><stop offset="1" stop-color="#0F766E"/></radialGradient>
-      <radialGradient id="chI" cx=".5" cy="1" r=".9"><stop offset="0" stop-color="#FFF6D0"/><stop offset=".6" stop-color="#FFC94A" stop-opacity=".7"/><stop offset="1" stop-color="#FFC94A" stop-opacity="0"/></radialGradient></defs>
-    <g class="rays"><path d="M40 36 34 -6h12zM40 36 80 18l4 12zM40 36 0 18l-4 12zM40 36l32-36 8 8zM40 36 8 0 0 8z"/></g>
-    <ellipse cx="40" cy="68" rx="30" ry="3.5" fill="#000" opacity=".28"/>
-    <ellipse class="inner" cx="40" cy="35" rx="26" ry="6" fill="url(#chI)"/>
-    <rect x="9" y="34" width="62" height="32" rx="4" fill="url(#chW)" stroke="#3A1F0A" stroke-width="2.2"/>
-    <path d="M10 44h60M10 54h60" stroke="#4A2810" stroke-width="1.2" opacity=".55"/>
-    <rect x="9" y="34" width="62" height="5" fill="url(#chG)" stroke="#7A5200" stroke-width="1"/>
-    <path d="M18 34v32M62 34v32" stroke="url(#chG)" stroke-width="5"/><path d="M18 34v32M62 34v32" stroke="#7A5200" stroke-width="5" stroke-opacity=".35" stroke-dasharray="1 7"/>
-    <path d="M9 58v4a4 4 0 0 0 4 4h5M71 58v4a4 4 0 0 1-4 4h-5" fill="none" stroke="url(#chG)" stroke-width="3.5" stroke-linecap="round"/>
-    <g class="lid2"><path d="M9 35c0-15 12-23 31-23s31 8 31 23z" fill="url(#chL)" stroke="#3A1F0A" stroke-width="2.2" stroke-linejoin="round"/>
-      <path d="M14 30c3-9 12-13 26-13s23 4 26 13" fill="none" stroke="#FFE3B0" stroke-width="1.4" opacity=".35"/>
-      <path d="M18 34c0-11 6-18 0-18M62 34c0-11-6-18 0-18" fill="none"/>
-      <path d="M18 33.5C18 22 21 15 25 13.6M62 33.5C62 22 59 15 55 13.6" fill="none" stroke="url(#chG)" stroke-width="5"/>
-      <rect x="9" y="31" width="62" height="4.5" rx="1.5" fill="url(#chG)" stroke="#7A5200" stroke-width="1"/></g>
-    <path d="M33 33h14v10l-7 6-7-6z" fill="url(#chG)" stroke="#7A5200" stroke-width="1.4" stroke-linejoin="round"/>
-    <circle class="gem" cx="40" cy="39.5" r="3.6" fill="url(#chJ)" stroke="#0B4F49" stroke-width="1"/>
-    <circle cx="38.8" cy="38.2" r="1" fill="#fff" opacity=".85"/></svg>`;
+  const t = /t([123])/.exec(tier || '') ? /t([123])/.exec(tier)[1] : '1';
+  return `<span class="chest ch2 ch3d ${open ? 'open' : ''} ${tier}" aria-hidden="true"><i class="rays"></i><img class="c-cl" src="media/ui3d/chest-t${t}-closed.png" alt="" draggable="false"><img class="c-op" src="media/ui3d/chest-t${t}-open.png" alt="" draggable="false"></span>`;
 }
 
 /* ---------- bản đồ hành trình ---------- */
 const JOINTS = LN + 1;
-// v25: sóng 5 nhịp (đường cong hơn, các bài sát nhau theo chiều dọc) → mỗi chủ đề ngắn hơn ~1/3
-const WAVE = [0, .95, .59, -.59, -.95, 0, .95, .59, -.59];
+// v26: đường hình sin 1 chu kỳ (chữ S); 9 điểm (8 bài + rương) đặt cách đều nhau theo độ dài đường cong
 function unitGeom(W, flip) {
-  const A = Math.min(190, W * 0.36), cx = W / 2, gap = 66, top = 74;
-  const pts = WAVE.map((o, k) => { const oo = o * (flip ? -1 : 1); return { x: cx + oo * A, y: top + k * gap, o: oo }; });
-  return { pts, H: top + (JOINTS - 1) * gap + 84, A, cx };
+  const A = Math.min(160, W * 0.3), cx = W / 2, top = 70, d = W < 500 ? 90 : 102, sg = flip ? -1 : 1, per = 1;
+  const curve = (Hs, n) => { const pts = []; for (let i = 0; i <= n; i++) { const t = i / n; pts.push({ x: cx + sg * A * Math.sin(Math.PI * 2 * per * t), y: top + t * Hs }); } return pts; };
+  const len = (pts) => { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y); return L; };
+  let lo = 120, hi = 1400; for (let k = 0; k < 30; k++) { const m = (lo + hi) / 2; if (len(curve(m, 240)) > (JOINTS - 1) * d) hi = m; else lo = m; }
+  const Hs = (lo + hi) / 2, dense = curve(Hs, 600), total = len(dense), pts = [];
+  let acc = 0, j = 0;
+  for (let k = 0; k < JOINTS; k++) {
+    const want = (total * k) / (JOINTS - 1);
+    while (j < dense.length - 1 && acc + Math.hypot(dense[j + 1].x - dense[j].x, dense[j + 1].y - dense[j].y) < want) { acc += Math.hypot(dense[j + 1].x - dense[j].x, dense[j + 1].y - dense[j].y); j++; }
+    const p = dense[Math.min(j, dense.length - 1)], q = dense[Math.min(j + 1, dense.length - 1)], seg = Math.hypot(q.x - p.x, q.y - p.y) || 1, f = Math.max(0, Math.min(1, (want - acc) / seg));
+    pts.push({ x: Math.round(p.x + (q.x - p.x) * f), y: Math.round(p.y + (q.y - p.y) * f), o: 0 });
+  }
+  return { pts, H: top + Hs + 80, A, cx };
 }
 function currentPos(c) {
   const L = curLevel(c);
@@ -522,7 +511,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=35').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=36').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -564,7 +553,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=35').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=36').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -1062,7 +1051,7 @@ async function welcome() {
 function runQueue(unit, queue, lang) {
   pull();
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=35').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=36').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */

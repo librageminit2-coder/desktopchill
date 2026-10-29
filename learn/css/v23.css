@@ -603,7 +603,7 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
 .rail, .rail * { scrollbar-width: none; }
 .rail::-webkit-scrollbar, .rail *::-webkit-scrollbar { display: none; width: 0; height: 0; }
 /* v24h: cột Ranking · Friends có tiêu đề + mũi tên ẩn ở trên, giống Levels / Today */
-.layout > .rail-col { display: none; position: sticky; z-index: 3; top: calc(var(--hud-h) + 28px); flex: 1 1 var(--rail-w); min-width: var(--rail-w); max-width: 460px; flex-direction: column; gap: 10px; }
+.layout > .rail-col { display: none; position: sticky; z-index: 3; top: calc(var(--hud-h) + 28px); flex: 0 0 330px; width: 330px; flex-direction: column; gap: 10px; }
 @media (min-width: 1500px) { body.rail-on .layout > .rail-col { display: flex; animation: railin .35s var(--ease); } }
 body.booted .layout > .rail-col { animation: none !important; }
 body.hud-off .layout > .rail-col { top: 58px; }
@@ -670,3 +670,60 @@ body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
 .adv-wrap.globe .adv-tools .icon-btn svg { width: 20px; height: 20px; }
 .adv-a11y { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 640px) { .adv-map.globe { height: 72vh; min-height: 380px; } .adv-wrap.globe .adv-tools { top: 12px; transform: none; right: 14px; grid-auto-flow: column; } .adv-wrap.globe .adv-tools .icon-btn { width: 36px; height: 36px; } }
+
+/* v26: thanh HUD đủ rộng cho cả mục Adventure — avatar không tràn ra ngoài khi thu gọn mọi cột */
+@media (min-width: 1500px) { .hud-in { width: min(1690px, 100%); } }
+@media (min-width: 1181px) and (max-width: 1460px) { .nav.menu .mi:not(.hot) .mt span { display: none; } .nav.menu .mi .mt { padding: 0 10px; } }
+/* v26: mục Adventure nổi bật (viên vàng phát sáng) */
+.nav .mi.hot .mt { color: #3a2400; background: linear-gradient(135deg, #ffe08a, #ffb84d 55%, #ff8a5c); box-shadow: 0 0 0 1px rgba(255, 220, 140, .7) inset, 0 6px 18px rgba(255, 170, 60, .45); padding: 0 16px 0 13px; animation: advglow 2.6s ease-in-out infinite; overflow: hidden; }
+.nav .mi.hot .mt > svg { width: 18px; height: 18px; }
+.nav .mi.hot .mt span { font-weight: 800; }
+.nav .mi.hot.on .mt { box-shadow: 0 0 0 2px #fff inset, 0 6px 22px rgba(255, 170, 60, .6); }
+.nav .mi.hot .mt:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.mt-spark { position: absolute; inset: 0; background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .7) 45%, transparent 60%); transform: translateX(-120%); animation: advshine 3.4s ease-in-out infinite; pointer-events: none; }
+@keyframes advglow { 0%, 100% { box-shadow: 0 0 0 1px rgba(255, 220, 140, .7) inset, 0 6px 18px rgba(255, 170, 60, .35); } 50% { box-shadow: 0 0 0 1px rgba(255, 220, 140, .9) inset, 0 6px 26px rgba(255, 170, 60, .7); } }
+@keyframes advshine { 0%, 55% { transform: translateX(-120%); } 85%, 100% { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) { .nav .mi.hot .mt, .mt-spark { animation: none; } }
+.tabbar a.tb-adv svg { color: #3a2400; background: linear-gradient(135deg, #ffe08a, #ffb84d); border-radius: 10px; padding: 3px; width: 26px !important; height: 26px !important; box-shadow: 0 3px 10px rgba(255, 170, 60, .45); }
+.tabbar a.tb-adv span { color: #ffc96b; font-weight: 800; }
+
+/* ---------- v26: bản đồ Adventure 3D ---------- */
+.adv-map.globe.is3d { position: relative; overflow: hidden; }
+.a3-cv { display: block; width: 100%; height: 100%; cursor: grab; outline: none; touch-action: none; user-select: none; -webkit-user-select: none; }
+.a3-ov { position: absolute; inset: 0; pointer-events: none; overflow: hidden; font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
+.a3-ov > * { position: absolute; left: 0; top: 0; will-change: transform; }
+.a3-n { display: grid; justify-items: center; gap: 2px; margin: -13px 0 0 -13px; }
+.a3-b { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; border: 2.5px solid #fff; font-style: normal; font-weight: 900; font-size: .78rem; color: #fff; background: #9a9a9a; box-shadow: 0 3px 8px rgba(40, 40, 20, .3); }
+.a3-n.open .a3-b { background: #e5484d; animation: a3pulse 1.6s ease-in-out infinite; }
+.a3-n.beat .a3-b { background: #2fbf71; }
+.a3-n.shut .a3-b { font-size: .62rem; }
+.a3-st { font-style: normal; font-weight: 900; font-size: .92rem; letter-spacing: 1px; color: #e3a008; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 1px 0 #fff; }
+@keyframes a3pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(229, 72, 77, .55), 0 3px 8px rgba(40, 40, 20, .3); } 50% { box-shadow: 0 0 0 8px rgba(229, 72, 77, 0), 0 3px 8px rgba(40, 40, 20, .3); } }
+.a3-sign { display: grid; justify-items: center; padding: 6px 14px 7px; border-radius: 12px; background: #fbf3e2; border: 2.5px solid #b9875a; box-shadow: 0 4px 10px rgba(60, 40, 20, .2); transform-origin: 50% 100%; translate: -50% -100%; white-space: nowrap; }
+.a3-sign b { font-size: .95rem; color: #5a3a24; } .a3-sign small { font-size: .68rem; font-weight: 700; color: #9a7a5a; }
+.a3-lock { display: grid; justify-items: center; gap: 4px; translate: -50% -50%; }
+.a3-lock i { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 50%; background: #fbf3e2; border: 3px solid #b9875a; font-style: normal; font-size: 1.5rem; box-shadow: 0 6px 16px rgba(60, 40, 20, .2); }
+.a3-lock small { font-weight: 800; font-size: .78rem; color: #5a3a24; text-shadow: 0 0 4px #fff, 0 0 4px #fff; white-space: nowrap; }
+.a3-pin { display: flex; align-items: center; gap: 2px; translate: -50% -100%; filter: drop-shadow(0 6px 8px rgba(40, 30, 20, .3)); }
+.a3-av { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; overflow: hidden; background: #ff8a5c; border: 3px solid #fff; color: #fff; font-size: 1.5rem; }
+.a3-av b { font-size: 1.2rem; } .a3-av img { width: 100%; height: 100%; object-fit: cover; }
+.a3-av.mate { width: 42px; height: 42px; } .a3-heart { font-style: normal; font-size: 1.1rem; margin: 0 -4px; z-index: 1; }
+.a3-tip { translate: -50% -100%; padding: 5px 11px; border-radius: 999px; background: rgba(40, 32, 24, .86); color: #fff; font-weight: 800; font-size: .8rem; white-space: nowrap; }
+@media (max-width: 640px) { .a3-av { width: 40px; height: 40px; font-size: 1.2rem; } .a3-sign { padding: 4px 10px; } .a3-sign b { font-size: .8rem; } }
+
+/* ---------- v26: nút bài học + rương quà 3D trên Journey ---------- */
+.node .face { background: url(../media/ui3d/node-todo.png) 50% 58% / 128% no-repeat !important; border: 0 !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; color: #e8f0f2; }
+.node .face svg { transform: translateY(-9%); filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35)); }
+.node.cur .face { background-image: url(../media/ui3d/node-cur.png) !important; color: #5a3600; }
+.node.done .face { background-image: url(../media/ui3d/node-done.png) !important; color: #fff; }
+.node.test .face { background-image: url(../media/ui3d/node-test-sq.png) !important; color: #fff; }
+.node.test.cur .face { background-image: url(../media/ui3d/node-cur-sq.png) !important; color: #5a3600; }
+.node.test.done .face { background-image: url(../media/ui3d/node-done-sq.png) !important; }
+.node.todo .face { opacity: 1; }
+.node:hover .face { filter: brightness(1.08); }
+.ch3d { position: relative; display: block; width: 100%; height: 100%; }
+.ch3d img { position: absolute; inset: -14% -10% -6%; width: 120%; height: 120%; object-fit: contain; pointer-events: none; user-select: none; }
+.ch3d .c-op { opacity: 0; } .ch3d.open .c-op, .popping .ch3d .c-op { opacity: 1; } .ch3d.open .c-cl, .popping .ch3d .c-cl { opacity: 0; }
+.ch3d .rays { position: absolute; inset: -30%; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255, 214, 102, .55) 0 10deg, transparent 10deg 30deg); -webkit-mask: radial-gradient(circle, #000 30%, transparent 68%); mask: radial-gradient(circle, #000 30%, transparent 68%); opacity: 0; transition: opacity .3s; }
+.cp.ready .ch3d .rays { opacity: .8; animation: spin 6s linear infinite; }
+.cp.opened .ch3d { opacity: .92; }

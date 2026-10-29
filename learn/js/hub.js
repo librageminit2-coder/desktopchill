@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=35';
-import { S, save, applyRevoke } from './store.js?v=35';
-import * as chat from './chat.js?v=35';
-import * as acctui from './acctui.js?v=35';
-import { acct, call, onLucky } from './account.js?v=35';
-import { sfx } from './sound.js?v=35';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=35';
-import * as walls from './walls.js?v=35';
-import * as bestie from './bestie.js?v=35';
-import * as gacha from './gacha.js?v=35';
-import * as ctx from './ctx.js?v=35';
+import { I, LOGO } from './icons.js?v=36';
+import { S, save, applyRevoke } from './store.js?v=36';
+import * as chat from './chat.js?v=36';
+import * as acctui from './acctui.js?v=36';
+import { acct, call, onLucky } from './account.js?v=36';
+import { sfx } from './sound.js?v=36';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=36';
+import * as walls from './walls.js?v=36';
+import * as bestie from './bestie.js?v=36';
+import * as gacha from './gacha.js?v=36';
+import * as ctx from './ctx.js?v=36';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };

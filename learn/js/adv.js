@@ -2,15 +2,15 @@
 // Bản đồ rộng (kéo / cuộn để phóng to) với các vùng theo cấp độ. Mỗi vùng có 5 boss + 1 vua vùng (chấm đỏ).
 // Đề lấy từ toàn bộ bài học của cấp đó, 4 kiểu vòng phối hợp: Đồng tâm · Mảnh ghép · Tiếp sức · Nối đôi.
 // v24c: người chưa có Bestie chơi chế độ LONELY (một mình, cùng đề; máy chủ learn_adv_* với solo = true).
-import { I } from './icons.js?v=35';
-import { S } from './store.js?v=35';
-import { acct, call } from './account.js?v=35';
-import { sfx } from './sound.js?v=35';
-import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=35';
-import * as bestie from './bestie.js?v=35';
-import * as gacha from './gacha.js?v=35';
-import * as walls from './walls.js?v=35';
-import * as globe from './advglobe.js?v=35';
+import { I } from './icons.js?v=36';
+import { S } from './store.js?v=36';
+import { acct, call } from './account.js?v=36';
+import { sfx } from './sound.js?v=36';
+import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=36';
+import * as bestie from './bestie.js?v=36';
+import * as gacha from './gacha.js?v=36';
+import * as walls from './walls.js?v=36';
+import * as globe from './advglobe.js?v=36';
 
 let C = null;
 export function init(ctx) {
@@ -143,20 +143,27 @@ function curBoss(map) {
   for (let k = 1; k <= 6; k++) if (bossOpen(map, front, k) && !starsOf(map, front, k)) return [front, k];
   return [front, 6];
 }
-function wireMap(box) {
+async function wireMap(box) {
   if (G) { G.destroy(); G = null; }
   const map = curMap, mate = M && M.bestie ? { name: M.bestie.name, avatar: M.bestie.avatar } : null;
-  G = globe.mount(box, {
+  const opts = {
     map, regions: MAPS[map].regions, themes: THEMES[map], pal: PASTEL, treeOf: TREE_OF,
     stars: (r, n) => starsOf(map, r, n), open: (r, n) => bossOpen(map, r, n), regionOpen: (r) => regionOpen(map, r),
     cur: curBoss(map), me: acct ? { name: acct.name, avatar: acct.avatar } : { name: 'You', avatar: '' }, mate,
     onBoss: (r, n) => bossSheet(r, n),
     onLocked: (r) => { sfx('tap'); toast(`Beat ${MAPS[map].regions[r - 2].king} in ${MAPS[map].regions[r - 2].name} to open ${MAPS[map].regions[r - 1].name}.`); },
-  });
+  };
+  // v26: bản đồ 3D thật (WebGL); máy không hỗ trợ → bản đồ 2D
+  let m3 = null;
+  try { m3 = await import('./advmap3d.js?v=36'); if (!m3.supported()) m3 = null; } catch (e) { m3 = null; }
+  if (!box.isConnected) return;
+  try { G = m3 ? m3.mount(box, { ...opts, onFail: () => { try { G.destroy(); } catch (e) {} box.classList.remove('is3d'); G = globe.mount(box, opts); } }) : globe.mount(box, opts); }
+  catch (e) { console.error('3D map failed', e); m3 = null; G = globe.mount(box, opts); }
+  box.classList.toggle('is3d', !!m3);
   const wrap = box.parentElement;
-  wrap.querySelector('.adv-up').addEventListener('click', () => { sfx('tap'); G.up(); });
-  wrap.querySelector('.adv-dn').addEventListener('click', () => { sfx('tap'); G.down(); });
-  wrap.querySelector('.adv-me').addEventListener('click', () => { sfx('tap'); G.home(); });
+  wrap.querySelector('.adv-up').addEventListener('click', () => { sfx('tap'); if (G) G.up(); });
+  wrap.querySelector('.adv-dn').addEventListener('click', () => { sfx('tap'); if (G) G.down(); });
+  wrap.querySelector('.adv-me').addEventListener('click', () => { sfx('tap'); if (G) G.home(); });
   wrap.querySelectorAll('.adv-a11y .adv-boss').forEach((b) => b.addEventListener('click', () => { const [r, n] = b.dataset.b.split('-').map(Number); bossSheet(r, n); }));
 }
 

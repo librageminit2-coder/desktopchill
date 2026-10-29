@@ -36,3 +36,6 @@ Tracking*.json
 # Bộ Rainmeter .rmskin: không còn đăng lên web
 /files/
 /rainmeter-layout.html
+
+# Mô hình 3D gốc (nặng) — bản nén nằm ở learn/models
+/3D objects/
