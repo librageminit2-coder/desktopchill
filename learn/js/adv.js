@@ -1,14 +1,14 @@
 // v23: BESTIE ADVENTURE — vượt ải cùng Bestie (2 người cùng online)
 // Bản đồ rộng (kéo / cuộn để phóng to) với các vùng theo cấp độ. Mỗi vùng có 5 boss + 1 vua vùng (chấm đỏ).
 // Đề lấy từ toàn bộ bài học của cấp đó, 4 kiểu vòng phối hợp: Đồng tâm · Mảnh ghép · Tiếp sức · Nối đôi.
-// Người chưa có Bestie vẫn xem được bản đồ, kèm lời nhắc thêm Bestie.
-import { I } from './icons.js?v=28';
-import { S } from './store.js?v=28';
-import { acct, call } from './account.js?v=28';
-import { sfx } from './sound.js?v=28';
-import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=28';
-import * as bestie from './bestie.js?v=28';
-import * as gacha from './gacha.js?v=28';
+// v24c: người chưa có Bestie chơi chế độ LONELY (một mình, cùng đề; máy chủ learn_adv_* với solo = true).
+import { I } from './icons.js?v=29';
+import { S } from './store.js?v=29';
+import { acct, call } from './account.js?v=29';
+import { sfx } from './sound.js?v=29';
+import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=29';
+import * as bestie from './bestie.js?v=29';
+import * as gacha from './gacha.js?v=29';
 
 let C = null;
 export function init(ctx) {
@@ -50,9 +50,17 @@ const TYPES = {
   relay: { name: 'Relay sentence', ic: '🏃', how: 'Each of you holds half the words. Take turns placing them in the right order.' },
   link: { name: 'Double link', ic: '🔗', how: 'One sees words, the other sees meanings. Tap matching pairs within 5 seconds of each other.' },
 };
+const TYPES_SOLO = {
+  twin: { name: 'Quick answer', ic: '⚡', how: 'Answer the question. Right within 5 seconds = Quick! ×1.25 damage.' },
+  split: { name: 'Clue hunt', ic: '🔎', how: 'Read the clue and pick the right answer.' },
+  relay: { name: 'Sentence builder', ic: '🧱', how: 'You hold every word. Place them in the right order.' },
+  link: { name: 'Match up', ic: '🔗', how: 'Tap a word, then its meaning. Match them all before time runs out.' },
+};
+const typeOf = (t, solo) => (solo ? TYPES_SOLO : TYPES)[t];
+const isSolo = () => !!(acct && M && (M.solo || M.nobestie) && !M.guest);
 const bossId = (map, r, n) => `${map}-${r}-${n}`;
 const bossName = (map, r, n) => { const R = MAPS[map].regions[r - 1]; return n === 6 ? R.king : R.boss[n - 1]; };
-const xpFor = (r, n, stars = 3) => Math.round((8 + 4 * r) * stars * (n === 6 ? 1.5 : 1));
+const xpFor = (r, n, stars = 3, solo = false) => Math.round((8 + 4 * r) * stars * (n === 6 ? 1.5 : 1) * (solo ? 0.8 : 1));
 let curMap = (() => { try { return localStorage.getItem('dcl_adv_map') || ''; } catch (e) { return ''; } })();
 let M = null; // learn_adv_map
 let view = { x: 0, y: 0, k: 1 };
@@ -250,24 +258,26 @@ export async function page(args = []) {
     if (!location.hash.startsWith('#/adventure')) return;
   }
   M.progress = M.progress || {};
-  const nb = !!M.nobestie, bb = M.bestie, D = MAPS[curMap];
+  const nb = !!M.nobestie, solo = isSolo(), bb = M.bestie, D = MAPS[curMap];
   const beaten = Object.values(M.progress).filter((x) => x.stars).length, total = D.regions.length * 6;
-  const banner = nb
+  const banner = solo
+    ? `<div class="adv-note panel solo"><span class="lonely-ic">🌙</span><div class="grow"><b>Lonely Adventure</b><small>No Bestie yet, so you fight alone with the same questions. ${beaten}/${total} bosses · ${M.total || 0} ★ · ${M.today_wins || 0}/10 wins today. Pick a Bestie to play as a pair.</small></div><a class="btn ghost sm" href="${M.friends ? '#/bestie' : '#/friends'}">${I.heart} ${M.friends ? 'Choose a Bestie' : 'Add a friend'}</a></div>`
+    : nb
     ? `<div class="adv-note panel">${I.heart}<div class="grow"><b>Bestie Adventure is played in pairs.</b><small>${!acct ? 'Create an account, add a friend and make them your Bestie to play. You can look around the map now.' : M.friends ? 'Pick one of your friends as your Bestie to start fighting bosses together. You can look around the map now.' : 'Add a friend first, then make them your Bestie. You can look around the map now.'}</small></div>${acct ? `<a class="btn acc sm" href="${M.friends ? '#/bestie' : '#/friends'}">${M.friends ? 'Choose a Bestie' : 'Add a friend'}</a>` : '<button class="btn acc sm adv-acc" type="button">Create account</button>'}</div>`
     : `<div class="adv-note panel ok">${vipAv(bb.name, bb.avatar, bb.vip || 0)}<div class="grow"><b>You ${I.heart} ${esc(bb.name)}</b><small>${online(bb.last_seen) ? '<b class="ok">Online now</b> · tap a red dot to fight together' : `Offline · both of you must be online to fight`} · ${beaten}/${total} bosses · ${M.total || 0} ★${M.rank ? ` · #${M.rank.rank} this week` : ''}</small></div>${online(bb.last_seen) ? '' : '<button class="btn sm ghost adv-nudge" type="button">Send a nudge</button>'}</div>`;
   const open = M.open;
-  const openBar = !open ? '' : `<div class="adv-open panel">${I.swords}<div class="grow"><b>${open.state === 'invite' ? (open.mine ? 'Waiting for your Bestie to join…' : `${esc(bb ? bb.name : 'Your Bestie')} invited you!`) : 'Your battle is in progress'}</b><small>${esc(bossName(open.map, +open.boss.split('-')[1], +open.boss.split('-')[2]))}</small></div>${!open.mine && open.state === 'invite' ? '<button class="btn acc sm adv-join" type="button">Join</button>' : '<button class="btn acc sm adv-back" type="button">Open</button>'}</div>`;
-  C.shell(route, `<div class="page-h"><div><h1 class="serif">Bestie Adventure</h1><p>Explore the map with your Bestie and beat the red-dot bosses together. Every boss needs teamwork: shared answers, split clues, relay sentences and double links.</p></div>
+  const openBar = !open ? '' : `<div class="adv-open panel">${I.swords}<div class="grow"><b>${open.state === 'invite' ? (open.mine ? 'Waiting for your Bestie to join…' : `${esc(bb ? bb.name : 'Your Bestie')} invited you!`) : (solo ? 'Your Lonely battle is in progress' : 'Your battle is in progress')}</b><small>${esc(bossName(open.map, +open.boss.split('-')[1], +open.boss.split('-')[2]))}</small></div>${!open.mine && open.state === 'invite' ? '<button class="btn acc sm adv-join" type="button">Join</button>' : '<button class="btn acc sm adv-back" type="button">Open</button>'}</div>`;
+  C.shell(route, `<div class="page-h"><div><h1 class="serif">${solo ? 'Lonely Adventure' : 'Bestie Adventure'}</h1><p>${solo ? 'Explore the map on your own and beat the red-dot bosses. Same questions as Bestie Adventure: quick answers, clues, sentence building and word matching.' : 'Explore the map with your Bestie and beat the red-dot bosses together. Every boss needs teamwork: shared answers, split clues, relay sentences and double links.'}</p></div>
     <div class="seg adv-maps" role="tablist">${['en', 'zh'].map((m) => `<button type="button" data-m="${m}" aria-pressed="${curMap === m}" class="${m === 'zh' ? 'zh' : ''}">${MAPS[m].name}</button>`).join('')}</div></div>
     ${banner}${openBar}
-    <div class="adv-wrap ${nb ? 'viewonly' : ''}"><div class="adv-map">${mapSVG(curMap)}</div>
+    <div class="adv-wrap ${nb && !solo ? 'viewonly' : ''}"><div class="adv-map">${mapSVG(curMap)}</div>
       <div class="adv-tools"><button class="icon-btn adv-zi" type="button" title="Zoom in">${I.plus}</button><button class="icon-btn adv-zo" type="button" title="Zoom out">−</button><button class="icon-btn adv-zr" type="button" title="Fit map">⤢</button></div>
 </div>
     <div class="adv-legend"><span><i class="lg-d"></i>Boss</span><span>👑 Region king</span><span>★ Your best</span><span>🔒 Beat the king to open the next region</span><span>Drag to move · scroll or +/− to zoom</span></div>
     <div class="adv-info">
-      <section class="panel pad"><h3 class="sec-h">${I.sparkle} How a battle works</h3><div class="adv-types">${Object.values(TYPES).map((t) => `<div><b>${t.ic} ${t.name}</b><small>${t.how}</small></div>`).join('')}</div>
-        <p class="muted" style="font-size:.85rem;margin-top:10px">The boss has 100 HP and your team has 3 hearts. Keep more hearts for more stars. Beat 3 bosses to wake the region king; beat the king to open the next region.</p></section>
-      <section class="panel pad"><h3 class="sec-h">${I.gift} Chest rewards</h3><ul class="adv-rw"><li>XP for both of you: more in harder regions, ×stars, ×1.5 for kings (first 10 wins a day)</li><li>Bestie effects for your quiz and class high-fives (kings always drop one)</li><li>A lucky spin ticket each the first time you beat a region king</li><li>Stars count for the weekly <a href="#" class="adv-rank">Bestie ranking</a> (top 10 pairs get a spin ticket every Monday 16:00)</li></ul></section>
+      <section class="panel pad"><h3 class="sec-h">${I.sparkle} How a battle works</h3><div class="adv-types">${Object.values(solo ? TYPES_SOLO : TYPES).map((t) => `<div><b>${t.ic} ${t.name}</b><small>${t.how}</small></div>`).join('')}</div>
+        <p class="muted" style="font-size:.85rem;margin-top:10px">The boss has 100 HP and ${solo ? 'you have' : 'your team has'} 3 hearts. Keep more hearts for more stars. Beat 3 bosses to wake the region king; beat the king to open the next region.</p></section>
+      <section class="panel pad"><h3 class="sec-h">${I.gift} Chest rewards</h3><ul class="adv-rw">${solo ? '<li>XP: more in harder regions, ×stars, ×1.5 for kings (80% of a Bestie battle, first 10 wins a day)</li><li>A lucky spin ticket the first time you beat a region king</li><li>Play with a Bestie for Bestie effects, full XP and the weekly Bestie ranking</li>' : '<li>XP for both of you: more in harder regions, ×stars, ×1.5 for kings (first 10 wins a day)</li><li>Bestie effects for your quiz and class high-fives (kings always drop one)</li><li>A lucky spin ticket each the first time you beat a region king</li><li>Stars count for the weekly <a href="#" class="adv-rank">Bestie ranking</a> (top 10 pairs get a spin ticket every Monday 16:00)</li>'}</ul></section>
     </div>`);
   const app = document.getElementById('app');
   app.querySelectorAll('.adv-maps button').forEach((b) => b.addEventListener('click', () => { curMap = b.dataset.m; view = { x: 0, y: 0, k: 1 }; try { localStorage.setItem('dcl_adv_map', curMap); } catch (e) {} sfx('tap'); page(); }));
@@ -303,17 +313,31 @@ function wireMap(box) {
 }
 
 function bossSheet(r, n) {
-  const map = curMap, R = MAPS[map].regions[r - 1], name = bossName(map, r, n), st = starsOf(map, r, n), ok = bossOpen(map, r, n), nb = !!M.nobestie, bb = M.bestie;
+  const map = curMap, R = MAPS[map].regions[r - 1], name = bossName(map, r, n), st = starsOf(map, r, n), ok = bossOpen(map, r, n), solo = isSolo(), nb = !!M.nobestie && !solo, bb = M.bestie;
   const rounds = roundsFor(n), why = !regionOpen(map, r) ? `Beat ${MAPS[map].regions[r - 2].king} to open this region.` : !ok ? 'Beat any 3 bosses in this region to wake the king.' : '';
   sfx('open');
   sheet(`<div class="adv-bs"><div class="adv-bh"><span class="adv-bic ${n === 6 ? 'king' : ''}">${n === 6 ? '👑' : '👾'}</span><div><h2>${esc(name)}</h2><p class="sub">${esc(R.name)} · ${esc(R.lv)} · ${esc(R.diff)}${n === 6 ? ' · Region king' : ''}</p>
       <div class="pf-tags"><span>${rounds} rounds</span><span>100 HP</span><span>3 ${I.heart}</span>${st ? `<span>Best ${'★'.repeat(st)}</span>` : ''}</div></div></div>
-    <div class="adv-chest"><b>${I.gift} Chest</b><span>Up to ${xpFor(r, n)} XP each</span>${n === 6 ? `<span>Bestie effect (${r >= 5 ? 'legendary' : r >= 3 ? 'epic' : 'rare'})</span>${st ? '' : '<span>Lucky spin ticket (first clear)</span>'}` : '<span>Chance of a Bestie effect</span>'}</div>
+    <div class="adv-chest"><b>${I.gift} Chest</b>${solo ? `<span>Up to ${xpFor(r, n, 3, true)} XP</span>${n === 6 && !st ? '<span>Lucky spin ticket (first clear)</span>' : ''}` : `<span>Up to ${xpFor(r, n)} XP each</span>${n === 6 ? `<span>Bestie effect (${r >= 5 ? 'legendary' : r >= 3 ? 'epic' : 'rare'})</span>${st ? '' : '<span>Lucky spin ticket (first clear)</span>'}` : '<span>Chance of a Bestie effect</span>'}`}</div>
     ${why ? `<p class="adv-why">${I.lock || '🔒'} ${esc(why)}</p>` : ''}
     <div class="adv-bact"></div></div>`, (el, close) => {
     const box = el.querySelector('.adv-bact');
     if (nb) { box.innerHTML = acct ? `<p class="muted">You need a Bestie to fight. ${M.friends ? 'Pick one of your friends.' : 'Add a friend first, then make them your Bestie.'}</p><a class="btn acc wide" href="${M.friends ? '#/bestie' : '#/friends'}">${M.friends ? 'Choose a Bestie' : 'Add a friend'}</a>` : '<button class="btn acc wide" type="button">Create an account</button>'; const b = box.querySelector('button'); if (b) b.addEventListener('click', () => { close(); C.authSheet('new'); }); const a = box.querySelector('a'); if (a) a.addEventListener('click', close); return; }
     if (!ok) { box.innerHTML = '<button class="btn wide" type="button" disabled>Locked</button>'; return; }
+    if (solo) {
+      box.innerHTML = `<button class="btn acc wide adv-go" type="button">${I.swords} Fight alone</button><p class="muted" style="margin-top:8px;font-size:.85rem">Lonely mode: you hold every clue and every word. Get a Bestie to fight as a pair.</p>`;
+      const go = box.querySelector('.adv-go');
+      go.addEventListener('click', async () => {
+        go.disabled = true; go.textContent = 'Preparing questions…';
+        let rs; try { rs = await makeRounds(map, r, n, true); } catch (e) { toast('Could not load the lessons. Try again.'); go.disabled = false; return; }
+        try {
+          const j = await call('learn_adv_start', { p_boss: bossId(map, r, n), p_rounds: rs });
+          if (!j.ok) { toast({ locked: 'This boss is still locked.', noquestions: 'Not enough questions here yet.', toomany: 'Too many battles this hour. Take a short break.' }[j.error] || j.error); go.disabled = false; go.innerHTML = `${I.swords} Try again`; return; }
+          close(); sfx('ok'); openStage(j.id);
+        } catch (e) { toast(e.message); go.disabled = false; }
+      });
+      return;
+    }
     const on = online(bb.last_seen);
     box.innerHTML = `<button class="btn acc wide adv-go" type="button" ${on ? '' : 'disabled'}>${I.swords} Invite ${esc(bb.name)} &amp; fight</button>${on ? '' : `<p class="muted" style="margin-top:8px;font-size:.88rem">${esc(bb.name)} is offline. Both of you need to be online.</p><button class="btn ghost wide adv-nd" type="button">Send a nudge</button>`}`;
     const nd = box.querySelector('.adv-nd'); if (nd) nd.addEventListener('click', async () => { try { await call('learn_bestie_nudge'); toast('Nudge sent'); nd.disabled = true; } catch (e) { toast(e.message); } });
@@ -332,7 +356,7 @@ function bossSheet(r, n) {
 
 /* ---------- tạo đề từ bài học ---------- */
 const roundsFor = (n) => Math.min(12, 6 + Math.ceil(n / 2) + (n === 6 ? 1 : 0));
-async function makeRounds(map, r, n) {
+async function makeRounds(map, r, n, solo = false) {
   const c = await C.course(map), L = c.levels.find((x) => x.id === MAPS[map].lvls[r - 1]) || c.levels[Math.min(r - 1, c.levels.length - 1)];
   const zh = map === 'zh', units = L.units, words = units.flatMap((u) => u.words || []).filter((w) => w && w.w && w.vi);
   const sents = units.flatMap((u) => [...((u.dlg && u.dlg.lines) || []), ...((u.dlg2 && u.dlg2.lines) || []), ...((u.read && u.read.sents) || [])])
@@ -358,7 +382,7 @@ async function makeRounds(map, r, n) {
       if (drills.length && r2 < 0.4) { const d = drills[Math.floor(Math.random() * drills.length)]; out.push({ type: 'split', q: d.t.replace(/_{2,}/g, '_____'), ...shuf(d.opts, d.a), note: d.title, zh }); continue; }
       if (reads.length && n >= 3 && r2 < 0.6) { const q = reads[Math.floor(Math.random() * reads.length)]; out.push({ type: 'split', q: `${q.title}: ${q.q}`, ...shuf(q.opts, q.a), note: '', zh }); continue; }
       const w = pickW(1, [...used])[0]; if (!w) continue; used.add(w.w); const o = pickW(3, [w.w]);
-      out.push({ type: 'split', q: `Meaning: “${w.vi}”${w.exVi ? ` — e.g. “${w.exVi}”` : ''}`, ...shuf([w.w, ...o.map((x) => x.w)], 0), note: 'Describe it to your Bestie', zh });
+      out.push({ type: 'split', q: `Meaning: “${w.vi}”${w.exVi ? ` — e.g. “${w.exVi}”` : ''}`, ...shuf([w.w, ...o.map((x) => x.w)], 0), note: solo ? 'Pick the matching word' : 'Describe it to your Bestie', zh });
     } else if (t === 'relay') {
       if (!sents.length) continue; const s = sents[Math.floor(Math.random() * sents.length)]; out.push({ type: 'relay', vi: s.vi, tk: s.tk, zh });
     } else if (t === 'link') {
@@ -411,7 +435,8 @@ function openStage(id) {
   if (!location.hash.startsWith('#/adventure')) history.replaceState(null, '', '#/adventure');
   el.querySelector('.as-x').addEventListener('click', async () => {
     if (live && live.s && ['won', 'lost', 'left', 'expired', 'declined'].includes(live.s.state)) { stopStage(false); page(); return; }
-    if (!(await confirmBox('Leave this battle?', 'Your Bestie will be left alone and the battle ends.', 'Leave', true))) return; stopStage(true); page();
+    const so = live && live.s && live.s.solo;
+    if (!(await confirmBox('Leave this battle?', so ? 'The battle ends and the boss keeps its HP.' : 'Your Bestie will be left alone and the battle ends.', 'Leave', true))) return; stopStage(true); page();
   });
   const send = (m) => { m = (m || '').trim(); if (!m || !live) return; call('learn_adv_act', { p_id: id, p_act: { t: 'chat', m } }).then(poll).catch(() => {}); };
   el.querySelectorAll('.as-quick .chip').forEach((b) => b.addEventListener('click', () => { sfx('tap'); send(b.textContent); }));
@@ -436,14 +461,15 @@ function timer() {
 }
 
 function draw(s) {
-  const prev = live.s; live.s = s; const el = live.el, me = s.role, mate = me === 'h' ? s.guest : s.host;
+  const prev = live.s; live.s = s; const el = live.el, me = s.role, mate = me === 'h' ? s.guest : s.host, solo = !!s.solo, TY = solo ? TYPES_SOLO : TYPES;
+  el.classList.toggle('solo', solo);
   const [m, r, n] = s.boss.split('-'); const R = MAPS[m].regions[+r - 1];
   if (s.starts_in_ms != null && (!prev || prev.ridx !== s.ridx || !live.startAt)) live.startAt = Date.now() + s.starts_in_ms;
   if (s.state === 'invite' && !live.inviteUntil) live.inviteUntil = Date.now() + 90000;
   el.style.setProperty('--reg', R.col);
   el.querySelector('.as-bn').innerHTML = `${+n === 6 ? '👑 ' : ''}${esc(bossName(m, +r, +n))} <small>${esc(R.name)} · ${esc(R.lv)}</small>`;
   const hp = el.querySelector('.as-hp'); hp.querySelector('i').style.width = s.hp + '%'; hp.querySelector('span').textContent = `${s.hp} HP`;
-  el.querySelector('.as-hearts').innerHTML = [0, 1, 2].map((i) => `<i class="${i < s.hearts ? 'on' : ''}">${I.heart}</i>`).join('') + `<span class="as-mate">${vipAv(mate.name, mate.avatar, 0)}<small class="${s.other_seen_ms < 6000 ? 'ok' : 'warn'}">${esc(mate.name)}${s.other_seen_ms < 6000 ? '' : ' · reconnecting…'}</small></span>`;
+  el.querySelector('.as-hearts').innerHTML = [0, 1, 2].map((i) => `<i class="${i < s.hearts ? 'on' : ''}">${I.heart}</i>`).join('') + (solo ? '<span class="as-solo-tag">🌙 Lonely</span>' : `<span class="as-mate">${vipAv(mate.name, mate.avatar, 0)}<small class="${s.other_seen_ms < 6000 ? 'ok' : 'warn'}">${esc(mate.name)}${s.other_seen_ms < 6000 ? '' : ' · reconnecting…'}</small></span>`);
   // hiệu ứng khi vòng trước được chấm
   if (prev && s.last && (!prev.last || prev.last.r !== s.last.r)) roundFx(s.last, prev.hp - s.hp);
   // chat
@@ -456,12 +482,15 @@ function draw(s) {
   const box = el.querySelector('.as-round');
   if (s.state === 'invite') { box.innerHTML = `<div class="as-wait">${vipAv(mate.name, mate.avatar, 0, 'xl')}<h2>Waiting for ${esc(mate.name)}…</h2><p class="muted">They got an invitation. <b class="as-wt">90</b>s left.</p><span class="spin"></span></div>`; return; }
   if (['won', 'lost', 'left', 'expired', 'declined'].includes(s.state)) { endScreen(s, box); return; }
-  if (live.startAt > Date.now() + 150) { box.innerHTML = `<div class="as-next"><small>Round ${s.ridx + 1} of ${s.n}</small><h2>${TYPES[rd.type].ic} ${TYPES[rd.type].name}</h2><p>${esc(TYPES[rd.type].how)}</p><b class="as-cd">3</b></div>`; setTimeout(() => { if (live) { live.sig = ''; } }, Math.max(0, live.startAt - Date.now() + 50)); return; }
-  const head = `<div class="as-rh"><span class="tag-s">${TYPES[rd.type].ic} ${TYPES[rd.type].name} · ${s.ridx + 1}/${s.n}</span><div class="as-time"><i></i><span></span></div></div>`;
+  if (live.startAt > Date.now() + 150) { box.innerHTML = `<div class="as-next"><small>Round ${s.ridx + 1} of ${s.n}</small><h2>${TY[rd.type].ic} ${TY[rd.type].name}</h2><p>${esc(TY[rd.type].how)}</p><b class="as-cd">3</b></div>`; setTimeout(() => { if (live) { live.sig = ''; } }, Math.max(0, live.startAt - Date.now() + 50)); return; }
+  const head = `<div class="as-rh"><span class="tag-s">${TY[rd.type].ic} ${TY[rd.type].name} · ${s.ridx + 1}/${s.n}</span><div class="as-time"><i></i><span></span></div></div>`;
   const zh = rd.zh ? 'zh' : '';
   if (rd.type === 'twin') {
     box.innerHTML = `${head}<h2 class="as-q ${zh}">${esc(rd.q)}</h2>${rd.note ? `<p class="muted as-note">${esc(rd.note)}</p>` : ''}<div class="as-opts">${rd.opts.map((o, i) => `<button type="button" class="as-o ${zh} ${rd.mine === i ? 'sel' : ''}" data-i="${i}" ${rd.mine != null ? 'disabled' : ''}><i>${'ABCD'[i]}</i>${esc(o)}</button>`).join('')}</div>
-      <p class="as-st">${rd.mine != null ? (rd.other_done ? 'Both answered!' : `Waiting for ${esc(mate.name)}…`) : rd.other_done ? `${esc(mate.name)} has answered. Your turn — quick, for the sync bonus!` : 'Answer together: within 3 seconds = sync bonus ×1.25'}</p>`;
+      <p class="as-st">${solo ? (rd.mine != null ? 'Answered!' : 'Right within 5 seconds = Quick! ×1.25') : rd.mine != null ? (rd.other_done ? 'Both answered!' : `Waiting for ${esc(mate.name)}…`) : rd.other_done ? `${esc(mate.name)} has answered. Your turn — quick, for the sync bonus!` : 'Answer together: within 3 seconds = sync bonus ×1.25'}</p>`;
+    box.querySelectorAll('.as-o').forEach((b) => b.addEventListener('click', () => { sfx('tap'); box.querySelectorAll('.as-o').forEach((x) => { x.disabled = true; }); b.classList.add('sel'); act({ t: 'ans', c: +b.dataset.i }); }));
+  } else if (rd.type === 'split' && rd.role === 'solo') {
+    box.innerHTML = `${head}<div class="as-clue ${zh}">${esc(rd.q)}</div>${rd.note ? `<p class="muted as-note">${esc(rd.note)}</p>` : ''}<div class="as-opts">${rd.opts.map((o, i) => `<button type="button" class="as-o ${zh} ${rd.picked === i ? 'sel' : ''}" data-i="${i}" ${rd.picked != null ? 'disabled' : ''}><i>${'ABCD'[i]}</i>${esc(o)}</button>`).join('')}</div><p class="as-st">Pick the answer that fits the clue.</p>`;
     box.querySelectorAll('.as-o').forEach((b) => b.addEventListener('click', () => { sfx('tap'); box.querySelectorAll('.as-o').forEach((x) => { x.disabled = true; }); b.classList.add('sel'); act({ t: 'ans', c: +b.dataset.i }); }));
   } else if (rd.type === 'split') {
     if (rd.role === 'clue') box.innerHTML = `${head}<p class="as-role">${I.eye || '👁'} You hold the <b>clue</b>. ${esc(mate.name)} holds the choices.</p><div class="as-clue ${zh}">${esc(rd.q)}</div>${rd.note ? `<p class="muted as-note">${esc(rd.note)}</p>` : ''}<p class="as-st">Explain it in the chat below (you can’t see the ${rd.n} choices). ${esc(mate.name)} picks.</p>`;
@@ -469,12 +498,25 @@ function draw(s) {
       box.querySelectorAll('.as-o').forEach((b) => b.addEventListener('click', () => { sfx('tap'); box.querySelectorAll('.as-o').forEach((x) => { x.disabled = true; }); b.classList.add('sel'); act({ t: 'ans', c: +b.dataset.i }); })); }
   } else if (rd.type === 'relay') {
     const placed = new Set(rd.line || []), mine = (rd.mine || []).filter((x) => !placed.has(x.i));
-    box.innerHTML = `${head}<p class="as-role">🏃 Build the sentence together. You hold ${rd.mine ? rd.mine.length : 0} words, ${esc(mate.name)} holds ${rd.theirs}.</p><div class="as-vi">${esc(rd.vi)}</div>
+    box.innerHTML = `${head}<p class="as-role">${solo ? '🧱 Build the sentence. Tap the words in the right order.' : `🏃 Build the sentence together. You hold ${rd.mine ? rd.mine.length : 0} words, ${esc(mate.name)} holds ${rd.theirs}.`}</p><div class="as-vi">${esc(rd.vi)}</div>
       <div class="as-line ${zh}">${(rd.line_t || []).map((t) => `<span class="tile ${zh}">${esc(t)}</span>`).join('')}${[...Array(Math.max(0, rd.n - (rd.line || []).length))].map((_, k) => `<span class="slot ${k === 0 ? 'next' : ''}"></span>`).join('')}</div>
       <div class="as-bank">${mine.map((x) => `<button type="button" class="tile ${zh}" data-i="${x.i}">${esc(x.t)}</button>`).join('') || `<p class="muted">All your words are placed. ${(rd.line || []).length < rd.n ? `Waiting for ${esc(mate.name)}…` : ''}</p>`}</div>
       <p class="as-st">Tap your word when it comes next. Wrong taps: ${rd.miss || 0}</p>`;
     box.querySelectorAll('.as-bank .tile').forEach((b) => b.addEventListener('click', () => { sfx('tile'); b.disabled = true; act({ t: 'tile', i: +b.dataset.i }).then(() => { if (b.isConnected) b.disabled = false; }); }));
     if (prev && prev.round && prev.ridx === s.ridx && (rd.miss || 0) > (prev.round.miss || 0)) { box.querySelector('.as-line').classList.add('shake'); sfx('bad'); }
+  } else if (rd.type === 'link' && rd.role === 'solo') {
+    const okW = new Set(rd.ok || []), okM = new Set(rd.okm || []), sel = live.lsel && live.lsel.r === s.ridx ? live.lsel : (live.lsel = { r: s.ridx, w: null, m: null });
+    box.innerHTML = `${head}<p class="as-role">🔗 Tap a word, then its meaning.</p>
+      <div class="as-link solo ${zh}"><div class="as-col"><small>Words</small>${rd.words.map((t, i) => `<button type="button" class="as-li ${okW.has(i) ? 'done' : ''} ${sel.w === i ? 'sel' : ''}" data-w="${i}" ${okW.has(i) ? 'disabled' : ''}>${esc(t)}</button>`).join('')}</div>
+      <div class="as-col"><small>Meanings</small>${rd.means.map((t, i) => `<button type="button" class="as-li ${okM.has(i) ? 'done' : ''} ${sel.m === i ? 'sel' : ''}" data-m="${i}" ${okM.has(i) ? 'disabled' : ''}>${esc(t)}</button>`).join('')}</div></div>
+      <p class="as-st">${okW.size}/${rd.n} matched${rd.bad ? ` · misses ${rd.bad}` : ''}</p>`;
+    const tryPair = () => { if (sel.w == null || sel.m == null) return; const w = sel.w, m = sel.m; sel.w = null; sel.m = null; act({ t: 'pair', w, m }); };
+    box.querySelectorAll('.as-li').forEach((b) => b.addEventListener('click', () => {
+      sfx('tap'); const col = b.dataset.w != null ? 'w' : 'm';
+      b.parentElement.querySelectorAll('.as-li').forEach((x) => x.classList.remove('sel')); b.classList.add('sel');
+      sel[col] = +(b.dataset.w != null ? b.dataset.w : b.dataset.m); tryPair();
+    }));
+    if (prev && prev.round && prev.ridx === s.ridx && rd.last && (!prev.round.last || prev.round.last.at !== rd.last.at)) sfx(rd.last.ok ? 'ok' : 'wrong');
   } else if (rd.type === 'link') {
     const done = new Set(rd.role === 'words' ? rd.ok || [] : rd.okm || []);
     box.innerHTML = `${head}<p class="as-role">🔗 You see the <b>${rd.role === 'words' ? 'words' : 'meanings'}</b>, ${esc(mate.name)} sees the ${rd.role === 'words' ? 'meanings' : 'words'}. Tell each other, then tap matching items within 5 seconds.</p>
@@ -488,27 +530,28 @@ function draw(s) {
 
 function roundFx(last, dmg) {
   const el = live.el, f = document.createElement('div'); f.className = 'as-fx ' + (last.lost ? 'bad' : 'good');
-  const txt = { sync: 'Perfect sync! ×1.25', both: 'Both right!', one: 'Half hit', miss: 'Missed!', ok: 'Hit!', time: 'Time’s up!', weak: 'Too few links' }[last.note] || '';
+  const txt = { quick: 'Quick! ×1.25', sync: 'Perfect sync! ×1.25', both: 'Both right!', one: 'Half hit', miss: 'Missed!', ok: 'Hit!', time: 'Time’s up!', weak: 'Too few links' }[last.note] || '';
   f.innerHTML = `<b>${dmg > 0 ? '−' + dmg : '0'}</b><span>${esc(txt)}${last.lost ? ` · −1 ${I.heart}` : ''}</span>`;
   el.appendChild(f); setTimeout(() => f.remove(), 1600);
-  if (dmg > 0) { sfx(last.note === 'sync' ? 'levelup' : 'ok'); const hp = el.querySelector('.as-boss'); hp.classList.remove('hit'); void hp.offsetWidth; hp.classList.add('hit'); } else sfx('bad');
+  if (dmg > 0) { sfx(last.note === 'sync' || last.note === 'quick' ? 'levelup' : 'ok'); const hp = el.querySelector('.as-boss'); hp.classList.remove('hit'); void hp.offsetWidth; hp.classList.add('hit'); } else sfx('bad');
 }
 
 function endScreen(s, box) {
   const me = s.role, mate = me === 'h' ? s.guest : s.host, rw = s.reward || {}, fx = me === 'h' ? rw.fx_h : rw.fx_g;
   const [m, r, n] = s.boss.split('-');
   if (s.state === 'won') {
-    box.innerHTML = `<div class="as-end won"><div class="as-chest">🎁</div><h2>Victory!</h2><p>You and ${esc(mate.name)} beat <b>${esc(bossName(m, +r, +n))}</b>${rw.first ? ' for the first time' : ''}.</p>
+    box.innerHTML = `<div class="as-end won"><div class="as-chest">🎁</div><h2>Victory!</h2><p>${s.solo ? 'You beat' : `You and ${esc(mate.name)} beat`} <b>${esc(bossName(m, +r, +n))}</b>${s.solo ? ' alone' : ''}${rw.first ? ' for the first time' : ''}.</p>
       <div class="as-stars">${[1, 2, 3].map((i) => `<i class="${i <= (rw.stars || 1) ? 'on' : ''}">★</i>`).join('')}</div>
       <div class="as-rw">${rw.xp ? `<span>+${rw.xp} XP</span>` : '<span class="muted">No XP (10 wins today already)</span>'}${fx ? `<span class="fxnew">${bestie.fxBadge(fx)}</span>` : ''}${rw.ticket ? '<span>🎟️ +1 lucky spin</span>' : ''}</div>
       <div class="as-acts">${fx ? '<button class="btn ghost as-try" type="button">Try the effect</button>' : ''}${rw.ticket ? '<button class="btn ghost as-spin" type="button">Spin now</button>' : ''}<button class="btn acc as-map" type="button">Back to map</button></div></div>`;
     if (!live.cele) { live.cele = 1; sfx('levelup'); const b = box.getBoundingClientRect(); burst(b.left + b.width / 2, b.top + 80, 40); if (rw.xp && C.tick) C.tick(true); if (rw.ticket) gacha.load(true).catch(() => {}); }
   } else {
     const msg = { lost: s.hearts <= 0 ? 'Out of hearts.' : 'The boss survived all rounds.', left: 'Someone left the battle.', expired: 'The invitation expired.', declined: `${esc(mate.name)} can’t play right now.` }[s.state];
-    box.innerHTML = `<div class="as-end"><div class="as-chest">${s.state === 'lost' ? '💫' : '🕊️'}</div><h2>${s.state === 'lost' ? 'Defeated' : 'Battle over'}</h2><p>${msg}</p>${s.state === 'lost' ? `<p class="muted">Boss HP left: ${s.hp}. Try again — talking in the chat helps a lot!</p>` : ''}<div class="as-acts"><button class="btn acc as-map" type="button">Back to map</button></div></div>`;
+    const tip = s.solo ? 'Read each clue carefully and answer fast for Quick damage.' : 'Try again — talking in the chat helps a lot!';
+    box.innerHTML = `<div class="as-end"><div class="as-chest">${s.state === 'lost' ? '💫' : '🕊️'}</div><h2>${s.state === 'lost' ? 'Defeated' : 'Battle over'}</h2><p>${msg}</p>${s.state === 'lost' ? `<p class="muted">Boss HP left: ${s.hp}. ${tip}</p>` : ''}<div class="as-acts"><button class="btn acc as-map" type="button">Back to map</button></div></div>`;
   }
   const ans = s.answers || [];
-  if (ans.length && s.state !== 'expired' && s.state !== 'declined') box.querySelector('.as-end').insertAdjacentHTML('beforeend', `<details class="as-rev"><summary>Review the answers</summary>${ans.map((a, i) => `<div><small>${i + 1}. ${TYPES[a.type].name}</small> ${a.type === 'relay' ? esc(a.tk.join(a.zh ? '' : ' ')) : a.type === 'link' ? a.words.map((w, k) => `${esc(w)} = ${esc(a.means[a.a[k]])}`).join(' · ') : `${esc(a.q)} → <b>${esc(a.opts[a.a])}</b>`}</div>`).join('')}</details>`);
+  if (ans.length && s.state !== 'expired' && s.state !== 'declined') box.querySelector('.as-end').insertAdjacentHTML('beforeend', `<details class="as-rev"><summary>Review the answers</summary>${ans.map((a, i) => `<div><small>${i + 1}. ${typeOf(a.type, s.solo).name}</small> ${a.type === 'relay' ? esc(a.tk.join(a.zh ? '' : ' ')) : a.type === 'link' ? a.words.map((w, k) => `${esc(w)} = ${esc(a.means[a.a[k]])}`).join(' · ') : `${esc(a.q)} → <b>${esc(a.opts[a.a])}</b>`}</div>`).join('')}</details>`);
   const t = box.querySelector('.as-try'); if (t) t.addEventListener('click', () => bestie.playFx(fx, { me: { name: acct.name, avatar: acct.avatar }, them: { name: mate.name, avatar: mate.avatar }, title: 'New Bestie effect!' }));
   const sb = box.querySelector('.as-chest'); if (sb && s.state === 'won') sb.classList.add('open');
   const sp = box.querySelector('.as-spin'); if (sp) sp.addEventListener('click', () => { stopStage(false); C.spin({}); });

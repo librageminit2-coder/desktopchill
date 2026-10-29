@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=28';
-import { S, save, applyRevoke } from './store.js?v=28';
-import * as chat from './chat.js?v=28';
-import * as acctui from './acctui.js?v=28';
-import { acct, call } from './account.js?v=28';
-import { sfx } from './sound.js?v=28';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=28';
-import * as walls from './walls.js?v=28';
-import * as bestie from './bestie.js?v=28';
-import * as gacha from './gacha.js?v=28';
-import * as ctx from './ctx.js?v=28';
+import { I, LOGO } from './icons.js?v=29';
+import { S, save, applyRevoke } from './store.js?v=29';
+import * as chat from './chat.js?v=29';
+import * as acctui from './acctui.js?v=29';
+import { acct, call } from './account.js?v=29';
+import { sfx } from './sound.js?v=29';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=29';
+import * as walls from './walls.js?v=29';
+import * as bestie from './bestie.js?v=29';
+import * as gacha from './gacha.js?v=29';
+import * as ctx from './ctx.js?v=29';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -120,7 +120,7 @@ export async function tick(quiet = false) {
       const other = gs.filter((g) => /^rank|^duel-week/.test(String(g.source || ''))).reduce((a, g) => a + (g.xp || 0), 0);
       const duelX = gs.filter((g) => g.source === 'duel-xp').reduce((a, g) => a + (g.xp || 0), 0), advX = gs.filter((g) => g.source === 'adv').reduce((a, g) => a + (g.xp || 0), 0);
       if (!quiet && other > 0) { toast(`+${other} XP from ranking rewards`); sfx('levelup'); }
-      else if (!quiet && advX > 0) toast(`+${advX} XP from Bestie Adventure`);
+      else if (!quiet && advX > 0) toast(`+${advX} XP from Adventure`);
       else if (!quiet && duelX > 0) toast(`+${duelX} XP from duels`);
     }
     return xp;
@@ -255,7 +255,8 @@ function text(n) {
     case 'duel_pick': return { t: `${n.name} got a copy of ${w}`, h: `${who} won your duel and got a copy of <b>${esc(w)}</b> at random. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}${p.ticket ? ' and <b>1 lucky spin ticket</b>' : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
-    case 'update': return +p.v >= 24 ? { t: 'New: 3 more English topics', h: '<b>New update.</b> English now has 4 topics: Engineering, Business &amp; Office, Travel &amp; Hospitality and Everyday Life. 120 new A1–A2 units with their own chests and wallpapers. Switch topics above the level list. Your progress is safe.', ic: 'sparkle', go: '#/' }
+    case 'update': return +p.v >= 25 ? { t: 'New: Lonely Adventure', h: '<b>No Bestie? You can still play.</b> Adventure now has a Lonely mode: fight the map bosses on your own with the same questions. On a phone, open it from <b>Play</b> in the bottom bar.', ic: 'map', go: '#/adventure' }
+      : +p.v >= 24 ? { t: 'New: 3 more English topics', h: '<b>New update.</b> English now has 4 topics: Engineering, Business &amp; Office, Travel &amp; Hospitality and Everyday Life. 120 new A1–A2 units with their own chests and wallpapers. Switch topics above the level list. Your progress is safe.', ic: 'sparkle', go: '#/' }
       : +p.v >= 23 ? { t: 'New: Bestie, Lucky spin and Adventure', h: '<b>Big update.</b> Pick a Bestie, spin chests for wallpapers, play Bestie Adventure together. Rankings now reset every Monday at 16:00.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
       : +p.v >= 21 ? { t: 'New: English B1+ and B2+', h: '<b>New update.</b> Two new English levels (24 units) for engineering and office life, 22 new wallpapers and cheaper XP prices. Your progress is safe.', ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) }
       : { t: `New update: ${p.added || 'many'} new units`, h: `<b>New update.</b> ${p.added || 'Many'} new units with practical, everyday topics across English, 中文 and IELTS. Your progress is safe.`, ic: 'sparkle', act: [['See what’s new', 'new']], fn: () => whatsNew(true) };

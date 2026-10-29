@@ -584,3 +584,17 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
   .tp-sw button small { display: none; }
   .tp-sw.rm-tp { display: flex; }
 }
+
+/* ---------- v24c: thẻ Adventure trong bảng Play (điện thoại) + Lonely ---------- */
+.pc.pc-adv { grid-column: 1 / -1; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 14px; background: linear-gradient(120deg, rgba(126, 200, 160, .22), rgba(110, 160, 230, .2)); border-color: rgba(150, 210, 190, .35); }
+.pc.pc-adv > svg:first-child { background: linear-gradient(140deg, #3fae8c, #6aa8e8); margin: 0; }
+.pc.pc-adv > svg:last-child { width: 18px; height: 18px; padding: 0; background: none; color: var(--muted); margin: 0; }
+.pc-adv .pc-t { display: grid; gap: 2px; }
+.adv-note.solo { border-color: rgba(150, 190, 255, .35); }
+.adv-note.solo .lonely-ic { font-size: 1.6rem; line-height: 1; }
+.adv-stage.solo .as-chat { display: none; }
+.adv-stage.solo .as-mid { padding-bottom: 20px; }
+.as-solo-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; opacity: .85; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+.as-link.solo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.as-link.solo .as-col { display: grid; gap: 8px; align-content: start; }
+.as-link.solo .as-col small { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; opacity: .65; }
