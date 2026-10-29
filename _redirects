@@ -2,3 +2,15 @@
 /rainmeter-layout.html / 301
 /rainmeter-layout / 301
 /files/* / 301
+
+# Tệp nội bộ (SQL máy chủ, ghi chú, công cụ): không cho xem công khai.
+# Cloudflare Pages luôn áp dụng _redirects trước tệp tĩnh, nên các đường dẫn này chuyển về trang chủ.
+/learn/setup/* / 302
+/trading/setup/* / 302
+/trading/test/* / 302
+/trading/tools/* / 302
+/scripts/* / 302
+/reference/* / 302
+/README.md / 302
+/HUONG-DAN-DEPLOY.md / 302
+/.gitignore / 302
