@@ -2,13 +2,13 @@
 // Bản đồ rộng (kéo / cuộn để phóng to) với các vùng theo cấp độ. Mỗi vùng có 5 boss + 1 vua vùng (chấm đỏ).
 // Đề lấy từ toàn bộ bài học của cấp đó, 4 kiểu vòng phối hợp: Đồng tâm · Mảnh ghép · Tiếp sức · Nối đôi.
 // Người chưa có Bestie vẫn xem được bản đồ, kèm lời nhắc thêm Bestie.
-import { I } from './icons.js?v=27';
-import { S } from './store.js?v=27';
-import { acct, call } from './account.js?v=27';
-import { sfx } from './sound.js?v=27';
-import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=27';
-import * as bestie from './bestie.js?v=27';
-import * as gacha from './gacha.js?v=27';
+import { I } from './icons.js?v=28';
+import { S } from './store.js?v=28';
+import { acct, call } from './account.js?v=28';
+import { sfx } from './sound.js?v=28';
+import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=28';
+import * as bestie from './bestie.js?v=28';
+import * as gacha from './gacha.js?v=28';
 
 let C = null;
 export function init(ctx) {

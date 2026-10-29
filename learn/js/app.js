@@ -1,29 +1,30 @@
-import { I, LOGO } from './icons.js?v=27';
-import { sound, sfx, unlockAudio } from './sound.js?v=27';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=27';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=27';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=27';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=27';
-import * as social from './social.js?v=27';
-import { setVideo, setBg } from './scene.js?v=27';
-import * as walls from './walls.js?v=27';
-import * as hub from './hub.js?v=27';
-import * as duel from './duel.js?v=27';
-import * as chat from './chat.js?v=27';
-import * as guide from './guide.js?v=27';
-import * as acctui from './acctui.js?v=27';
-import * as gacha from './gacha.js?v=27';
-import * as bestie from './bestie.js?v=27';
-import * as ctxm from './ctx.js?v=27';
-import * as adv from './adv.js?v=27';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=27';
-import { mascot } from './mascot.js?v=27';
+import { I, LOGO } from './icons.js?v=28';
+import { sound, sfx, unlockAudio } from './sound.js?v=28';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=28';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=28';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=28';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=28';
+import * as social from './social.js?v=28';
+import { setVideo, setBg } from './scene.js?v=28';
+import * as walls from './walls.js?v=28';
+import * as hub from './hub.js?v=28';
+import * as duel from './duel.js?v=28';
+import * as chat from './chat.js?v=28';
+import * as guide from './guide.js?v=28';
+import * as acctui from './acctui.js?v=28';
+import * as gacha from './gacha.js?v=28';
+import * as bestie from './bestie.js?v=28';
+import * as ctxm from './ctx.js?v=28';
+import * as adv from './adv.js?v=28';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=28';
+import { mascot } from './mascot.js?v=28';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
 const COURSE = {}, WORDS = {};
 let justBuilt = null;
 const DATA_V = 10; // nhớ đổi cùng số trong index.html (dòng preload data/…json?v=)
+const TOPICS_V = 1; // data/en-topics.json (v24)
 
 /* ---------- các khoá học ---------- */
 const COURSES = {
@@ -34,17 +35,46 @@ const COURSES = {
 const AVAIL = ['en', 'zh', 'ielts'];
 async function course(lang) {
   if (COURSE[lang]) return COURSE[lang];
-  const r = await fetch(`data/${lang}.json?v=${DATA_V}`); if (!r.ok) throw new Error('no-course');
+  // v24: English có thêm 3 chủ đề (Business, Travel, Everyday) ở file riêng, tải song song; ngữ pháp dùng lại của Engineering cùng vị trí (gref)
+  const [r, rt] = await Promise.all([fetch(`data/${lang}.json?v=${DATA_V}`), lang === 'en' ? fetch(`data/en-topics.json?v=${TOPICS_V}`).catch(() => null) : null]);
+  if (!r.ok) throw new Error('no-course');
   const c = await r.json();
+  if (rt && rt.ok) { try { const t = await rt.json(); const byId = {}; c.levels.forEach((L) => { L.topic = L.topic || 'eng'; L.units.forEach((u) => { byId[u.id] = u; }); });
+    t.levels.forEach((L) => { L.units.forEach((u) => { const g = byId[u.gref]; if (g) { u.gram = g.gram; u.gram2 = g.gram2; } }); c.levels.push(L); }); c.topics = t.topics; } catch (e) {} }
   // English / IELTS: file không chứa token (để tải nhanh hơn) → tách lại theo dấu cách giống bản dựng
   if (lang !== 'zh') { const tk = (x) => { if (x && x.t && !x.tk) x.tk = x.t.split(/\s+/).filter(Boolean); };
     c.levels.forEach((L) => L.units.forEach((u) => { u.words.forEach((w) => { if (!w.exTk && w.ex) w.exTk = w.ex.split(/\s+/).filter(Boolean); });
       [u.dlg, u.dlg2].forEach((d) => d && d.lines.forEach(tk)); u.read && u.read.sents.forEach(tk); [u.gram, u.gram2].forEach((g) => g && g.ex.forEach(tk)); })); }
-  c.levels.forEach((L) => L.units.forEach((u) => { u.level = L.id; u.words.forEach((w) => { WORDS[lang + '|' + w.w] = { ...w, unit: u.id }; }); }));
+  c.levels.forEach((L) => L.units.forEach((u) => { u.level = L.id; u.words.forEach((w) => { const k = lang + '|' + w.w; if (!WORDS[k]) WORDS[k] = { ...w, unit: u.id }; }); }));
   COURSE[lang] = c; return c;
 }
 const findUnit = (c, id) => { for (const L of c.levels) for (const u of L.units) if (u.id === id) return { L, u }; return null; };
 const curLevel = (c) => c.levels.find((x) => x.id === S.level[S.lang]) || c.levels[0];
+// v24: chủ đề (English): Engineering = các level gốc; mỗi chủ đề có dãy level riêng
+const topicOf = (L) => (L && L.topic) || 'eng';
+const lvsOf = (c, L) => { const t = topicOf(L || curLevel(c)); return c.levels.filter((x) => topicOf(x) === t); };
+const lvName = (L) => (L.tname ? `${L.tname} ${L.name}` : L.name);
+const topicInfo = (c, L) => (c.topics || []).find((t) => t.id === topicOf(L)) || null;
+function switchTopic(c, t) {
+  const L = curLevel(c); S.level[S.lang + '~' + topicOf(L)] = L.id;
+  const want = S.level[S.lang + '~' + t], ls = c.levels.filter((x) => topicOf(x) === t);
+  if (!ls.length) return; S.level[S.lang] = (ls.find((x) => x.id === want) || ls[0]).id; save();
+}
+const TOPIC_IC = { eng: 'gear', biz: 'brief', trv: 'plane', life: 'home' };
+// <option> cho ô chọn level: English gom theo chủ đề (optgroup)
+function lvSelect(c, cur) {
+  const opt = (L) => `<option value="${L.id}" ${cur === L.id ? 'selected' : ''}>${esc(L.name)} · ${esc(L.title)}</option>`;
+  if (!c.topics || c.topics.length < 2) return c.levels.map(opt).join('');
+  return c.topics.map((t) => `<optgroup label="${esc(t.name)}">${c.levels.filter((x) => topicOf(x) === t.id).map(opt).join('')}</optgroup>`).join('');
+}
+function topicSwitch(c, L, cls = '') {
+  if (!c.topics || c.topics.length < 2) return '';
+  const cur = topicOf(L);
+  return `<div class="tp-sw ${cls}" role="tablist" aria-label="Choose a topic">${c.topics.map((t) => {
+    const ls = c.levels.filter((x) => topicOf(x) === t.id), tot = ls.reduce((a, x) => a + x.units.length, 0), dn = ls.reduce((a, x) => a + x.units.filter((u) => unitProgress(u.id) === LN).length, 0);
+    return `<button type="button" role="tab" data-tp="${t.id}" aria-selected="${t.id === cur}" title="${esc(t.name)} · ${esc(t.desc || '')}">${I[TOPIC_IC[t.id]] || I.book}<span>${esc(t.short || t.name)}</span><small>${dn}/${tot}</small></button>`;
+  }).join('')}</div>`;
+}
 const textOf = (lang, x) => (lang === 'zh' ? strip(x.t) : x.t);
 const isZh = () => S.lang === 'zh';
 
@@ -402,7 +432,7 @@ function pathHTML(c, W) {
 }
 function bossHTML(c, L) {
   const all = L.units.every((u) => unitProgress(u.id) === LN), beat = !!S.boss[S.lang + '|' + L.id];
-  const idx = c.levels.indexOf(L), nx = c.levels[idx + 1], started = L.units.some((u) => unitProgress(u.id) > 0);
+  const ls = lvsOf(c, L), idx = ls.indexOf(L), nx = ls[idx + 1], started = L.units.some((u) => unitProgress(u.id) > 0);
   return `<div class="boss panel ${beat ? 'beat' : all ? 'ready' : ''}">
     <span class="boss-ic">${beat ? I.crown : I.shield}</span>
     <div><small>End of ${esc(L.name)}</small><h3>${beat ? `${esc(L.name)} boss defeated` : `${esc(L.name)} boss challenge`}</h3>
@@ -494,7 +524,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=27').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=28').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -514,8 +544,8 @@ function wallsLeft(L, lang = S.lang) {
 }
 const lvRange = (ls) => ls.length === 1 ? ls[0].name : ls.length === 2 ? `${ls[0].name} and ${ls[1].name}` : `${ls[0].name} to ${ls[ls.length - 1].name}`;
 function basicsNudge(c, L) {
-  const idx = c.levels.indexOf(L); if (idx <= 0) return '';
-  const lower = c.levels.slice(0, idx).filter((x) => x.units.some((u) => unitProgress(u.id) < LN)); if (!lower.length) return '';
+  const ls = lvsOf(c, L), idx = ls.indexOf(L); if (idx <= 0) return '';
+  const lower = ls.slice(0, idx).filter((x) => x.units.some((u) => unitProgress(u.id) < LN)); if (!lower.length) return '';
   let hid = ''; try { hid = localStorage.getItem('dcl_nudge_' + S.lang) || ''; } catch (e) {}
   if (hid && Date.now() - +hid < 3 * 864e5) return '';
   const nW = lower.reduce((a, x) => a + wallsLeft(x), 0), nU = lower.reduce((a, x) => a + x.units.filter((u) => unitProgress(u.id) < LN).length, 0);
@@ -536,7 +566,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=27').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=28').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -571,14 +601,14 @@ function moodLine() {
 }
 const NEW_LV = new Set(['en|b1p', 'en|b2p', 'zh|hsk1', 'zh|hsk2', 'zh|hsk3', 'ielts|b5', 'ielts|b6', 'ielts|b7', 'ielts|b8']);
 function levelList(c, L) {
-  const lang = S.lang, all = c.levels.reduce((a, x) => a + x.units.length, 0), doneU = c.levels.reduce((a, x) => a + x.units.filter((u) => unitProgress(u.id) === LN).length, 0);
-  return `
-  <div class="lv-list" role="tablist" aria-label="Choose a level">${c.levels.map((x) => {
+  const lang = S.lang, ls = lvsOf(c, L), all = ls.reduce((a, x) => a + x.units.length, 0), doneU = ls.reduce((a, x) => a + x.units.filter((u) => unitProgress(u.id) === LN).length, 0), tp = topicInfo(c, L);
+  return `${topicSwitch(c, L)}
+  <div class="lv-list" role="tablist" aria-label="Choose a level">${ls.map((x) => {
     const t = x.units.length * LN, d = x.units.reduce((a, u) => a + unitProgress(u.id), 0), st = x.units.reduce((a, u) => a + unitStars(u.id), 0), pc = Math.round(d / t * 100), beat = S.boss[lang + '|' + x.id];
     const isNew = NEW_LV.has(lang + '|' + x.id) && !d, wl = wallsLeft(x, lang);
     return `<button role="tab" data-lv="${x.id}" aria-selected="${x.id === L.id}" style="--pc:${pc}"><span class="lv-ring"><b>${pc}%</b></span><span class="lv-t"><b>${esc(x.name)}${isNew ? '<em class="lv-new">NEW</em>' : ''}</b><small>${esc(x.short || '')} · ${I.star}${st}${beat ? ' ' + I.crown : ''}</small>${wl ? `<small class="lv-wl" title="Spin tickets still waiting in this level">${I.gift}${wl} ticket${wl === 1 ? '' : 's'} left</small>` : ''}</span></button>`;
   }).join('')}</div>
-  <div class="panel pad lc-extra" style="display:grid;gap:6px"><small class="muted">${esc(COURSES[lang].name)} · ${esc(COURSES[lang].tag)}</small><b style="font-size:1.05rem">${doneU} / ${all} units</b><span class="bar"><i style="width:${Math.round(doneU / all * 100)}%"></i></span><a class="more" href="#/roadmap" style="margin-top:4px">Open the roadmap</a></div>`;
+  <div class="panel pad lc-extra" style="display:grid;gap:6px"><small class="muted">${esc(COURSES[lang].name)} · ${tp ? esc(tp.name) : esc(COURSES[lang].tag)}</small><b style="font-size:1.05rem">${doneU} / ${all} units</b><span class="bar"><i style="width:${Math.round(doneU / all * 100)}%"></i></span><a class="more" href="#/roadmap" style="margin-top:4px">Open the roadmap</a></div>`;
 }
 async function home() {
   const c = await course(S.lang);
@@ -590,7 +620,7 @@ async function home() {
   <section class="hello"><div><h1>${hi}${name ? ', ' + esc(name) : ''}</h1><p>${esc(moodLine())}</p></div></section>
   ${cur.u ? `<section class="mission panel" style="--uc:${ucol(lang, ui)}">
     <div class="ms-ic">${I[LESSONS[cur.k].icon]}</div>
-    <div class="ms-t"><small>${esc(L.name)} · Unit ${ui + 1} · ${esc(cur.u.title)}</small><b>${esc(lessonName(lang, cur.k))}</b>
+    <div class="ms-t"><small>${esc(lvName(L))} · Unit ${ui + 1} · ${esc(cur.u.title)}</small><b>${esc(lessonName(lang, cur.k))}</b>
       <span class="ms-steps">${LESSONS.map((x) => `<i class="${(S.done[cur.u.id] || [])[x.k] ? 'on' : x.k === cur.k ? 'cur' : ''}"></i>`).join('')}</span>
       <em>${left > 1 ? `${left} lessons to the reward chest` : 'Last lesson, then open the chest!'}</em></div>
     <button class="btn acc go" type="button">${I.play}<span>Continue</span></button>
@@ -628,6 +658,7 @@ async function home() {
     const ll = app.querySelector('.lv-list'), sel = ll && ll.querySelector('[aria-selected="true"]');
     if (sel && ll.scrollWidth > ll.clientWidth + 4) ll.scrollLeft += sel.getBoundingClientRect().left - ll.getBoundingClientRect().left - (ll.clientWidth - sel.offsetWidth) / 2;
   }
+  app.querySelectorAll('.tp-sw button').forEach((b) => b.addEventListener('click', () => { if (b.getAttribute('aria-selected') === 'true') return; sfx('tap'); switchTopic(c, b.dataset.tp); try { sessionStorage.removeItem('dcl_scrolled'); } catch (e) {} home(); }));
   app.querySelectorAll('.lv-list button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); S.level[S.lang] = b.dataset.lv; save(); try { sessionStorage.removeItem('dcl_scrolled'); } catch (e) {} home(); }));
   const go = app.querySelector('.mission .go'); if (go) go.addEventListener('click', () => start(c, cur.u.id, cur.k));
   const ng = app.querySelector('.nudge');
@@ -658,12 +689,13 @@ function questCheer(before) { const n = questDone(); if (n > before) { setTimeou
 /* ---------- lộ trình chi tiết ---------- */
 let scrollToUnit = null;
 async function roadmap() {
-  const c = await course(S.lang), lang = S.lang, curL = curLevel(c);
-  const totalU = c.levels.reduce((a, L) => a + L.units.length, 0), totalW = c.levels.reduce((a, L) => a + L.units.reduce((b, u) => b + u.words.length, 0), 0);
-  const title = lang === 'zh' ? 'Chinese roadmap' : lang === 'ielts' ? 'IELTS roadmap' : 'English roadmap';
-  shell('#/roadmap', `<div class="page-h"><h1>${title}</h1><p>${c.levels.length} levels · ${totalU} units · ${totalU * LN} lessons · ${totalW} words. Each unit has 8 lessons${lang === 'ielts' ? ': 2 academic vocabulary lessons, Speaking Part 1, Parts 2–3, Reading, grammar, Writing and a unit test.' : ': 2 vocabulary, 2 dialogues, reading, 2 grammar and a unit test.'}</p></div>
+  const c = await course(S.lang), lang = S.lang, curL = curLevel(c), lvs = lvsOf(c, curL), tp = topicInfo(c, curL);
+  const totalU = lvs.reduce((a, L) => a + L.units.length, 0), totalW = lvs.reduce((a, L) => a + L.units.reduce((b, u) => b + u.words.length, 0), 0);
+  const title = lang === 'zh' ? 'Chinese roadmap' : lang === 'ielts' ? 'IELTS roadmap' : tp ? `English roadmap · ${tp.name}` : 'English roadmap';
+  shell('#/roadmap', `<div class="page-h"><h1>${title}</h1><p>${lvs.length} levels · ${totalU} units · ${totalU * LN} lessons · ${totalW} words. Each unit has 8 lessons${lang === 'ielts' ? ': 2 academic vocabulary lessons, Speaking Part 1, Parts 2–3, Reading, grammar, Writing and a unit test.' : ': 2 vocabulary, 2 dialogues, reading, 2 grammar and a unit test.'}</p></div>
   ${c.plan ? `<section class="panel rm-plan"><h3>${I.chart} ${esc(c.plan.title)}</h3>${c.plan.paras.map((p) => `<p>${esc(p)}</p>`).join('')}${c.plan.weeks ? `<ol class="rm-weeks">${c.plan.weeks.map((w) => `<li><b>${esc(w[0])}</b><span>${esc(w[1])}</span></li>`).join('')}</ol>` : ''}</section>` : ''}
-  <div class="rm">${c.levels.map((L, li) => {
+  ${topicSwitch(c, curL, 'rm-tp')}
+  <div class="rm">${lvs.map((L, li) => {
     const tot = L.units.length * LN, dn = L.units.reduce((a, u) => a + unitProgress(u.id), 0), pct = Math.round(dn / tot * 100);
     return `<details class="rm-lv panel" ${L === curL ? 'open' : ''} style="--uc:${ucol(lang, li)}">
       <summary><span class="rm-badge">${esc(L.name)}</span><span class="rm-h"><b>${esc(L.title)}</b><small>${esc(L.short || '')} · ${L.units.length} units · ${tot} lessons${L.hours ? ' · about ' + esc(L.hours) : ''}</small></span><span class="rm-pct"><b>${pct}%</b><span class="qbar"><i style="width:${pct}%"></i></span></span>${I.chev}</summary>
@@ -681,6 +713,7 @@ async function roadmap() {
   app.querySelectorAll('.rm-u').forEach((b) => b.addEventListener('click', () => go(b.dataset.lv, b.dataset.u)));
   app.querySelectorAll('.rm-go').forEach((b) => b.addEventListener('click', () => go(b.dataset.lv)));
   app.querySelectorAll('.rm-lv summary').forEach((sm) => sm.addEventListener('click', () => sfx('open')));
+  app.querySelectorAll('.tp-sw button').forEach((b) => b.addEventListener('click', () => { if (b.getAttribute('aria-selected') === 'true') return; sfx('tap'); switchTopic(c, b.dataset.tp); roadmap(); }));
 }
 
 /* ---------- ôn tập ---------- */
@@ -777,7 +810,7 @@ async function speedRound() {
 async function readingLibrary() {
   const c = await course(S.lang);
   const rows = []; c.levels.forEach((L) => L.units.forEach((u) => rows.push({ L, u })));
-  sheet(`<h2>Reading library</h2><p class="sub">Read and listen again to every reading, by level.</p><div class="list">${rows.map(({ L, u }) => `<button class="row" data-u="${u.id}" style="text-align:left;width:100%"><span class="grow"><b>${esc(u.read.title)}</b><small>${esc(L.name)} · ${esc(u.title)}</small></span>${unitProgress(u.id) ? I.check.replace('<svg', '<svg style="width:20px;color:var(--acc)"') : ''}</button>`).join('')}</div>`,
+  sheet(`<h2>Reading library</h2><p class="sub">Read and listen again to every reading, by level.</p><div class="list">${rows.map(({ L, u }) => `<button class="row" data-u="${u.id}" style="text-align:left;width:100%"><span class="grow"><b>${esc(u.read.title)}</b><small>${esc(lvName(L))} · ${esc(u.title)}</small></span>${unitProgress(u.id) ? I.check.replace('<svg', '<svg style="width:20px;color:var(--acc)"') : ''}</button>`).join('')}</div>`,
     (el, close) => el.querySelectorAll('.row').forEach((b) => b.addEventListener('click', () => { close(); const { u } = findUnit(c, b.dataset.u); runQueue(u, [{ type: 'reading' }, ...u.read.q.map((x) => ({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading' }))], S.lang); })));
 }
 async function wordList() {
@@ -1008,7 +1041,7 @@ async function welcome() {
     </div>
     <div class="w-card w-auth panel" data-lang="${lang}">
       <div class="w-course"><div class="pick sm" role="group" aria-label="Choose a course">${avail.map((k) => `<button data-l="${k}" aria-pressed="${lang === k}" type="button"><span class="${k === 'zh' ? 'zh' : ''}">${esc(COURSES[k].name)}</span></button>`).join('')}</div>
-        <label class="w-lvl"><span>Start at</span><select class="input w-lv">${c.levels.map((L) => `<option value="${L.id}" ${lv[lang] === L.id ? 'selected' : ''}>${esc(L.name)} · ${esc(L.title)}</option>`).join('')}</select></label></div>
+        <label class="w-lvl"><span>Start at</span><select class="input w-lv">${lvSelect(c, lv[lang])}</select></label></div>
       <div class="authwrap compact">${authForm(mode)}</div>
       <div class="w-foot"><button class="linkb w-later" type="button">Try it first without an account</button><button class="linkb w-pin" type="button">${I.zap} Join a game</button></div>
     </div></div>`;
@@ -1032,7 +1065,7 @@ async function welcome() {
 function runQueue(unit, queue, lang) {
   pull();
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=27').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=28').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */

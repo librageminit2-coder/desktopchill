@@ -2,11 +2,11 @@
 // v23: rương không còn trao hình cố định mà trao VÉ QUAY (gacha.js). Bestie chia sẻ bộ sưu tập để dùng làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=27';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=27';
-import { acct, call, push } from './account.js?v=27';
-import { sfx } from './sound.js?v=27';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=27';
+import { I } from './icons.js?v=28';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=28';
+import { acct, call, push } from './account.js?v=28';
+import { sfx } from './sound.js?v=28';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=28';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -14,7 +14,7 @@ export let CAT = null;
 const BYID = {};
 export async function loadCat() {
   if (CAT) return CAT;
-  const r = await fetch('data/walls.json?v=4'); CAT = await r.json();
+  const r = await fetch('data/walls.json?v=5'); CAT = await r.json();
   CAT.walls.forEach((w) => { BYID[w.id] = w; });
   ensureStarters();
   return CAT;
@@ -284,8 +284,8 @@ let WHERE = null;
 export const whereOf = (w) => { if (!WHERE) WHERE = whereIndex(); return WHERE[w] || []; };
 async function slotLabel(e) {
   let c = null; try { c = await C.course(e.lang); } catch (er) {}
-  if (isBoss(e.slot)) { const lv = e.slot.split('|')[2], L = c && c.levels.find((x) => x.id === lv); return { t: `${COURSE_N[e.lang]} · ${L ? L.name : lv.toUpperCase()} boss`, s: `${e.need}★ boss chest`, lv }; }
-  if (c) for (const L of c.levels) { const i = L.units.findIndex((u) => u.id === e.slot); if (i >= 0) return { t: `${COURSE_N[e.lang]} · ${L.name} · Unit ${i + 1}`, s: `${L.units[i].title} · ${e.need}★ chest`, lv: L.id, unit: e.slot }; }
+  if (isBoss(e.slot)) { const lv = e.slot.split('|')[2], L = c && c.levels.find((x) => x.id === lv); return { t: `${COURSE_N[e.lang]} · ${L ? (L.tname ? L.tname + ' ' : '') + L.name : lv.toUpperCase()} boss`, s: `${e.need}★ boss chest`, lv }; }
+  if (c) for (const L of c.levels) { const i = L.units.findIndex((u) => u.id === e.slot); if (i >= 0) return { t: `${COURSE_N[e.lang]} · ${L.tname ? L.tname + ' ' : ''}${L.name} · Unit ${i + 1}`, s: `${L.units[i].title} · ${e.need}★ chest`, lv: L.id, unit: e.slot }; }
   return { t: COURSE_N[e.lang], s: `${e.need}★ chest` };
 }
 
@@ -416,7 +416,7 @@ export async function collectionPage(args = []) {
     const byR = RORD.map((r) => { const all = CAT.walls.filter((w) => w.rarity === r); return { r, n: all.filter((w) => owned(w.id)).length, t: all.length }; });
     const up = unitPts();
     let body = '';
-    try { const cc = await C.course(S.lang); UL = {}; cc.levels.forEach((L) => { L.units.forEach((u, i) => { UL[u.id] = `${L.name} · Unit ${i + 1}`; }); UL[`boss|${S.lang}|${L.id}`] = `${L.name} boss`; }); } catch (e) {}
+    try { const cc = await C.course(S.lang); UL = {}; cc.levels.forEach((L) => { L.units.forEach((u, i) => { const nm = (L.tname ? L.tname + ' ' : '') + L.name; UL[u.id] = `${nm} · Unit ${i + 1}`; }); UL[`boss|${S.lang}|${L.id}`] = `${(L.tname ? L.tname + ' ' : '') + L.name} boss`; }); } catch (e) {}
     if (colTab === 'badges') body = C.badgesHTML();
     else if (colTab === 'all') body = allTab();
     else body = await courseTab(colTab);
@@ -467,8 +467,8 @@ async function courseTab(lang) {
     }).join('');
     const bk = `boss|${lang}|${L.id}`, beat = !!S.boss[lang + '|' + L.id] || (S.bossStars[lang + '|' + L.id] || 0) > 0;
     const tks = [...L.units.map((u) => u.id), bk], gotT = tks.reduce((a, k) => a + ticketView(k, true).filter((t) => t.state === 'got').length, 0), allT = tks.reduce((a, k) => a + ticketView(k, true).length, 0);
-    return `<section class="panel col-lv"><h3>${esc(L.name)} <span class="muted">· ${esc(L.title)}</span><em>${gotT}/${allT} tickets</em></h3>${rows}
-      <div class="drop boss"><div class="dr-t"><span class="dr-n">${I.crown}</span><span><b>${esc(L.name)} boss</b><small>${beat ? `Best ${S.bossStars[lang + '|' + L.id] || 1}★ · 80% / 88% / 95% for 1 / 2 / 3 wallpapers` : '80% / 88% / 95% for 1 / 2 / 3 wallpapers'}</small></span></div>
+    return `<section class="panel col-lv"><h3>${esc((L.tname ? L.tname + ' ' : '') + L.name)} <span class="muted">· ${esc(L.title)}</span><em>${gotT}/${allT} tickets</em></h3>${rows}
+      <div class="drop boss"><div class="dr-t"><span class="dr-n">${I.crown}</span><span><b>${esc((L.tname ? L.tname + ' ' : '') + L.name)} boss</b><small>${beat ? `Best ${S.bossStars[lang + '|' + L.id] || 1}★ · 80% / 88% / 95% for 1 / 2 / 3 wallpapers` : '80% / 88% / 95% for 1 / 2 / 3 wallpapers'}</small></span></div>
         <div class="dr-c tks">${ticketView(bk, beat).map((t, i) => ticketCard(t, ['80%', '88%', '95%'][i])).join('')}</div>
         <button class="icon-btn col-go" type="button" data-l="${lang}" data-lv="${L.id}" data-u="" title="Go to this level">${I.chev}</button></div></section>`;
   }).join('');

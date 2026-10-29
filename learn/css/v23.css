@@ -563,3 +563,24 @@ body.adv-on .edge-tab, body.adv-on .chat-dock { display: none !important; }
 @keyframes advboat2 { 50% { translate: 26px 4px; } }
 .adv-wrap:has(.diorama) { border-color: #b9875a; background: #e9e6b6; }
 @media (prefers-reduced-motion: reduce) { .diorama .adv-shine, .diorama .adv-flag { animation: none !important; } }
+
+/* ---------- v24: chủ đề English (Engineering / Business / Travel / Everyday) ---------- */
+.tp-sw { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px; border-radius: 16px; background: var(--glass); border: 1px solid var(--line); }
+.tp-sw button { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "ic n" "t t"; row-gap: 3px; column-gap: 6px; align-items: center; padding: 7px 9px; border-radius: 11px; text-align: left; color: inherit; transition: background .2s, transform .15s; min-width: 0; }
+.tp-sw button svg { grid-area: ic; width: 16px; height: 16px; opacity: .85; }
+.tp-sw button span { grid-area: t; font-size: .78rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tp-sw button small { grid-area: n; justify-self: end; font-size: .66rem; opacity: .7; font-variant-numeric: tabular-nums; }
+.tp-sw button:hover { background: var(--glass-3); }
+.tp-sw button:active { transform: scale(.97); }
+.tp-sw button[aria-selected="true"] { background: var(--acc-grad); color: #fff; box-shadow: 0 6px 16px var(--acc-shadow); }
+.tp-sw button[aria-selected="true"] small { opacity: .9; }
+.tp-sw.rm-tp { grid-template-columns: repeat(4, 1fr); margin-bottom: 14px; }
+.tp-sw.rm-tp button span { font-size: .86rem; }
+@media (max-width: 860px) {
+  .tp-sw { display: flex; overflow-x: auto; scrollbar-width: none; padding: 0; background: none; border: 0; gap: 6px; }
+  .tp-sw::-webkit-scrollbar { display: none; }
+  .tp-sw button { flex: none; display: flex; gap: 6px; padding: 6px 12px 6px 10px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); }
+  .tp-sw button svg { width: 15px; height: 15px; }
+  .tp-sw button small { display: none; }
+  .tp-sw.rm-tp { display: flex; }
+}

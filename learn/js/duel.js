@@ -1,14 +1,14 @@
 // Khiêu chiến 1-1 không cần online cùng lúc: người A làm 10 câu (dễ → rất khó, 20 giây mỗi câu), kết quả lưu trên máy chủ,
 // người B nhận thông báo và làm cùng đề. Người thắng chọn 1 hình nền trong bộ sưu tập của người thua (người thua không mất gì).
 // v19: mỗi ngày 10 lượt khiêu chiến; chỉ trận thắng đầu tiên trong ngày có quà. Người nhận có 24 giờ, quá hạn bị xử thua và quà tự chuyển cho người thắng.
-import { I } from './icons.js?v=27';
-import { S, save } from './store.js?v=27';
-import { acct, call } from './account.js?v=27';
-import { sfx, unlockAudio } from './sound.js?v=27';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=27';
-import * as walls from './walls.js?v=27';
-import { hub, loadFriends } from './hub.js?v=27';
-import * as bestie from './bestie.js?v=27';
+import { I } from './icons.js?v=28';
+import { S, save } from './store.js?v=28';
+import { acct, call } from './account.js?v=28';
+import { sfx, unlockAudio } from './sound.js?v=28';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=28';
+import * as walls from './walls.js?v=28';
+import { hub, loadFriends } from './hub.js?v=28';
+import * as bestie from './bestie.js?v=28';
 
 let C = null;
 export function init(ctx) { C = ctx; }
@@ -40,8 +40,9 @@ async function makeQuestions(lang) {
   const all = c.levels.flatMap((L) => L.units.map((u) => ({ u, L })));
   let pool = all.filter(({ u }) => (S.done[u.id] || []).some(Boolean));
   if (pool.length < 4) { // học chưa đủ: dùng level đang học và các level trước
-    const li = Math.max(0, c.levels.findIndex((L) => L.id === (S.level || {})[lang]));
-    const ids = new Set(c.levels.slice(0, li + 1).map((L) => L.id));
+    const cur = c.levels.find((L) => L.id === (S.level || {})[lang]) || c.levels[0], tl = c.levels.filter((L) => (L.topic || 'eng') === (cur.topic || 'eng')); // v24: cùng chủ đề
+    const li = Math.max(0, tl.indexOf(cur));
+    const ids = new Set(tl.slice(0, li + 1).map((L) => L.id));
     pool = all.filter(({ L }) => ids.has(L.id));
   }
   // 5 nhóm theo thứ tự học: nhóm đầu = chủ đề học sớm nhất (dễ nhất)
