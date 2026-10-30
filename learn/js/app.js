@@ -1,23 +1,23 @@
-import { I, LOGO } from './icons.js?v=41';
-import { sound, sfx, unlockAudio } from './sound.js?v=41';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=41';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=41';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=41';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=41';
-import * as social from './social.js?v=41';
-import { setVideo, setBg } from './scene.js?v=41';
-import * as walls from './walls.js?v=41';
-import * as hub from './hub.js?v=41';
-import * as duel from './duel.js?v=41';
-import * as chat from './chat.js?v=41';
-import * as guide from './guide.js?v=41';
-import * as acctui from './acctui.js?v=41';
-import * as gacha from './gacha.js?v=41';
-import * as bestie from './bestie.js?v=41';
-import * as ctxm from './ctx.js?v=41';
-import * as adv from './adv.js?v=41';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=41';
-import { mascot } from './mascot.js?v=41';
+import { I, LOGO } from './icons.js?v=42';
+import { sound, sfx, unlockAudio } from './sound.js?v=42';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=42';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=42';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=42';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=42';
+import * as social from './social.js?v=42';
+import { setVideo, setBg } from './scene.js?v=42';
+import * as walls from './walls.js?v=42';
+import * as hub from './hub.js?v=42';
+import * as duel from './duel.js?v=42';
+import * as chat from './chat.js?v=42';
+import * as guide from './guide.js?v=42';
+import * as acctui from './acctui.js?v=42';
+import * as gacha from './gacha.js?v=42';
+import * as bestie from './bestie.js?v=42';
+import * as ctxm from './ctx.js?v=42';
+import * as adv from './adv.js?v=42';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=42';
+import { mascot } from './mascot.js?v=42';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -130,7 +130,9 @@ const MENU = [
   { label: 'Learn', href: '#/', ic: 'home', match: ['#/', '#/roadmap', '#/review', '#/practice'], items: [['#/', 'Journey map', 'home', 'Your lessons, chests and bosses'], ['#/roadmap', 'Roadmap', 'list', 'Every level and unit at a glance'], ['#/review', 'Review', 'cards', 'Word cards due today'], ['#/practice', 'Practice', 'target', 'Speed rounds, speaking, dictation']] },
   { label: 'Adventure', href: '#/adventure', ic: 'map', match: ['#/adventure'], items: [], hot: true },
   { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All collection', 'gallery', 'Every wallpaper you own and can still win'], ['#/collection/spin', 'Lucky spin', 'gift', 'Spin your tickets for wallpapers'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
-  { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel', '#/quiz'], items: [['#/duel', 'Duels', 'swords', 'Same 10 questions, first win of the day: a spin ticket'], ['#/quiz', 'Live quiz', 'zap', 'Join with a PIN or host by topic'], ['#/friends/groups', 'Group quiz', 'users', 'Make a friend group and start a quick quiz together']] },
+  // v30: Quiz là mục chính riêng
+  { label: 'Quiz', href: '#/quiz', ic: 'zap', match: ['#/quiz'], items: [['#/quiz', 'Live rooms', 'zap', 'See every quiz that is live now and jump in'], ['#/quiz/create', 'Create a quiz', 'plus', 'Topics, power-ups, auto-play and a password if you want one'], ['#/quiz/pin', 'Join with a PIN', 'pin', 'Type the 6 digits from the host screen'], ['#/quiz/sets', 'My question sets', 'edit', 'Write your own questions once, host any time'], ['#/friends/groups', 'Group quiz', 'users', 'Quiz your friend group in one tap']] },
+  { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel'], items: [['#/duel', 'Duels', 'swords', 'Same 10 questions, first win of the day: a spin ticket'], ['#/practice', 'Practice', 'target', 'Speed rounds, speaking, dictation'], ['#/review', 'Review', 'cards', 'Word cards due today']] },
   { label: 'Classes', href: '#/classes', ic: 'school', match: ['#/classes', '#/class'], items: [['#/classes', 'My classes', 'school', 'Assignments, stream and reports'], ['#/classes', 'Join a class', 'plus', 'Enter the code from your teacher']] },
 ];
 // thanh dưới (điện thoại): Ranking và Friends là 2 tab riêng; trang Me mở bằng ảnh đại diện ở góc phải trên
@@ -252,7 +254,7 @@ function playSheet() {
   const duN = hub.hub.duels || 0, dueN = due(S.lang).length;
   sheet(`<h2>Play</h2><div class="play-grid">
     <a class="pc pc-duel" href="#/duel">${I.swords}<b>Duels</b><small>Same 10 questions. Beat a rival.</small>${duN ? `<i class="badge">${duN}</i>` : ''}</a>
-    <a class="pc pc-quiz" href="#/quiz">${I.zap}<b>Live quiz</b><small>Join with a PIN or host one.</small></a>
+    <a class="pc pc-quiz" href="#/quiz">${I.zap}<b>Live quiz</b><small>Live rooms, PIN or host your own.</small></a>
     <a class="pc pc-grp" href="#/friends/groups">${I.users}<b>Group quiz</b><small>Make a group, quiz your friends.</small></a>
     <a class="pc pc-prac" href="#/practice">${I.target}<b>Practice</b><small>Speed rounds and listening.</small></a>
     <a class="pc pc-rev" href="#/review">${I.cards}<b>Review</b><small>${dueN ? `${dueN} cards due` : 'Cards come back before you forget'}</small></a>
@@ -517,7 +519,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=41').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=42').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -559,7 +561,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=41').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=42').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -1057,7 +1059,7 @@ async function welcome() {
 function runQueue(unit, queue, lang) {
   pull();
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=41').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=42').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */
