@@ -2,15 +2,15 @@
 // Bản đồ rộng (kéo / cuộn để phóng to) với các vùng theo cấp độ. Mỗi vùng có 5 boss + 1 vua vùng (chấm đỏ).
 // Đề lấy từ toàn bộ bài học của cấp đó, 4 kiểu vòng phối hợp: Đồng tâm · Mảnh ghép · Tiếp sức · Nối đôi.
 // v24c: người chưa có Bestie chơi chế độ LONELY (một mình, cùng đề; máy chủ learn_adv_* với solo = true).
-import { I } from './icons.js?v=39';
-import { S } from './store.js?v=39';
-import { acct, call } from './account.js?v=39';
-import { sfx } from './sound.js?v=39';
-import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=39';
-import * as bestie from './bestie.js?v=39';
-import * as gacha from './gacha.js?v=39';
-import * as walls from './walls.js?v=39';
-import * as globe from './advglobe.js?v=39';
+import { I } from './icons.js?v=40';
+import { S } from './store.js?v=40';
+import { acct, call } from './account.js?v=40';
+import { sfx } from './sound.js?v=40';
+import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=40';
+import * as bestie from './bestie.js?v=40';
+import * as gacha from './gacha.js?v=40';
+import * as walls from './walls.js?v=40';
+import * as globe from './advglobe.js?v=40';
 
 let C = null;
 export function init(ctx) {
@@ -124,7 +124,7 @@ export async function page(args = []) {
     <div class="adv-info">
       <section class="panel pad"><h3 class="sec-h">${I.sparkle} How a battle works</h3><div class="adv-types">${Object.values(solo ? TYPES_SOLO : TYPES).map((t) => `<div><b>${t.ic} ${t.name}</b><small>${t.how}</small></div>`).join('')}</div>
         <p class="muted" style="font-size:.85rem;margin-top:10px">The boss has 100 HP and ${solo ? 'you have' : 'your team has'} 3 hearts. Keep more hearts for more stars. Beat 3 bosses to wake the region king; beat the king to open the next region.</p></section>
-      <section class="panel pad"><h3 class="sec-h">${I.gift} Chest rewards</h3><ul class="adv-rw">${solo ? '<li><b>First win: the first boss of the map gives a random wallpaper + a lucky spin ticket; every king gives a rare wallpaper + a spin ticket.</b> Other bosses: a 10% chance of a spin ticket</li><li>XP: more in harder regions, ×stars, ×1.5 for kings (80% of a Bestie battle, first 10 wins a day)</li><li>Your stars count for the <a href="#" class="adv-rank">Adventure ranking</a> (top 10 get a spin ticket every Monday 16:00)</li><li>Play with a Bestie for Bestie effects and full XP</li>' : '<li><b>First win: the first boss of the map gives each of you a random wallpaper + a lucky spin ticket; every king gives a rare wallpaper + a spin ticket each.</b> Other bosses: a 10% chance of a spin ticket</li><li>XP for both of you: more in harder regions, ×stars, ×1.5 for kings (first 10 wins a day)</li><li>Bestie effects for your quiz and class high-fives (kings always drop one)</li><li>Stars count for the <a href="#" class="adv-rank">Adventure ranking</a> (top 10 get a spin ticket every Monday 16:00)</li>'}</ul></section>
+      <section class="panel pad"><h3 class="sec-h">${I.gift} Chest rewards</h3><ul class="adv-rw">${solo ? '<li><b>First win: the first boss of the map gives a random wallpaper + a lucky spin ticket; every king gives a rare wallpaper + a spin ticket.</b> Other bosses: a 10% chance of a spin ticket</li><li>XP: more in harder regions, ×stars, ×1.5 for kings (80% of a Bestie battle, first 10 wins a day)</li><li>Your stars count for the <a href="#" class="adv-rank">Adventure ranking</a> (top 10 get a spin ticket every Friday 16:00)</li><li>Play with a Bestie for Bestie effects and full XP</li>' : '<li><b>First win: the first boss of the map gives each of you a random wallpaper + a lucky spin ticket; every king gives a rare wallpaper + a spin ticket each.</b> Other bosses: a 10% chance of a spin ticket</li><li>XP for both of you: more in harder regions, ×stars, ×1.5 for kings (first 10 wins a day)</li><li>Bestie effects for your quiz and class high-fives (kings always drop one)</li><li>Stars count for the <a href="#" class="adv-rank">Adventure ranking</a> (top 10 get a spin ticket every Friday 16:00)</li>'}</ul></section>
     </div>`);
   const app = document.getElementById('app');
   app.querySelectorAll('.adv-maps button').forEach((b) => b.addEventListener('click', () => { curMap = b.dataset.m; try { localStorage.setItem('dcl_adv_map', curMap); } catch (e) {} sfx('tap'); page(); }));
@@ -154,7 +154,7 @@ async function wireMap(box) {
     onLocked: (r) => { sfx('tap'); toast(`Beat ${MAPS[map].regions[r - 2].king} in ${MAPS[map].regions[r - 2].name} to open ${MAPS[map].regions[r - 1].name}.`); },
   };
   // v27: bản đồ 2D vẽ sẵn (Blender) theo ảnh mẫu Bestie Map; lỗi tải → bản đồ canvas cũ
-  try { const m2 = await import('./advmap2d.js?v=39'); G = await m2.mount(box, opts); }
+  try { const m2 = await import('./advmap2d.js?v=40'); G = await m2.mount(box, opts); }
   catch (e) { console.error('map image failed', e); if (!box.isConnected) return; box.classList.remove('is2d'); G = globe.mount(box, opts); }
   if (!box.isConnected) { if (G) G.destroy(); return; }
   const wrap = box.parentElement;

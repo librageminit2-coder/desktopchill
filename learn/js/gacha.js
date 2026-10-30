@@ -1,12 +1,12 @@
 // v23: Vòng quay may mắn (kiểu mở hòm CS:GO). Rương chủ đề / boss, duel, quiz, xếp hạng tuần và Vượt ải Bestie cho VÉ QUAY.
 // Vé lưu trong kho (máy chủ). Quay: dải hình chạy rồi dừng ngẫu nhiên; kết quả do máy chủ quyết định theo độ hiếm.
 // Trùng hình đã có → đổi thành XP. Đôi khi ra hiệu ứng Bestie.
-import { I } from './icons.js?v=39';
-import { acct, call } from './account.js?v=39';
-import { sfx } from './sound.js?v=39';
-import { esc, toast, overlay, burst } from './ui.js?v=39';
-import * as walls from './walls.js?v=39';
-import { FX, fxBadge } from './bestie.js?v=39';
+import { I } from './icons.js?v=40';
+import { acct, call } from './account.js?v=40';
+import { sfx } from './sound.js?v=40';
+import { esc, toast, overlay, burst } from './ui.js?v=40';
+import * as walls from './walls.js?v=40';
+import { FX, fxBadge } from './bestie.js?v=40';
 
 let C = null;
 export function init(ctx) { C = ctx; }
@@ -127,7 +127,7 @@ export function panelHTML() {
   return `<section class="panel gp" data-tickets>
     <div class="gp-h"><span class="gp-ic">${I.gift}</span><div><small>Lucky spin</small><b><span class="tk-n">${G.left}</span> ticket${G.left === 1 ? '' : 's'}</b></div>
       <button class="btn ${G.left ? 'gold' : 'ghost'} gp-go" type="button" ${acct ? '' : 'disabled'}>${I.zap} ${G.left ? 'Spin now' : 'Spin'}</button></div>
-    <p class="muted gp-t">${acct ? 'Chests no longer hand out fixed wallpapers: each one gives spin tickets (2★ unit chest = 1, 3★ = 2, boss = 1–3). Keep tickets in your inventory and spin whenever you like. A duplicate turns into XP.' : 'Create an account to keep spin tickets and spin for wallpapers.'}</p>
+    ${acct ? '' : '<p class="muted gp-t">Create an account to keep spin tickets and spin for wallpapers.</p>'}
     <div class="gp-odds">${odds.map((x) => `<span class="r-${x.rarity}"><i class="rd"></i><b>${RAR[x.rarity]}</b> ${x.weight}%<small>dup +${x.dup_xp} XP</small></span>`).join('')}</div>
     ${G.sources.length ? `<div class="gp-src"><small>In your inventory</small>${G.sources.map((s) => `<span>${esc(sourceLabel(s.source))}<b>×${s.n}</b></span>`).join('')}</div>` : ''}
     ${G.history.length ? `<details class="gp-hist"><summary>Last spins (${G.spins})</summary><div class="gp-hl">${G.history.slice(0, 12).map((h) => h.wall ? `<span class="r-${h.rarity}" title="${esc(walls.wallOf(h.wall).name)}"><img src="${walls.poster(h.wall)}" alt=""><small>${h.dup ? `+${h.xp} XP` : 'New'}</small></span>` : `<span class="fxh"><em>${FX[String(h.rarity).slice(3)] ? FX[String(h.rarity).slice(3)].icon : '✨'}</em><small>Effect</small></span>`).join('')}</div></details>` : ''}

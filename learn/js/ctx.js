@@ -1,11 +1,11 @@
 // v23: menu chuột phải (máy tính) / chạm giữ hoặc chạm (điện thoại) cho một người: xem hồ sơ, nhắn tin, duel, kết bạn, Bestie, tặng hình.
 // Thay cho các nút nhỏ trên từng dòng. Hồ sơ công khai không có email / số điện thoại.
-import { I } from './icons.js?v=39';
-import { acct, call } from './account.js?v=39';
-import { sfx } from './sound.js?v=39';
-import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=39';
-import * as walls from './walls.js?v=39';
-import * as bestie from './bestie.js?v=39';
+import { I } from './icons.js?v=40';
+import { acct, call } from './account.js?v=40';
+import { sfx } from './sound.js?v=40';
+import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=40';
+import * as walls from './walls.js?v=40';
+import * as bestie from './bestie.js?v=40';
 
 let C = null;
 export function init(ctx) { C = ctx; }

@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=39';
-import { S, save, applyRevoke } from './store.js?v=39';
-import * as chat from './chat.js?v=39';
-import * as acctui from './acctui.js?v=39';
-import { acct, call, onLucky } from './account.js?v=39';
-import { sfx } from './sound.js?v=39';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=39';
-import * as walls from './walls.js?v=39';
-import * as bestie from './bestie.js?v=39';
-import * as gacha from './gacha.js?v=39';
-import * as ctx from './ctx.js?v=39';
+import { I, LOGO } from './icons.js?v=40';
+import { S, save, applyRevoke } from './store.js?v=40';
+import * as chat from './chat.js?v=40';
+import * as acctui from './acctui.js?v=40';
+import { acct, call, onLucky } from './account.js?v=40';
+import { sfx } from './sound.js?v=40';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=40';
+import * as walls from './walls.js?v=40';
+import * as bestie from './bestie.js?v=40';
+import * as gacha from './gacha.js?v=40';
+import * as ctx from './ctx.js?v=40';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -93,7 +93,7 @@ export async function poll(first = false) {
     const before = hub.unread;
     hub.unread = j.unread || 0; hub.requests = j.requests || 0; hub.duels = j.duels || 0; hub.msgs = j.msgs || 0; hub.me = j;
     if (j.avatar !== undefined && acct) acct.avatar = j.avatar;
-    Object.assign(walls.vipState, { vip: j.vip || 0, pts: j.vip_pts || 0, bonus: j.bonus || 0, penalty: j.penalty || 0, server: true });
+    Object.assign(walls.vipState, { vip: j.vip || 0, pts: j.vip_pts || 0, bonus: j.bonus || 0, penalty: j.penalty || 0, server: true }); walls.vipSaved();
     if (typeof j.tickets === 'number') gacha.setLeft(j.tickets);
     const hadB = bestie.has(); bestie.fromMe(j);
     if (bestie.has() && (first || !hadB)) bestie.load(true).then(() => bestie.maybeMissYou());
@@ -343,7 +343,7 @@ export function whatsNew(force) {
       ${card('heart', 'Bestie · Learn together', 'Pick one friend as your Bestie. You share wallpapers automatically, both earn <b>+10% XP</b> per lesson on days you both study, and can pass a duel to each other (5 a day). If one of you is away 3+ days, lessons earn 10% less, so keep each other going!')}
       ${card('map', 'Bestie Adventure', 'A big map for English and 中文 with regions and boss dots. You and your Bestie play live together: one sees the question, the other the answers; build sentences in relay; link words at the same time. Chests give XP, Bestie effects and spin tickets.')}
       ${card('gift', 'Lucky spin', 'Unit and boss chests now give <b>spin tickets</b> instead of fixed wallpapers. Keep them or spin right away: the strip stops on a random wallpaper by rarity. A duplicate turns into XP. <b>Everyone gets 1 free ticket.</b>')}
-      ${card('trophy', 'Rankings', 'New <b>Top collector</b> and <b>Bestie</b> rankings. Every Monday at 16:00 (Hà Nội) all rankings pay out: the top 10 of each one get a spin ticket, plus the usual prizes.')}
+      ${card('trophy', 'Rankings', 'New <b>Top collector</b> and <b>Bestie</b> rankings. Every Friday at 16:00 (Hà Nội) all rankings pay out: the top 10 of each one get a spin ticket, plus the usual prizes.')}
       ${card('swords', 'Duels', 'Your first 10 sent and 10 received duels each day score points and XP; after that you can still play for fun. Your first win each day gives a spin ticket.')}
       ${card('users', 'Friends', 'Right-click (or tap) any name in Ranking and Friends for profile, message, duel, add friend or Bestie. Make friend groups and start a quick quiz: everyone in the group joins automatically.')}
     </div>
@@ -389,7 +389,7 @@ function ranked() {
   return all;
 }
 /* ---------- bảng xếp hạng toàn máy chủ (trên danh sách bạn) ---------- */
-// v23: thêm Top collector (số hình nền) và Bestie (cặp Bestie theo sao Vượt ải). Tuần mới: 16:00 thứ Hai giờ Hà Nội, mọi bảng phát quà cùng lúc.
+// v23: thêm Top collector (số hình nền) và Bestie (cặp Bestie theo sao Vượt ải). v28: mọi bảng phát quà 16:00 thứ Sáu giờ Hà Nội; Duel tính điểm 05:00 thứ Hai → 16:00 thứ Sáu.
 const RK_TABS = [['en', 'EN'], ['zh', '中文'], ['ielts', 'IELTS'], ['duel', 'Duel'], ['col', 'Collector'], ['bestie', 'Adventure']];
 const rk = { err: {}, tab: (() => { try { return localStorage.getItem('dcl_rk') || ''; } catch (e) { return ''; } })(), data: {}, at: {}, busy: '' };
 const rkTab = () => (RK_TABS.some((t) => t[0] === rk.tab) ? rk.tab : (['en', 'zh', 'ielts'].includes(S.lang) ? S.lang : 'en'));
@@ -402,7 +402,7 @@ export async function loadRank(board = rkTab(), force = false) {
   document.querySelectorAll('.rk').forEach((el) => paintRank(el));
 }
 const medal = (n) => n <= 3 ? `<span class="rk-n m${n}">${n}</span>` : `<span class="rk-n">${n}</span>`;
-// thời điểm chốt tuần kế tiếp: 16:00 thứ Hai (giờ Hà Nội) = week_end + 16:00
+// thời điểm chốt tuần kế tiếp: 16:00 thứ Sáu (giờ Hà Nội) = week_end + 16:00
 export function resetIn(d) {
   const end = new Date((d && d.week_end ? d.week_end : '') + 'T16:00:00+07:00'); const ms = end - Date.now();
   if (!(ms > 0)) return 'soon';
@@ -422,8 +422,8 @@ function rankRows(board) {
   const meIn = items.some((x) => x.rel === 'me');
   const me = d.me && !meIn ? `<div class="rk-i me out">${medal(d.me.rank)}<span class="rk-av">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, walls.myVip())}</span><span class="rk-t"><b>You</b><small>${d.me.score} ${unit}</small></span></div>` : '';
   const empty = !items.length ? `<p class="rk-load">${{ duel: 'No duels finished this week yet. Win one to take #1.', col: 'Nobody has wallpapers yet.', bestie: 'Nobody has beaten an Adventure boss yet. Your first win gives a wallpaper and a spin ticket!' }[board] || 'Nobody has stars here yet. Finish a lesson to take #1.'}</p>` : '';
-  const got = (d.mine || []).length, when = `Prizes every Monday 16:00 (Hà Nội) · next in ${resetIn(d)}.`;
-  const note = { duel: `Win 3 pts, draw 1. Only your first 10 sent and 10 received duels each day count. ${when} Top 10: XP, a rare wallpaper and a lucky spin ticket.`,
+  const got = (d.mine || []).length, when = `Prizes every Friday 16:00 (Hà Nội) · next in ${resetIn(d)}.`;
+  const note = { duel: `Win 3 pts, draw 1. Points count from Monday 05:00 to Friday 16:00 (Hà Nội)${d.duel_from && Date.now() < new Date(d.duel_from).getTime() ? ', so duels right now do not add points yet' : ''}. Only your first 10 sent and 10 received duels each day count. ${when} Top 10: XP, a rare wallpaper and a lucky spin ticket.`,
     col: `Number of wallpapers you own. ${when} Top 10: a lucky spin ticket.`, bestie: `Stars from Adventure bosses, alone or with your Bestie. ${when} Top 10: a lucky spin ticket.` }[board]
     || `Stars from every lesson in this course. ${when} Top 10 get a lucky spin ticket; each rank also pays once: #1 two wallpapers, #2 a rare one, #3 a random one, #4–10 XP.${got ? ` You have collected ${got}/10.` : ''}`;
   const go = board === 'bestie' ? `<a class="rk-adv" href="#/adventure">${I.map}<span><b>Open Adventure map</b><small>First boss and every king: a new wallpaper + a spin ticket</small></span>${I.chev}</a>` : '';
@@ -440,7 +440,7 @@ function paintRank(el) {
   ctx.attach(el, '.rk-pn', (sp) => { for (const it of d.items) { const p = (it.pair || []).find((q) => String(q.uid) === sp.dataset.u); if (p) return { uid: p.uid, name: p.name, avatar: p.avatar, vip: p.vip }; } return null; });
 }
 function rankHTML() {
-  return `<section class="rk"><p class="rk-sub">Top 10 of all learners · resets and pays out every Monday 16:00</p>
+  return `<section class="rk"><p class="rk-sub">Top 10 of all learners · pays out every Friday 16:00</p>
     <div class="rk-tabs seg wrap" role="tablist">${RK_TABS.map(([k, l]) => `<button type="button" data-b="${k}" class="${k === 'zh' ? 'zh' : ''}" aria-pressed="${rkTab() === k}">${l}</button>`).join('')}</div>
     <div class="rk-body">${rankRows(rkTab())}</div></section>`;
 }

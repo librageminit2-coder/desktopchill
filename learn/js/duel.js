@@ -1,14 +1,14 @@
 // Khiêu chiến 1-1 không cần online cùng lúc: người A làm 10 câu (dễ → rất khó, 20 giây mỗi câu), kết quả lưu trên máy chủ,
 // người B nhận thông báo và làm cùng đề. Người thắng chọn 1 hình nền trong bộ sưu tập của người thua (người thua không mất gì).
 // v19: mỗi ngày 10 lượt khiêu chiến; chỉ trận thắng đầu tiên trong ngày có quà. Người nhận có 24 giờ, quá hạn bị xử thua và quà tự chuyển cho người thắng.
-import { I } from './icons.js?v=39';
-import { S, save } from './store.js?v=39';
-import { acct, call } from './account.js?v=39';
-import { sfx, unlockAudio } from './sound.js?v=39';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=39';
-import * as walls from './walls.js?v=39';
-import { hub, loadFriends } from './hub.js?v=39';
-import * as bestie from './bestie.js?v=39';
+import { I } from './icons.js?v=40';
+import { S, save } from './store.js?v=40';
+import { acct, call } from './account.js?v=40';
+import { sfx, unlockAudio } from './sound.js?v=40';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, vipAv, ago } from './ui.js?v=40';
+import * as walls from './walls.js?v=40';
+import { hub, loadFriends } from './hub.js?v=40';
+import * as bestie from './bestie.js?v=40';
 
 let C = null;
 export function init(ctx) { C = ctx; }
@@ -102,7 +102,7 @@ export async function duelPage(args = []) {
     const sc = d.me && d.me.score != null ? `${d.me.score}${d.them && d.them.score != null ? ' – ' + d.them.score : ''}` : '';
     return `<div class="du-rw"><a class="row du-row" href="#/duel/${d.id}">${vipAv(d.opp ? d.opp.name : '?', d.opp && d.opp.avatar, d.opp ? d.opp.vip : 0)}<span class="grow"><b>${esc(d.opp ? d.opp.name : 'Opponent')}${d.random ? ' <small class="muted">· random</small>' : ''}</b><small>${esc(d.title)} · ${ago(d.created_at)}${sc ? ' · ' + sc : ''}</small></span>${d.passed_by ? `<span class="tag-s">${I.heart} from ${esc(d.passed_by)}</span>` : ''}${d.scored === false && d.state === 'done' ? '<span class="tag-s">unscored</span>' : ''}${res}</a>${pass}</div>`;
   };
-  C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>You both answer the same 10 questions, from easy to harder: 8 from the units the challenger has studied, 2 general knowledge, 20 seconds each. Faster correct answers score more. Each day your first <b>10 challenges you send</b> and first <b>10 you receive</b> are scored: XP for both sides (win 10 · draw 6 · loss 3) and points on the weekly Duel ranking. After that you can still play for fun, without points. <b>Your first win each day</b> also earns a 🎟️ lucky spin ticket. Your opponent has 24 hours to answer, or they lose. Points reset every Monday at 16:00 (Hà Nội) and the top 10 get prizes.</p></div></div>
+  C.shell(route, `<div class="page-h"><div><h1>Duels</h1><p>You both answer the same 10 questions, from easy to harder: 8 from the units the challenger has studied, 2 general knowledge, 20 seconds each. Faster correct answers score more. Each day your first <b>10 challenges you send</b> and first <b>10 you receive</b> are scored: XP for both sides (win 10 · draw 6 · loss 3) and points on the weekly Duel ranking. After that you can still play for fun, without points. <b>Your first win each day</b> also earns a 🎟️ lucky spin ticket. Your opponent has 24 hours to answer, or they lose. Points count from Monday 05:00 to Friday 16:00 (Hà Nội); every Friday at 16:00 the top 10 get prizes and points start again from zero.</p></div></div>
   <div class="du-grid">
     <section class="panel pad du-new">
       <h3 class="sec-h">${I.swords} New challenge <em>${L.sent_left ?? 10} scored left today</em></h3>
@@ -115,7 +115,7 @@ export async function duelPage(args = []) {
       </div></div>
       <p class="err du-err"></p>
       <button class="btn acc wide du-go" type="button">${I.swords} Start the duel</button>`}
-      <div class="du-stats"><span><b>${L.wins || 0}</b>wins</span><span><b>${L.played || 0}</b>finished</span><span><b>${L.ticket_today ? 0 : 1}</b>🎟️ ticket left today</span><span><b>${L.recv_left ?? 10}</b>scored replies left</span><span><b>${(L.week && L.week.pts) || 0}</b>pts this week</span></div>
+      <div class="du-stats"><span><b>${L.wins || 0}</b>wins</span><span><b>${L.played || 0}</b>finished</span><span><b>${L.ticket_today ? 0 : 1}</b>🎟️ ticket left today</span><span><b>${L.recv_left ?? 10}</b>scored replies left</span><span><b>${(L.week && L.week.pts) || 0}</b>pts this week</span></div>${L.duel_open === false ? `<p class="muted du-pause" style="margin-top:8px;font-size:.84rem">⏸️ Weekly Duel points start again on Monday at 05:00 (Hà Nội). Duels until then still give XP.</p>` : ''}
     </section>
     <div class="du-lists">
       ${prize.length ? `<section class="panel pad"><h3 class="sec-h">${I.gift} Pick your prize <em>${prize.length}</em></h3><div class="list">${prize.map(row).join('')}</div></section>` : ''}

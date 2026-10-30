@@ -2,11 +2,11 @@
 // v23: rương không còn trao hình cố định mà trao VÉ QUAY (gacha.js). Bestie chia sẻ bộ sưu tập để dùng làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=39';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=39';
-import { acct, call, push } from './account.js?v=39';
-import { sfx } from './sound.js?v=39';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=39';
+import { I } from './icons.js?v=40';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=40';
+import { acct, call, push } from './account.js?v=40';
+import { sfx } from './sound.js?v=40';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=40';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -78,6 +78,9 @@ export function addLocal(id, src) { if (!S.walls[id]) { S.walls[id] = { at: Date
 
 /* ---------- đồng bộ với máy chủ ---------- */
 export const vipState = { vip: 0, pts: 0, bonus: 0, penalty: 0, share: null, server: false, tickets: 0 };
+// v28: nhớ cấp VIP lần trước (theo tài khoản) để HUD hiện đúng ngay khi mở trang, trước khi máy chủ trả lời
+try { const k = JSON.parse(localStorage.getItem('dcl_vip') || 'null'); if (k && acct && k.u === acct.name) Object.assign(vipState, { vip: k.vip || 0, pts: k.pts || 0, bonus: k.bonus || 0, penalty: k.penalty || 0, server: true }); } catch (e) {}
+export function vipSaved() { try { if (acct) localStorage.setItem('dcl_vip', JSON.stringify({ u: acct.name, vip: vipState.vip, pts: vipState.pts, bonus: vipState.bonus, penalty: vipState.penalty })); } catch (e) {} if (C && C.vipPaint) C.vipPaint(); }
 let syncing = null;
 export function syncWalls() {
   if (!acct) return Promise.resolve();
@@ -98,7 +101,7 @@ export function syncWalls() {
       Object.entries(j.claims || {}).forEach(([k, v]) => { if ((S.wclaims[k] || 0) < v) S.wclaims[k] = v; });
       ensureStarters();
       Object.assign(vipState, { vip: j.vip || 0, pts: j.vip_pts || 0, bonus: j.bonus || 0, penalty: j.penalty || 0, share: j.share, server: true, tickets: j.tickets || 0 });
-      save();
+      save(); vipSaved();
     } catch (e) { /* bỏ qua, thử lại lần sau */ } finally { syncing = null; }
   })();
   return syncing;
@@ -420,14 +423,13 @@ export async function collectionPage(args = []) {
     if (colTab === 'badges') body = C.badgesHTML();
     else if (colTab === 'all') body = allTab();
     else body = await courseTab(colTab);
-    C.shell('#/collection', `<div class="page-h"><div><h1>Collection</h1><p>${total()} animated wallpapers. You start with ${(CAT.starters || []).length}; win the rest with the lucky spin (tickets from chests, duels, quizzes, rankings and Bestie Adventure) or unlock any wallpaper with XP.</p></div></div>
+    C.shell('#/collection', `<div class="page-h"><div><h1>Collection</h1></div></div>
     <div class="col-gp">${C.gachaPanel ? C.gachaPanel() : ''}</div>
     <section class="col-top">
       <div class="panel col-count"><div class="cc-n"><b>${n}</b><span>/ ${CAT.walls.length}</span></div><small>wallpapers collected</small>
-        <div class="cc-xp">${I.gem}<span><b>${fmt(xpLeft())} XP to spend</b><small>Tap any wallpaper to unlock it with XP: common ${fmt(PRICE.common)}, rare ${fmt(PRICE.rare)}, epic ${fmt(PRICE.epic)}, legendary ${fmt(PRICE.legendary)}.</small></span></div>
+        <div class="cc-xp">${I.gem}<span><b>${fmt(xpLeft())} XP to spend</b></span></div>
         <div class="cc-r">${byR.map((x) => `<span class="r-${x.r}"><i class="rd"></i>${RAR[x.r]}<b>${x.n}/${x.t}</b></span>`).join('')}</div></div>
-      <div class="panel col-vip">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, v, 'lg')}<div class="cv-t"><b>${v ? `VIP ${v}` : 'No VIP yet'}</b><small>${v >= 10 ? 'Top rank' : `${pts} / ${next} points to VIP ${v + 1}`}</small><span class="bar"><i style="width:${v >= 10 ? 100 : Math.round(((pts - prevT) / (next - prevT)) * 100)}%"></i></span>
-        <em>Finished unit: English +${Math.round(up.en)}, 中文 +${Math.round(up.zh)}, IELTS +${Math.round(up.ielts)}. Duels, quizzes and duplicates add bonus points (max 150).</em></div>
+      <div class="panel col-vip">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, v, 'lg')}<div class="cv-t"><b>${v ? `VIP ${v}` : 'No VIP yet'}</b><small>${v >= 10 ? 'Top rank' : `${pts} / ${next} points to VIP ${v + 1}`}</small><span class="bar"><i style="width:${v >= 10 ? 100 : Math.round(((pts - prevT) / (next - prevT)) * 100)}%"></i></span></div>
         <button class="btn sm ${v ? 'acc' : 'ghost'} col-share" type="button">${I.gift} Share</button></div>
     </section>
     <div class="col-tabs seg" role="tablist">${tabs.map(([k, l]) => `<button type="button" data-t="${k}" aria-pressed="${colTab === k}" class="${k === 'zh' ? 'zh' : ''}">${l}</button>`).join('')}</div>
