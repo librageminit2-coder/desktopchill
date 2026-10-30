@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=40';
-import { S, save, applyRevoke } from './store.js?v=40';
-import * as chat from './chat.js?v=40';
-import * as acctui from './acctui.js?v=40';
-import { acct, call, onLucky } from './account.js?v=40';
-import { sfx } from './sound.js?v=40';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=40';
-import * as walls from './walls.js?v=40';
-import * as bestie from './bestie.js?v=40';
-import * as gacha from './gacha.js?v=40';
-import * as ctx from './ctx.js?v=40';
+import { I, LOGO } from './icons.js?v=41';
+import { S, save, applyRevoke } from './store.js?v=41';
+import * as chat from './chat.js?v=41';
+import * as acctui from './acctui.js?v=41';
+import { acct, call, onLucky } from './account.js?v=41';
+import { sfx } from './sound.js?v=41';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=41';
+import * as walls from './walls.js?v=41';
+import * as bestie from './bestie.js?v=41';
+import * as gacha from './gacha.js?v=41';
+import * as ctx from './ctx.js?v=41';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -264,7 +264,8 @@ function text(n) {
     case 'duel_pick': return { t: `${n.name} got a copy of ${w}`, h: `${who} won your duel and got a copy of <b>${esc(w)}</b> at random. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}${p.ticket ? ' and <b>1 lucky spin ticket</b>' : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
-    case 'update': return +p.v >= 27 ? { t: 'New: Lucky lessons', h: '<b>Every lesson can pay.</b> Each lesson you finish on the Journey map has a 10% chance of a lucky spin ticket. In Adventure, the first win on the first boss and on every region king gives a new wallpaper and a spin ticket; other bosses have a 10% chance of a spin ticket.', ic: 'gift', go: '#/' }
+    case 'update': return +p.v >= 28 ? { t: 'New: B1 for Business, Travel and Everyday Life', h: '<b>60 new B1 units.</b> Business &amp; Office, Travel &amp; Hospitality and Everyday Life now go up to B1, with new chests, a boss for each topic and new wallpapers to win. Switch topics above the level list.', ic: 'sparkle', go: '#/' }
+      : +p.v >= 27 ? { t: 'New: Lucky lessons', h: '<b>Every lesson can pay.</b> Each lesson you finish on the Journey map has a 10% chance of a lucky spin ticket. In Adventure, the first win on the first boss and on every region king gives a new wallpaper and a spin ticket; other bosses have a 10% chance of a spin ticket.', ic: 'gift', go: '#/' }
       : +p.v >= 26 ? { t: 'New: Adventure rewards', h: '<b>Adventure is now in the main menu.</b> The first win on the first boss and on every region king gives a random wallpaper and a lucky spin ticket, alone or with your Bestie. The Adventure ranking now counts everyone.', ic: 'map', go: '#/adventure' }
       : +p.v >= 25 ? { t: 'New: Lonely Adventure', h: '<b>No Bestie? You can still play.</b> Adventure now has a Lonely mode: fight the map bosses on your own with the same questions. On a phone, tap <b>Adventure</b> in the bottom bar.', ic: 'map', go: '#/adventure' }
       : +p.v >= 24 ? { t: 'New: 3 more English topics', h: '<b>New update.</b> English now has 4 topics: Engineering, Business &amp; Office, Travel &amp; Hospitality and Everyday Life. 120 new A1–A2 units with their own chests and wallpapers. Switch topics above the level list. Your progress is safe.', ic: 'sparkle', go: '#/' }
@@ -300,14 +301,39 @@ function openPanel(btn) {
   panelOff = () => { p.remove(); document.removeEventListener('pointerdown', off); panelOff = null; };
   setTimeout(() => document.addEventListener('pointerdown', off), 0);
 }
+// v29: ô thông báo gọn hơn: lọc All / Unread, nhóm "Needs your reply" → Today → Yesterday → This week → Earlier,
+// chỉ giữ thông báo cập nhật mới nhất, nút nhỏ "Mark all as read" (cả trên điện thoại)
+let npFilter = 'all';
+const npDay = (t) => { const d = new Date(t), n = new Date(); const a = new Date(n.getFullYear(), n.getMonth(), n.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate()); const days = Math.round(a / 86400000); return days <= 0 ? 'Today' : days === 1 ? 'Yesterday' : days < 7 ? 'This week' : 'Earlier'; };
+function npItems() {
+  let upd = null;
+  hub.items.forEach((n) => { if (n.kind === 'update' && (!upd || +((n.payload || {}).v || 0) > +((upd.payload || {}).v || 0) || (+((n.payload || {}).v || 0) === +((upd.payload || {}).v || 0) && new Date(n.at) > new Date(upd.at)))) upd = n; });
+  return hub.items.filter((n) => n.kind !== 'update' || n === upd);
+}
+const NP_SYS = new Set(['update', 'rank_ticket', 'rank_reward', 'revoke', 'security', 'quiz_win']);
+function npRow(n) {
+  const t = text(n);
+  return `<div class="np-i ${n.read ? '' : 'new'}" data-id="${n.id}">
+      <span class="np-av">${!n.name || NP_SYS.has(n.kind) ? `<span class="np-brand">${LOGO}</span>` : vipAv(n.name, n.avatar, n.vip || 0)}<span class="np-k">${I[t.ic] || I.bell}</span></span>
+      <div class="np-b"><p class="${n.read ? 'clamp' : 'clamp4'}">${t.h}</p>${t.wall ? `<img class="np-w" src="${walls.poster(t.wall)}" alt="">` : ''}
+      ${t.act && !n.read ? `<div class="np-a">${t.act.map(([l, a], k) => `<button class="btn sm ${k ? 'ghost' : 'acc'}" type="button" data-a="${a}">${l}</button>`).join('')}</div>` : ''}</div>
+      <span class="np-meta"><small>${ago(n.at)}</small>${n.read ? '' : '<i class="np-dot" aria-label="Unread"></i>'}</span></div>`;
+}
 function drawPanel(p) {
-  const items = hub.items;
-  p.innerHTML = `<div class="np-h"><b>Notifications</b>${hub.unread ? `<button class="np-all" type="button">Mark all read</button>` : ''}</div>
-    <div class="np-list">${items.length ? items.map((n) => { const t = text(n); return `<div class="np-i ${n.read ? '' : 'new'}" data-id="${n.id}">
-      <span class="np-av">${n.kind === 'update' ? `<span class="np-brand">${LOGO}</span>` : vipAv(n.name || '?', n.avatar, n.vip || 0)}<span class="np-k">${I[t.ic]}</span></span>
-      <div class="np-b"><p>${t.h}</p>${t.wall ? `<img class="np-w" src="${walls.poster(t.wall)}" alt="">` : ''}<small>${ago(n.at)}</small>
-      ${t.act && !n.read ? `<div class="np-a">${t.act.map(([l, a], k) => `<button class="btn sm ${k ? 'ghost' : 'acc'}" type="button" data-a="${a}">${l}</button>`).join('')}</div>` : ''}</div></div>`; }).join('') : `<div class="np-empty">${I.bell}<p>Nothing new. Friend requests, invites, duels and gifts show up here.</p></div>`}</div>`;
-  const all = p.querySelector('.np-all'); if (all) all.addEventListener('click', async () => { hub.items.forEach((x) => { x.read = true; }); hub.unread = 0; paintBadges(); drawPanel(p); try { await call('learn_notifs_read', { p_ids: null }); } catch (e) {} });
+  const shown = npItems(), list = npFilter === 'unread' ? shown.filter((n) => !n.read) : shown;
+  const need = list.filter((n) => !n.read && text(n).act), rest = list.filter((n) => !need.includes(n));
+  const groups = [];
+  if (need.length) groups.push(['Needs your reply', need]);
+  ['Today', 'Yesterday', 'This week', 'Earlier'].forEach((g) => { const xs = rest.filter((n) => npDay(n.at) === g); if (xs.length) groups.push([g, xs]); });
+  const sc = p.querySelector('.np-list'), top = sc ? sc.scrollTop : 0;
+  p.innerHTML = `<div class="np-h"><b>Notifications</b>${hub.unread ? `<em class="np-n">${hub.unread > 99 ? '99+' : hub.unread}</em>` : ''}
+      <div class="np-tools"><div class="np-seg" role="group" aria-label="Show">${[['all', 'All'], ['unread', 'Unread']].map(([f, l]) => `<button type="button" data-f="${f}" aria-pressed="${npFilter === f}">${l}</button>`).join('')}</div>
+      <button class="np-all" type="button" ${hub.unread ? '' : 'disabled'} title="Mark all as read">${I.check}<span>Mark all as read</span></button></div></div>
+    <div class="np-list">${groups.length ? groups.map(([g, xs]) => `<section class="np-g"><h4>${g}${g === 'Needs your reply' ? ` <em>${xs.length}</em>` : ''}</h4>${xs.map(npRow).join('')}</section>`).join('')
+      : `<div class="np-empty">${I.bell}<p>${npFilter === 'unread' && shown.length ? 'You are all caught up.' : 'Nothing new. Friend requests, invites, duels and gifts show up here.'}</p></div>`}</div>`;
+  const sc2 = p.querySelector('.np-list'); if (sc2 && top) sc2.scrollTop = top;
+  p.querySelectorAll('.np-seg [data-f]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); if (npFilter === b.dataset.f) return; npFilter = b.dataset.f; sfx('tap'); drawPanel(p); }));
+  const all = p.querySelector('.np-all'); if (all) all.addEventListener('click', async (e) => { e.stopPropagation(); hub.items.forEach((x) => { x.read = true; }); hub.unread = 0; paintBadges(); drawPanel(p); try { await call('learn_notifs_read', { p_ids: null }); } catch (e) {} });
   p.querySelectorAll('.np-i').forEach((row) => {
     const n = hub.items.find((x) => x.id === +row.dataset.id), t = text(n);
     const mark = () => { if (n.read) return; n.read = true; hub.unread = Math.max(0, hub.unread - 1); paintBadges(); call('learn_notifs_read', { p_ids: [n.id] }).catch(() => {}); };

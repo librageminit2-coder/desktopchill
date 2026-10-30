@@ -4,12 +4,12 @@
 // • Bestie cũng học hôm nay → XP mỗi bài +10%. Bestie offline quá 3 ngày → XP mỗi bài −10% và hiện hộp thoại nhắc "Bestie của bạn đâu rồi?".
 // • Bị thách đấu: chuyển trận cho Bestie đấu thay (tối đa 5 lượt / ngày).
 // • Hiệu ứng Bestie + slogan: hiện ~2 giây khi hai người cùng vào một live quiz hoặc lớp học. Hiệu ứng mới có trong rương quà.
-import { I } from './icons.js?v=40';
-import { S, save, today } from './store.js?v=40';
-import { acct, call } from './account.js?v=40';
-import { sfx } from './sound.js?v=40';
-import { esc, toast, sheet, overlay, vipAv, ago, online, confirmBox } from './ui.js?v=40';
-import * as walls from './walls.js?v=40';
+import { I } from './icons.js?v=41';
+import { S, save, today } from './store.js?v=41';
+import { acct, call } from './account.js?v=41';
+import { sfx } from './sound.js?v=41';
+import { esc, toast, sheet, overlay, vipAv, ago, online, confirmBox } from './ui.js?v=41';
+import * as walls from './walls.js?v=41';
 
 let C = null;
 export function init(ctx) { C = ctx; }
@@ -54,11 +54,11 @@ export function multNote() {
 
 /* ---------- hiệu ứng ~2 giây khi gặp nhau ---------- */
 export function playFx(fx, o = {}) {
-  const f = FX[fx] || FX.highfive, me = o.me || (acct ? { name: acct.name, avatar: acct.avatar } : { name: 'You' }), them = o.them || { name: 'Bestie' };
+  const f = FX[fx] || FX.highfive, me = o.me || (acct ? { name: acct.name, avatar: acct.avatar, vip: walls.myVip() } : { name: 'You' }), them = o.them || { name: 'Bestie' };
   document.querySelectorAll('.bfx').forEach((x) => x.remove());
   const el = document.createElement('div'); el.className = `bfx fx-${fx}`; el.setAttribute('role', 'status');
   const parts = Array.from({ length: 18 }, (_, i) => `<i class="bp" style="--i:${i};--x:${Math.round(Math.random() * 100)};--d:${(Math.random() * 0.6).toFixed(2)}s">${f.icon}</i>`).join('');
-  el.innerHTML = `<div class="bfx-in"><div class="bfx-pair"><span class="bfx-a">${vipAv(me.name, me.avatar, 0, 'lg')}</span><span class="bfx-mid">${f.icon}</span><span class="bfx-b">${vipAv(them.name, them.avatar, 0, 'lg')}</span></div>
+  el.innerHTML = `<div class="bfx-in"><div class="bfx-pair"><span class="bfx-a">${vipAv(me.name, me.avatar, me.vip ?? (acct ? walls.myVip() : 0), 'lg')}</span><span class="bfx-mid">${f.icon}</span><span class="bfx-b">${vipAv(them.name, them.avatar, them.vip || 0, 'lg')}</span></div>
     <b class="bfx-t">${esc(o.title || 'Besties together!')}</b>${o.slogans && o.slogans.filter(Boolean).length ? `<small class="bfx-s">“${esc(o.slogans.filter(Boolean).join(' · '))}”</small>` : ''}</div><div class="bfx-parts">${parts}</div>`;
   document.body.appendChild(el); sfx('combo');
   requestAnimationFrame(() => el.classList.add('on'));
@@ -75,7 +75,7 @@ export async function checkHere(kind, ref) {
   if (!j || !j.here || !j.bestie) return false;
   try { sessionStorage.setItem(key, '1'); } catch (e) {}
   const b = j.bestie;
-  playFx(b.my_fx || 'highfive', { them: { name: b.name, avatar: b.avatar }, title: kind === 'quiz' ? `You and ${b.name} are in this quiz!` : `You and ${b.name} are in this class!`, slogans: [b.my_slogan, b.their_slogan] });
+  playFx(b.my_fx || 'highfive', { them: { name: b.name, avatar: b.avatar, vip: b.vip || 0 }, title: kind === 'quiz' ? `You and ${b.name} are in this quiz!` : `You and ${b.name} are in this class!`, slogans: [b.my_slogan, b.their_slogan] });
   return true;
 }
 
@@ -149,16 +149,16 @@ export function wireSection(root, refresh) {
   const nd = el.querySelector('.bst-nudge'); if (nd) nd.addEventListener('click', async () => { try { const j = await call('learn_bestie_nudge'); toast(j.again ? 'You already nudged them recently' : `Nudge sent to ${b.name}`); sfx('ok'); } catch (e) { toast(e.message); } });
   el.querySelector('.bst-share').addEventListener('change', async (e) => { try { await call('learn_bestie_set', { p_share: e.target.checked, p_fx: null, p_slogan: null }); toast(e.target.checked ? 'Your wallpapers are shared with your Bestie' : 'Sharing turned off'); again(); } catch (er) { toast(er.message); } });
   el.querySelectorAll('.fxo:not([disabled])').forEach((x) => x.addEventListener('click', async () => {
-    try { const j = await call('learn_bestie_set', { p_share: null, p_fx: x.dataset.fx, p_slogan: null }); if (!j.ok) { toast(em(j)); return; } el.querySelectorAll('.fxo').forEach((y) => y.setAttribute('aria-pressed', y === x)); b.my_fx = x.dataset.fx; sfx('tap'); playFx(x.dataset.fx, { them: { name: b.name, avatar: b.avatar }, slogans: [b.my_slogan, b.their_slogan], title: 'Preview' }); } catch (e) { toast(e.message); }
+    try { const j = await call('learn_bestie_set', { p_share: null, p_fx: x.dataset.fx, p_slogan: null }); if (!j.ok) { toast(em(j)); return; } el.querySelectorAll('.fxo').forEach((y) => y.setAttribute('aria-pressed', y === x)); b.my_fx = x.dataset.fx; sfx('tap'); playFx(x.dataset.fx, { them: { name: b.name, avatar: b.avatar, vip: b.vip || 0 }, slogans: [b.my_slogan, b.their_slogan], title: 'Preview' }); } catch (e) { toast(e.message); }
   }));
   el.querySelector('.bst-sl-go').addEventListener('click', async () => { const v = el.querySelector('#bsl').value; try { await call('learn_bestie_set', { p_share: null, p_fx: null, p_slogan: v }); b.my_slogan = v.trim(); sfx('ok'); toast('Slogan saved'); } catch (e) { toast(e.message); } });
-  el.querySelector('.bst-try').addEventListener('click', () => playFx(b.my_fx || 'highfive', { them: { name: b.name, avatar: b.avatar }, slogans: [el.querySelector('#bsl').value.trim(), b.their_slogan], title: 'Preview' }));
+  el.querySelector('.bst-try').addEventListener('click', () => playFx(b.my_fx || 'highfive', { them: { name: b.name, avatar: b.avatar, vip: b.vip || 0 }, slogans: [el.querySelector('#bsl').value.trim(), b.their_slogan], title: 'Preview' }));
   el.querySelector('.bst-rm').addEventListener('click', async () => {
     if (!(await confirmBox(`Remove ${b.name} as your Bestie?`, 'Shared wallpapers, the XP bonus and Bestie Adventure stop. Your Adventure stars stay saved if you team up again later.', 'Remove', true))) return;
     try { await call('learn_bestie_remove'); toast('Bestie removed'); walls.bestieWalls.clear(); B.brief = null; again(); } catch (e) { toast(e.message); }
   });
 }
-function celebrate() { const b = B.brief || (B.st && B.st.bestie); setTimeout(() => load(true).then(() => { const x = B.brief; if (x) playFx('hearts', { them: { name: x.name, avatar: x.avatar }, title: `You and ${x.name} are Besties!` }); }), 200); void b; }
+function celebrate() { const b = B.brief || (B.st && B.st.bestie); setTimeout(() => load(true).then(() => { const x = B.brief; if (x) playFx('hearts', { them: { name: x.name, avatar: x.avatar, vip: x.vip || 0 }, title: `You and ${x.name} are Besties!` }); }), 200); void b; }
 // bảng Bestie riêng (mở từ menu / thông báo)
 export async function openSheet() {
   if (!acct) { C.authSheet('new'); return; }

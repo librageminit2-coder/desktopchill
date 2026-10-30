@@ -2,11 +2,11 @@
 // v23: rương không còn trao hình cố định mà trao VÉ QUAY (gacha.js). Bestie chia sẻ bộ sưu tập để dùng làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=40';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=40';
-import { acct, call, push } from './account.js?v=40';
-import { sfx } from './sound.js?v=40';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=40';
+import { I } from './icons.js?v=41';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=41';
+import { acct, call, push } from './account.js?v=41';
+import { sfx } from './sound.js?v=41';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=41';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -14,7 +14,7 @@ export let CAT = null;
 const BYID = {};
 export async function loadCat() {
   if (CAT) return CAT;
-  const r = await fetch('data/walls.json?v=5'); CAT = await r.json();
+  const r = await fetch('data/walls.json?v=6'); CAT = await r.json();
   CAT.walls.forEach((w) => { BYID[w.id] = w; });
   ensureStarters();
   return CAT;
@@ -138,8 +138,8 @@ export function checkVip() {
     <small class="vip-k">${from ? `VIP ${from} → VIP ${v}` : 'New rank'}</small>
     <h2>VIP ${v}</h2>
     <p class="vip-style">${esc(VIP_STYLE[v])}</p>
-    <ul class="vip-perks"><li>${I.gift}<span>Share up to <b>${v}</b> wallpaper${v > 1 ? 's' : ''} with friends at this rank: one per friend, one per day.</span></li><li>${I.sparkle}<span>Your avatar ring changes for everyone: friends list, duels, live quizzes.</span></li>${v < 10 ? `<li>${I.target}<span>Next: VIP ${v + 1} at ${VIP_T[v]} points.</span></li>` : `<li>${I.crown}<span>Top rank. Nothing left above you.</span></li>`}</ul>
-    <button class="btn acc ovl-ok" type="button">Wear it</button></div>`, null, 'reward vip-ovl');
+    <ul class="vip-perks"><li>${I.gift}<span>Share up to <b>${v}</b> wallpaper${v > 1 ? 's' : ''} with friends at this rank: one per friend, one per day.</span></li><li>${I.sparkle}<span>Your new avatar ring is already on. Everyone sees it: friends list, rankings, duels, live quizzes.</span></li>${v < 10 ? `<li>${I.target}<span>Next: VIP ${v + 1} at ${VIP_T[v]} points.</span></li>` : `<li>${I.crown}<span>Top rank. Nothing left above you.</span></li>`}</ul>
+    <button class="btn acc ovl-ok" type="button">Awesome!</button></div>`, null, 'reward vip-ovl');
   setTimeout(() => { const r = o.el.querySelector('.vav'); if (r) { const b = r.getBoundingClientRect(); burst(b.left + b.width / 2, b.top + b.height / 2, 30 + v * 4); } }, 650);
 }
 
@@ -165,18 +165,21 @@ const playC = (c) => { const p = vidOf(c).play(); if (p && p.catch) p.catch(() =
 const stopC = (c) => { const v = c.querySelector('video'); if (v) v.pause(); };
 export function wireCards(root, onOpen, o = {}) {
   const auto = o.play !== false && !matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator.connection && navigator.connection.saveData);
+  // v29: o.live = cả thẻ nhỏ (tiny) cũng tự chạy; o.all = chạy hết ngay (máy tính), không thì chạy khi lướt tới (điện thoại)
   if (auto && !io && 'IntersectionObserver' in window) io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) playC(e.target); else stopC(e.target); }), { rootMargin: '80px', threshold: 0.2 });
   if (io) watched.forEach((c) => { if (!c.isConnected) { io.unobserve(c); watched.delete(c); } });
   root.querySelectorAll('.wcard').forEach((c) => {
     if (onOpen) c.addEventListener('click', () => onOpen(+c.dataset.w, c));
-    if (auto && io && !c.classList.contains('tiny') && c.dataset.w !== '0') { io.observe(c); watched.add(c); }
+    const live = auto && c.dataset.w !== '0' && (o.live || !c.classList.contains('tiny'));
+    if (live && o.all) playC(c);
+    else if (live && io) { io.observe(c); watched.add(c); }
     if (!fine) return;
     c.addEventListener('pointermove', (e) => {
       const r = c.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
       c.style.setProperty('--ry', ((px - 0.5) * 14).toFixed(2) + 'deg'); c.style.setProperty('--rx', ((0.5 - py) * 14).toFixed(2) + 'deg');
       c.style.setProperty('--mx', (px * 100).toFixed(1) + '%'); c.style.setProperty('--my', (py * 100).toFixed(1) + '%');
     });
-    if (!auto || c.classList.contains('tiny')) { c.addEventListener('pointerenter', () => { if (c.dataset.w !== '0') playC(c); }); c.addEventListener('pointerleave', () => stopC(c)); }
+    if (!live) { c.addEventListener('pointerenter', () => { if (c.dataset.w !== '0') playC(c); }); c.addEventListener('pointerleave', () => stopC(c)); }
     c.addEventListener('pointerleave', () => { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); });
   });
 }

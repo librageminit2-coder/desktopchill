@@ -1,11 +1,11 @@
 // v23: menu chuột phải (máy tính) / chạm giữ hoặc chạm (điện thoại) cho một người: xem hồ sơ, nhắn tin, duel, kết bạn, Bestie, tặng hình.
 // Thay cho các nút nhỏ trên từng dòng. Hồ sơ công khai không có email / số điện thoại.
-import { I } from './icons.js?v=40';
-import { acct, call } from './account.js?v=40';
-import { sfx } from './sound.js?v=40';
-import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=40';
-import * as walls from './walls.js?v=40';
-import * as bestie from './bestie.js?v=40';
+import { I } from './icons.js?v=41';
+import { acct, call } from './account.js?v=41';
+import { sfx } from './sound.js?v=41';
+import { esc, toast, sheet, vipAv, ago, online } from './ui.js?v=41';
+import * as walls from './walls.js?v=41';
+import * as bestie from './bestie.js?v=41';
 
 let C = null;
 export function init(ctx) { C = ctx; }
@@ -77,11 +77,16 @@ export async function profile(uid) {
     ${courses.length ? `<div class="pf-c">${courses.map((l) => `<div class="pf-ci"><b>${CN[l]}</b><small>${lv[l] ? String(lv[l]).toUpperCase().replace('B1P', 'B1+').replace('B2P', 'B2+') : ''} · ${I.star}${(p.stars || {})[l] || 0} stars</small></div>`).join('')}</div>` : ''}
     <h3 class="gh">Collection <em>${ws.length}/${walls.total()}</em></h3>
     <div class="wgrid sm pf-w">${ws.slice(0, 24).map((w) => walls.card(w, { state: 'got', cls: 'tiny' })).join('') || '<p class="muted">No wallpapers yet.</p>'}</div>
+    ${ws.length > 24 ? `<button class="btn sm ghost pf-more" type="button">Show all ${ws.length}</button>` : ''}
     <div class="pf-acts"></div></div>`, (el, close) => {
     const acts = userItems({ uid: p.uid, name: p.name, avatar: p.avatar, vip: p.vip, rel: p.rel, last_seen: p.last_seen }).filter((x) => x && x.ic !== 'user' && !x.disabled);
     const box = el.querySelector('.pf-acts');
     box.innerHTML = acts.map((a, i) => `<button class="btn sm ${i ? 'ghost' : 'acc'}" type="button" data-i="${i}">${I[a.ic]} ${esc(a.label)}</button>`).join('');
     box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { close(); acts[+b.dataset.i].fn(); }));
-    walls.wireCards(el.querySelector('.pf-w'), null, { play: false });
+    // v29: hình nền của người khác tự chạy: máy tính chạy hết, điện thoại chạy khi lướt tới (tránh giật)
+    const grid = el.querySelector('.pf-w'), desk = matchMedia('(hover: hover) and (pointer: fine)').matches && innerWidth >= 700;
+    walls.wireCards(grid, null, { live: true, all: desk });
+    const more = el.querySelector('.pf-more');
+    if (more) more.addEventListener('click', () => { const t = document.createElement('div'); t.innerHTML = ws.slice(24).map((w) => walls.card(w, { state: 'got', cls: 'tiny' })).join(''); const add = [...t.children]; add.forEach((c) => grid.appendChild(c)); walls.wireCards({ querySelectorAll: () => add }, null, { live: true }); more.remove(); });
   }, 'wide');
 }

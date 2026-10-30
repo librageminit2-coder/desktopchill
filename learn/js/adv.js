@@ -2,15 +2,15 @@
 // Bản đồ rộng (kéo / cuộn để phóng to) với các vùng theo cấp độ. Mỗi vùng có 5 boss + 1 vua vùng (chấm đỏ).
 // Đề lấy từ toàn bộ bài học của cấp đó, 4 kiểu vòng phối hợp: Đồng tâm · Mảnh ghép · Tiếp sức · Nối đôi.
 // v24c: người chưa có Bestie chơi chế độ LONELY (một mình, cùng đề; máy chủ learn_adv_* với solo = true).
-import { I } from './icons.js?v=40';
-import { S } from './store.js?v=40';
-import { acct, call } from './account.js?v=40';
-import { sfx } from './sound.js?v=40';
-import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=40';
-import * as bestie from './bestie.js?v=40';
-import * as gacha from './gacha.js?v=40';
-import * as walls from './walls.js?v=40';
-import * as globe from './advglobe.js?v=40';
+import { I } from './icons.js?v=41';
+import { S } from './store.js?v=41';
+import { acct, call } from './account.js?v=41';
+import { sfx } from './sound.js?v=41';
+import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=41';
+import * as bestie from './bestie.js?v=41';
+import * as gacha from './gacha.js?v=41';
+import * as walls from './walls.js?v=41';
+import * as globe from './advglobe.js?v=41';
 
 let C = null;
 export function init(ctx) {
@@ -145,7 +145,7 @@ function curBoss(map) {
 }
 async function wireMap(box) {
   if (G) { G.destroy(); G = null; }
-  const map = curMap, mate = M && M.bestie ? { name: M.bestie.name, avatar: M.bestie.avatar } : null;
+  const map = curMap, mate = M && M.bestie ? { name: M.bestie.name, avatar: M.bestie.avatar, vip: M.bestie.vip || 0 } : null;
   const opts = {
     map, regions: MAPS[map].regions, themes: THEMES[map], pal: PASTEL, treeOf: TREE_OF,
     stars: (r, n) => starsOf(map, r, n), open: (r, n) => bossOpen(map, r, n), regionOpen: (r) => regionOpen(map, r),
@@ -154,7 +154,7 @@ async function wireMap(box) {
     onLocked: (r) => { sfx('tap'); toast(`Beat ${MAPS[map].regions[r - 2].king} in ${MAPS[map].regions[r - 2].name} to open ${MAPS[map].regions[r - 1].name}.`); },
   };
   // v27: bản đồ 2D vẽ sẵn (Blender) theo ảnh mẫu Bestie Map; lỗi tải → bản đồ canvas cũ
-  try { const m2 = await import('./advmap2d.js?v=40'); G = await m2.mount(box, opts); }
+  try { const m2 = await import('./advmap2d.js?v=41'); G = await m2.mount(box, opts); }
   catch (e) { console.error('map image failed', e); if (!box.isConnected) return; box.classList.remove('is2d'); G = globe.mount(box, opts); }
   if (!box.isConnected) { if (G) G.destroy(); return; }
   const wrap = box.parentElement;
@@ -258,7 +258,7 @@ export function invite(a) {
   sfx('quest');
   const el = document.createElement('div'); el.className = 'adv-inv panel solid'; el.setAttribute('role', 'alertdialog');
   const [m, r, n] = String(a.boss).split('-'); const nm = MAPS[m] ? bossName(m, +r, +n) : 'a boss';
-  el.innerHTML = `<div class="adv-inv-h">${vipAv(a.host, a.host_avatar, 0)}<div class="grow"><b>${esc(a.host)} wants to fight together!</b><small>Bestie Adventure · ${esc(nm)} · <span class="adv-cd">90</span>s</small></div></div><div class="adv-inv-b"><button class="btn ghost sm adv-no" type="button">Not now</button><button class="btn acc sm adv-yes" type="button">${I.swords} Join</button></div>`;
+  el.innerHTML = `<div class="adv-inv-h">${vipAv(a.host, a.host_avatar, a.host_vip || 0)}<div class="grow"><b>${esc(a.host)} wants to fight together!</b><small>Bestie Adventure · ${esc(nm)} · <span class="adv-cd">90</span>s</small></div></div><div class="adv-inv-b"><button class="btn ghost sm adv-no" type="button">Not now</button><button class="btn acc sm adv-yes" type="button">${I.swords} Join</button></div>`;
   document.body.appendChild(el);
   const t = setInterval(() => { const s = Math.ceil((until - Date.now()) / 1000); const cd = el.querySelector('.adv-cd'); if (cd) cd.textContent = Math.max(0, s); if (s <= 0) done(); }, 500);
   const done = () => { clearInterval(t); el.classList.add('out'); setTimeout(() => el.remove(), 250); };
@@ -335,7 +335,7 @@ function draw(s) {
   const sig = JSON.stringify([s.state, s.ridx, rd.mine, rd.other_done, rd.picked, rd.line, rd.miss, rd.ok, rd.my_pick, rd.their_pick, rd.bad, live.startAt > Date.now() ? 'cd' : 'go']);
   if (sig === live.sig) return; live.sig = sig;
   const box = el.querySelector('.as-round');
-  if (s.state === 'invite') { box.innerHTML = `<div class="as-wait">${vipAv(mate.name, mate.avatar, 0, 'xl')}<h2>Waiting for ${esc(mate.name)}…</h2><p class="muted">They got an invitation. <b class="as-wt">90</b>s left.</p><span class="spin"></span></div>`; return; }
+  if (s.state === 'invite') { box.innerHTML = `<div class="as-wait">${vipAv(mate.name, mate.avatar, mate.vip || 0, 'xl')}<h2>Waiting for ${esc(mate.name)}…</h2><p class="muted">They got an invitation. <b class="as-wt">90</b>s left.</p><span class="spin"></span></div>`; return; }
   if (['won', 'lost', 'left', 'expired', 'declined'].includes(s.state)) { endScreen(s, box); return; }
   if (live.startAt > Date.now() + 150) { box.innerHTML = `<div class="as-next"><small>Round ${s.ridx + 1} of ${s.n}</small><h2>${TY[rd.type].ic} ${TY[rd.type].name}</h2><p>${esc(TY[rd.type].how)}</p><b class="as-cd">3</b></div>`; setTimeout(() => { if (live) { live.sig = ''; } }, Math.max(0, live.startAt - Date.now() + 50)); return; }
   const head = `<div class="as-rh"><span class="tag-s">${TY[rd.type].ic} ${TY[rd.type].name} · ${s.ridx + 1}/${s.n}</span><div class="as-time"><i></i><span></span></div></div>`;
@@ -409,7 +409,7 @@ function endScreen(s, box) {
   }
   const ans = s.answers || [];
   if (ans.length && s.state !== 'expired' && s.state !== 'declined') box.querySelector('.as-end').insertAdjacentHTML('beforeend', `<details class="as-rev"><summary>Review the answers</summary>${ans.map((a, i) => `<div><small>${i + 1}. ${typeOf(a.type, s.solo).name}</small> ${a.type === 'relay' ? esc(a.tk.join(a.zh ? '' : ' ')) : a.type === 'link' ? a.words.map((w, k) => `${esc(w)} = ${esc(a.means[a.a[k]])}`).join(' · ') : `${esc(a.q)} → <b>${esc(a.opts[a.a])}</b>`}</div>`).join('')}</details>`);
-  const t = box.querySelector('.as-try'); if (t) t.addEventListener('click', () => bestie.playFx(fx, { me: { name: acct.name, avatar: acct.avatar }, them: { name: mate.name, avatar: mate.avatar }, title: 'New Bestie effect!' }));
+  const t = box.querySelector('.as-try'); if (t) t.addEventListener('click', () => bestie.playFx(fx, { me: { name: acct.name, avatar: acct.avatar, vip: walls.myVip() }, them: { name: mate.name, avatar: mate.avatar, vip: mate.vip || 0 }, title: 'New Bestie effect!' }));
   const sb = box.querySelector('.as-chest'); if (sb && s.state === 'won') sb.classList.add('open');
   const ub = box.querySelector('.as-bg'); if (ub) ub.addEventListener('click', () => { walls.setBg(wl); sfx('ok'); toast('Background set'); ub.disabled = true; });
   const sp = box.querySelector('.as-spin'); if (sp) sp.addEventListener('click', () => { stopStage(false); C.spin({}); });
