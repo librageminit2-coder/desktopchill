@@ -1,23 +1,23 @@
-import { I, LOGO } from './icons.js?v=42';
-import { sound, sfx, unlockAudio } from './sound.js?v=42';
-import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=42';
-import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=42';
-import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=42';
-import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=42';
-import * as social from './social.js?v=42';
-import { setVideo, setBg } from './scene.js?v=42';
-import * as walls from './walls.js?v=42';
-import * as hub from './hub.js?v=42';
-import * as duel from './duel.js?v=42';
-import * as chat from './chat.js?v=42';
-import * as guide from './guide.js?v=42';
-import * as acctui from './acctui.js?v=42';
-import * as gacha from './gacha.js?v=42';
-import * as bestie from './bestie.js?v=42';
-import * as ctxm from './ctx.js?v=42';
-import * as adv from './adv.js?v=42';
-import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=42';
-import { mascot } from './mascot.js?v=42';
+import { I, LOGO } from './icons.js?v=43';
+import { sound, sfx, unlockAudio } from './sound.js?v=43';
+import { tts, speak, listVoices, canListen, listen, stopListen, micMsg, micBlocked, MIC_HELP, watchMic, requestMic, micPolicyBlocked } from './speech.js?v=43';
+import { S, save, streakNow, todayXP, unitProgress, due, grade, addXP, today, reset, daily, bump, LN, starsOf, unitStars, playerLevel, setStars, markDone, addWords } from './store.js?v=43';
+import { acct, sync, onSync, register, login, logout, validName, validPin, push, nameAvailable, setAvatar, call, pull, onPulled } from './account.js?v=43';
+import { esc, shuffleArr, toast, sheet, floatText, burst, overlay, initials, avatar, vipAv, isImg, AVATARS } from './ui.js?v=43';
+import * as social from './social.js?v=43';
+import { setVideo, setBg } from './scene.js?v=43';
+import * as walls from './walls.js?v=43';
+import * as hub from './hub.js?v=43';
+import * as duel from './duel.js?v=43';
+import * as chat from './chat.js?v=43';
+import * as guide from './guide.js?v=43';
+import * as acctui from './acctui.js?v=43';
+import * as gacha from './gacha.js?v=43';
+import * as bestie from './bestie.js?v=43';
+import * as ctxm from './ctx.js?v=43';
+import * as adv from './adv.js?v=43';
+import { runLesson, LESSONS, lessonName, lessonDesc } from './lesson.js?v=43';
+import { mascot } from './mascot.js?v=43';
 
 const app = document.getElementById('app');
 const strip = (s) => (s || '').replace(/\s+/g, '');
@@ -131,7 +131,7 @@ const MENU = [
   { label: 'Adventure', href: '#/adventure', ic: 'map', match: ['#/adventure'], items: [], hot: true },
   { label: 'Collection', href: '#/collection', ic: 'gallery', match: ['#/collection'], items: [['#/collection/all', 'All collection', 'gallery', 'Every wallpaper you own and can still win'], ['#/collection/spin', 'Lucky spin', 'gift', 'Spin your tickets for wallpapers'], ['#/collection/badges', 'Achievements', 'medal', 'Badges for streaks, words and more']] },
   // v30: Quiz là mục chính riêng
-  { label: 'Quiz', href: '#/quiz', ic: 'zap', match: ['#/quiz'], items: [['#/quiz', 'Live rooms', 'zap', 'See every quiz that is live now and jump in'], ['#/quiz/create', 'Create a quiz', 'plus', 'Topics, power-ups, auto-play and a password if you want one'], ['#/quiz/pin', 'Join with a PIN', 'pin', 'Type the 6 digits from the host screen'], ['#/quiz/sets', 'My question sets', 'edit', 'Write your own questions once, host any time'], ['#/friends/groups', 'Group quiz', 'users', 'Quiz your friend group in one tap']] },
+  { label: 'Quiz', href: '#/quiz', ic: 'zap', match: ['#/quiz'], items: [] },
   { label: 'Play', href: '#/duel', ic: 'swords', match: ['#/duel'], items: [['#/duel', 'Duels', 'swords', 'Same 10 questions, first win of the day: a spin ticket'], ['#/practice', 'Practice', 'target', 'Speed rounds, speaking, dictation'], ['#/review', 'Review', 'cards', 'Word cards due today']] },
   { label: 'Classes', href: '#/classes', ic: 'school', match: ['#/classes', '#/class'], items: [['#/classes', 'My classes', 'school', 'Assignments, stream and reports'], ['#/classes', 'Join a class', 'plus', 'Enter the code from your teacher']] },
 ];
@@ -519,7 +519,7 @@ function runTestOut(c, L, u) {
   while (q.length < 12) { const w = shuffleArr(u.words)[0]; q.push({ type: zh ? 'meaning' : 'wordFromVi', w }); }
   const unit = { id: 'tout-' + u.id, title: 'Test out: ' + u.title, words: u.words, dlg: u.dlg, read: u.read, gram: u.gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=42').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=43').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     if (r && r.done && r.acc >= TOUT_PASS) {
       for (let k = 0; k < LN; k++) { setStars(u.id, k, 2); markDone(u.id, k); }
       addWords(S.lang, u.words.map((w) => w.w)); addXP(20); delete S.tout[u.id]; save(true);
@@ -561,7 +561,7 @@ function bossFight(c, L) {
   shuffleArr(src).slice(0, 3).forEach((u) => { const x = shuffleArr(u.read.q)[0]; if (x) q.push({ type: 'mcq', q: x.q, opts: x.opts, a: x.a, note: 'From the reading: ' + u.read.title }); });
   const unit = { id: 'boss-' + L.id, title: L.name + ' boss challenge', words, dlg: { lines: [] }, read: src[0].read, gram: src[0].gram };
   const before = playerLevel().lv;
-  import('./lesson.js?v=42').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
+  import('./lesson.js?v=43').then((m) => m.runCustom({ unit, queue: shuffleArr(q), lang: S.lang, onExit: (r) => {
     const key = S.lang + '|' + L.id, st = r && r.done ? walls.bossStarsOf(r.acc) : 0;
     if (st > 0) {
       const first = !S.boss[key]; if (first) { S.boss[key] = today(); addXP(50); }
@@ -665,6 +665,7 @@ async function home() {
 function start(c, uid, k) {
   pull(); // v23: lấy tiến độ mới nhất từ máy khác trước khi học
   if (!canStart(c, uid, k)) { toast('Lessons open one by one. Finish the glowing lesson first.'); return; }
+  if (!acct && guestLessons() >= 1) { gateSheet('more'); return; }
   unlockAudio();
   const { u } = findUnit(c, uid);
   const before = questDone(), lv0 = playerLevel().lv;
@@ -675,6 +676,7 @@ function start(c, uid, k) {
     if (back) { if (location.hash === back) render(); else location.hash = back; }
     else if (location.hash !== '#/' && location.hash !== '') location.hash = '#/'; else home();
     setTimeout(() => { const g = document.querySelector('.hud .gem'); if (r && r.done && g) floatText(g, `+${r.xp} XP`); }, 400);
+    if (!acct && r && r.done) setTimeout(() => { if (!acct) gateSheet('lesson'); }, 1600);
   } });
 }
 const questDone = () => quests().filter((q) => q.v >= q.n).length;
@@ -1013,6 +1015,26 @@ function authSheet(mode) {
   sheet(`<h2>Learning account</h2><p class="sub">Save your progress and continue on another device.</p><div class="authwrap">${authForm(mode)}</div>`, (el, close) => wireAuth(el, mode, (m) => { close(); toast(m === 'new' ? 'Account created, progress saved' : 'Signed in'); applySettings(); render(); }));
 }
 
+/* ---------- v31: khách chưa có tài khoản ---------- */
+// học thử được 1 bài; sau đó (hoặc sau khi chơi xong 1 ván quiz) mời tạo tài khoản
+const guestLessons = () => Object.values(S.done || {}).reduce((a, x) => a + (Array.isArray(x) ? x.filter(Boolean).length : 0), 0);
+const GATE = {
+  lesson: ['🌱', 'Nice! Your first lesson is done', 'Create a free account to keep going. Your lesson, XP and streak move into the account.'],
+  more: ['🔒', 'Create a free account to continue', 'You tried one lesson without an account. Make a free account to unlock the whole journey map.'],
+  quiz: ['🏆', 'Good game! Want to keep your score?', 'Create a free account: winners get VIP points, wallpapers and spin tickets, and you can host your own quiz.'],
+};
+function gateSheet(kind = 'lesson', after) {
+  const [em, t, d] = GATE[kind] || GATE.lesson;
+  const mode = 'new';
+  sheet(`<div class="gate"><div class="gate-h"><span class="gate-em">${em}</span><h2>${t}</h2><p class="gate-sub">${d}</p>
+      <ul class="gate-ben"><li>📚 Every unit, level and topic</li><li>💾 Progress saved on any device</li><li>⚡ Live quizzes, duels and prizes</li><li>🖼️ Wallpapers and VIP frames</li></ul></div>
+    <div class="authwrap">${authForm(mode)}</div></div>`, (el, close) => {
+    const done = (m) => { close(); S.onboarded = true; save(true); toast(m === 'new' ? 'Account created, progress saved' : 'Signed in'); applySettings(); unlockAudio(); if (after) after(); else { if (location.hash.startsWith('#/play')) location.hash = '#/'; render(); } };
+    wireAuth(el, mode, done);
+  });
+  sfx('badge');
+}
+
 /* ---------- chào mừng ---------- */
 async function welcome() {
   const all = {}; for (const k of AVAIL) { try { all[k] = await course(k); } catch (e) {} }
@@ -1037,7 +1059,7 @@ async function welcome() {
       <div class="w-course"><div class="pick sm" role="group" aria-label="Choose a course">${avail.map((k) => `<button data-l="${k}" aria-pressed="${lang === k}" type="button"><span class="${k === 'zh' ? 'zh' : ''}">${esc(COURSES[k].name)}</span></button>`).join('')}</div>
         <label class="w-lvl"><span>Start at</span><select class="input w-lv">${lvSelect(c, lv[lang])}</select></label></div>
       <div class="authwrap compact">${authForm(mode)}</div>
-      <div class="w-foot"><button class="linkb w-later" type="button">Try it first without an account</button><button class="linkb w-pin" type="button">${I.zap} Join a game</button></div>
+      <div class="w-foot"><button class="linkb w-later" type="button">Try one lesson without an account</button><button class="linkb w-pin" type="button">${I.zap} Join a game</button></div>
     </div></div>`;
     const setCourse = () => { S.lang = lang; S.level = { ...S.level, ...lv }; save(); };
     setCourse();
@@ -1057,9 +1079,10 @@ async function welcome() {
 
 /* ---------- chạy hàng đợi luyện tập ---------- */
 function runQueue(unit, queue, lang) {
+  if (!acct && guestLessons() >= 1) { gateSheet('more'); return; }
   pull();
   const before = questDone(), lv0 = playerLevel().lv;
-  import('./lesson.js?v=42').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
+  import('./lesson.js?v=43').then((m) => m.runCustom({ unit, queue, lang, onExit: () => { questCheer(before); checkLevel(lv0); checkBadges(); render(); } }));
 }
 
 /* ---------- router ---------- */
@@ -1108,7 +1131,7 @@ async function goTo(lang, lv, uid) {
   scrollToUnit = uid || null; try { sessionStorage.setItem('dcl_scrolled', (lv || '') + lang); } catch (e) {}
   if (location.hash === '#/' || location.hash === '') render(); else location.hash = '#/';
 }
-const ctx = { vipPaint, groups: { sheet: social.groupSheet, quiz: social.quickQuiz }, shell, render, authSheet, course, findUnit, curLevel, startLesson: (c, uid, k) => start(c, uid, k), COURSES, AVAIL, LN, lessonName, asideHTML, lvRing, goTo, badgesHTML, applyBg: setBg,
+const ctx = { vipPaint, gateSheet, groups: { sheet: social.groupSheet, quiz: social.quickQuiz }, shell, render, authSheet, course, findUnit, curLevel, startLesson: (c, uid, k) => start(c, uid, k), COURSES, AVAIL, LN, lessonName, asideHTML, lvRing, goTo, badgesHTML, applyBg: setBg,
   spin: (o) => gacha.spin(o), setTickets: (n) => gacha.setLeft(n), tickets: () => gacha.G.left, tick: (q) => hub.tick(q), openDM: (f) => chat.openDM(f),
   friends: () => ((hub.hub.friends && hub.hub.friends.items) || []), loadFriends: () => hub.loadFriends(), autoJoin: (g) => social.autoJoin(g), advInvite: (a) => adv.invite(a),
   startTour: (k, force) => guide.startTour(k, force), giftTour: (gf) => guide.giftTour(gf), showRank: (b) => hub.showRank(b), gachaPanel: () => gacha.panelHTML(), wireGacha: (r) => gacha.wirePanel(r), gachaLoad: () => gacha.load(true) };

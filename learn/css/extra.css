@@ -216,36 +216,81 @@
 .ws-where .row > svg { width: 18px; height: 18px; color: var(--muted); }
 .tag-s svg { width: 12px; height: 12px; display: inline-block; vertical-align: -1px; }
 
-/* ---------- VIP rings ---------- */
+/* ---------- VIP frames (v31: mỗi cấp một kiểu riêng — vòng, hạt lửa, pha lê, sao chổi, nguyệt quế, cánh, vương miện) ---------- */
 .vav { --s: 40px; --t: max(2.5px, calc(var(--s) * .075)); position: relative; display: inline-grid; place-items: center; width: var(--s); height: var(--s); flex: none; isolation: isolate; vertical-align: middle; }
 .vav.lg { --s: 64px; } .vav.xl { --s: 120px; }
 .vav > .av { position: relative; z-index: 2; width: calc(var(--s) - var(--t) * 2 - 4px); height: calc(var(--s) - var(--t) * 2 - 4px); font-size: calc(var(--s) * .3); }
 .vav > .av.emo { font-size: calc(var(--s) * .42); }
-.vav .vr, .vav .vr2 { position: absolute; inset: 0; border-radius: 50%; z-index: 1; pointer-events: none; }
-.vav .vr { background: var(--ring); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--t)), #000 calc(100% - var(--t) + .5px)); mask: radial-gradient(farthest-side, transparent calc(100% - var(--t)), #000 calc(100% - var(--t) + .5px)); animation: spin var(--spd, 8s) linear infinite; box-shadow: 0 0 calc(var(--s) * .18) var(--halo, transparent); }
+.vav > i { position: absolute; pointer-events: none; font-style: normal; }
+.vav .vr, .vav .vr2, .vav .vr3 { inset: 0; border-radius: 50%; z-index: 1; }
+.vav .vr { background: var(--ring); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--t)), #000 calc(100% - var(--t) + .5px)); mask: radial-gradient(farthest-side, transparent calc(100% - var(--t)), #000 calc(100% - var(--t) + .5px)); animation: spin var(--spd, 8s) linear infinite; box-shadow: 0 0 calc(var(--s) * .12) var(--halo, transparent); }
 .vav::before { content: ""; position: absolute; inset: calc(var(--s) * -.08); border-radius: 50%; z-index: 0; background: radial-gradient(closest-side, var(--halo, transparent), transparent); opacity: .8; pointer-events: none; }
-.vav .vb { position: absolute; left: 50%; bottom: calc(var(--s) * -.1); transform: translateX(-50%); z-index: 3; font-style: normal; font-weight: 900; font-size: max(.5rem, calc(var(--s) * .16)); line-height: 1; padding: .2em .45em; border-radius: .5em; color: var(--vbc, #fff); background: var(--vbg, #333); box-shadow: 0 2px 6px rgba(0, 0, 0, .45); white-space: nowrap; letter-spacing: .02em; }
-.vav.v1, .vav.v2 { --ring: conic-gradient(#ff6a58, #ffab6b, #ff6a58 60%, #ffd0a8, #ff6a58); --spd: 9s; --vbg: linear-gradient(120deg, #ff6a58, #ffab6b); --halo: rgba(255, 106, 88, .22); }
-.vav.v2 { --spd: 7s; }
-.vav.v3, .vav.v4 { --ring: conic-gradient(#ffffff, #9aa8b0, #eef3f5, #7d8b93, #ffffff); --spd: 5s; --vbg: linear-gradient(120deg, #F4F7F8, #9AA8B0); --vbc: #1d2427; --halo: rgba(220, 235, 240, .25); }
-.vav.v4 { --spd: 4s; }
-.vav.v5, .vav.v6 { --ring: conic-gradient(#fff3b0, #ffc94a, #b9860f, #ffe08a, #fff8d6, #ffc94a, #fff3b0); --spd: 3.6s; --vbg: linear-gradient(120deg, #FFF1C2, #FFC94A); --vbc: #2A1C00; --halo: rgba(255, 201, 74, .4); }
-.vav.v5::before, .vav.v6::before { animation: halo2 2.4s ease-in-out infinite; }
-.vav.v6 { --spd: 3s; }
-@keyframes halo2 { 50% { opacity: .35; transform: scale(1.08); } }
-.vav.v7, .vav.v8 { --ring: conic-gradient(#b46bff, #5ee7ff, #b46bff, #ff7be0, #b46bff); --spd: 3s; --vbg: linear-gradient(120deg, #B46BFF, #5EE7FF); --vbc: #12052A; --halo: rgba(180, 107, 255, .45); }
-.vav.v8 { --spd: 2.4s; }
+.vav .vb { position: absolute; left: 50%; bottom: calc(var(--s) * -.1); transform: translateX(-50%); z-index: 5; font-style: normal; font-weight: 900; font-size: max(.5rem, calc(var(--s) * .16)); line-height: 1; padding: .2em .45em; border-radius: .5em; color: var(--vbc, #fff); background: var(--vbg, #333); box-shadow: 0 2px 6px rgba(0, 0, 0, .45); white-space: nowrap; letter-spacing: .02em; }
 .vav .vr2 { inset: calc(var(--t) * -1.6); border: max(1px, calc(var(--t) * .45)) dashed var(--ring2, rgba(94, 231, 255, .8)); animation: spin var(--spd2, 7s) linear infinite reverse; }
-.vav.v7::before, .vav.v8::before { animation: halo2 2s ease-in-out infinite; }
-.vav.v9 { --ring: conic-gradient(#ff3d00, #ffb300, #ff6d00, #ffea00, #ff3d00); --spd: 1.8s; --vbg: linear-gradient(120deg, #FF3D00, #FFB300); --vbc: #fff; --halo: rgba(255, 90, 0, .55); --ring2: rgba(255, 179, 0, .85); --spd2: 4s; }
+.vav .vr3 { inset: calc(var(--t) * -3); border: max(1px, calc(var(--t) * .5)) dotted var(--ring3, rgba(255, 123, 224, .8)); animation: spin 11s linear infinite; }
+@keyframes halo2 { 50% { opacity: .35; transform: scale(1.08); } }
+/* V1 đồng: vệt sáng chạy quanh vòng */
+.vav.v1 { --ring: conic-gradient(#7a3f22, #b8693f 30%, #ffe0bd 38%, #c9784a 46%, #7a3f22 70%, #a75a33); --spd: 6s; --vbg: linear-gradient(120deg, #C9784A, #FFD1A3); --vbc: #2b1206; --halo: rgba(201, 120, 74, .25); }
+/* V2 lửa: hạt than bay lên */
+.vav.v2 { --ring: conic-gradient(#ff3d2e, #ff8a3d, #ffd36b, #ff5a2e, #ff3d2e); --spd: 4s; --vbg: linear-gradient(120deg, #FF4D2E, #FFA63D); --halo: rgba(255, 90, 46, .35); }
+.vav .vp { inset: 0; z-index: 3; }
+.vav .vp b { position: absolute; bottom: 12%; left: 50%; width: max(2px, calc(var(--s) * .065)); height: max(2px, calc(var(--s) * .065)); border-radius: 50%; background: var(--emb, #FFC46B); box-shadow: 0 0 calc(var(--s) * .08) calc(var(--s) * .03) var(--embg, rgba(255, 110, 0, .8)); opacity: 0; animation: ember 2.6s ease-in infinite; }
+.vav .vp b:nth-child(1) { left: 18%; } .vav .vp b:nth-child(2) { left: 74%; animation-delay: .9s; } .vav .vp b:nth-child(3) { left: 46%; animation-delay: 1.7s; } .vav .vp b:nth-child(4) { left: 30%; animation-delay: 1.3s; }
+@keyframes ember { 0% { opacity: 0; transform: translate(0, 0) scale(1); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(var(--s) * .12), calc(var(--s) * -1)) scale(.3); } }
+/* V3 băng: vòng pha lê + sao lấp lánh */
+.vav.v3 { --ring: conic-gradient(#e8fbff, #7fd6ff, #2f7fd8, #bdf0ff, #5ab8ff, #e8fbff); --spd: 5s; --ring2: rgba(170, 236, 255, .85); --spd2: 9s; --vbg: linear-gradient(120deg, #9BE3FF, #3A8DDE); --vbc: #03203A; --halo: rgba(110, 200, 255, .4); }
+.vav .vtw { inset: calc(var(--s) * -.14); z-index: 3; }
+.vav .vtw b { position: absolute; width: calc(var(--s) * .16); height: calc(var(--s) * .16); background: #fff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 3px #9be3ff); animation: twk 2.4s ease-in-out infinite; transform: scale(0); }
+.vav .vtw b:nth-child(1) { top: 2%; right: 12%; } .vav .vtw b:nth-child(2) { bottom: 14%; left: 0; animation-delay: .6s; } .vav .vtw b:nth-child(3) { top: 30%; left: -2%; animation-delay: 1.2s; width: calc(var(--s) * .1); height: calc(var(--s) * .1); } .vav .vtw b:nth-child(4) { bottom: 4%; right: 6%; animation-delay: 1.8s; width: calc(var(--s) * .12); height: calc(var(--s) * .12); }
+@keyframes twk { 0%, 100% { transform: scale(0) rotate(0); } 50% { transform: scale(1) rotate(45deg); } }
+/* V4 ngọc bích: sao chổi bay quanh */
+.vav.v4 { --ring: conic-gradient(#0b7a52, #2fd88f, #c8ffe3, #0f9d6b, #0b7a52); --spd: 3.4s; --vbg: linear-gradient(120deg, #2FD88F, #0B7A52); --vbc: #fff; --halo: rgba(47, 216, 143, .4); }
+.vav .vo { inset: calc(var(--s) * -.1); border-radius: 50%; z-index: 3; animation: spin var(--ospd, 2.4s) linear infinite; }
+.vav .vo b { position: absolute; top: calc(var(--s) * -.03); left: 50%; width: calc(var(--s) * .12); height: calc(var(--s) * .12); margin-left: calc(var(--s) * -.06); border-radius: 50%; background: #fff; box-shadow: 0 0 calc(var(--s) * .1) calc(var(--s) * .03) var(--orb, #7CFFB2), calc(var(--s) * -.08) calc(var(--s) * .01) 0 calc(var(--s) * -.02) var(--orb, #7CFFB2), calc(var(--s) * -.15) calc(var(--s) * .03) 0 calc(var(--s) * -.035) var(--orb, #7CFFB2); }
+/* V5 vàng: tia sáng xoay + 2 ngôi sao bay quanh */
+.vav.v5 { --ring: conic-gradient(#fff3b0, #ffc94a, #b9860f, #ffe08a, #fff8d6, #ffc94a, #fff3b0); --spd: 3s; --vbg: linear-gradient(120deg, #FFF1C2, #FFC94A); --vbc: #2A1C00; --halo: rgba(255, 201, 74, .45); --orb: #FFD34D; --ospd: 3.6s; }
+.vav.v5::before, .vav.v6::before { animation: halo2 2.4s ease-in-out infinite; }
+.vav .vry { inset: calc(var(--s) * -.3); border-radius: 50%; z-index: 0; background: repeating-conic-gradient(from 0deg, var(--ray, rgba(255, 211, 77, .4)) 0 7deg, transparent 7deg 30deg); -webkit-mask: radial-gradient(closest-side, #000 45%, transparent); mask: radial-gradient(closest-side, #000 45%, transparent); animation: spin 14s linear infinite; }
+.vav.v5 .vo b { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); width: calc(var(--s) * .2); height: calc(var(--s) * .2); margin-left: calc(var(--s) * -.1); top: calc(var(--s) * -.06); background: #FFE680; box-shadow: none; filter: drop-shadow(0 0 4px #FFC94A); }
+.vav.v5 .vo b:nth-child(2) { top: auto; bottom: calc(var(--s) * -.06); }
+/* V6 hoàng gia: vòng nguyệt quế */
+.vav.v6 { --ring: conic-gradient(#ffe08a, #b46bff, #ffc94a, #7d3cff, #ffe08a); --spd: 3s; --vbg: linear-gradient(120deg, #B46BFF, #FFC94A); --vbc: #1a0833; --halo: rgba(180, 107, 255, .4); --ray: rgba(200, 150, 255, .35); }
+.vav .vl { inset: calc(var(--s) * -.16); z-index: 3; animation: laurel 3s ease-in-out infinite; }
+.vav .vl svg { width: 100%; height: 100%; display: block; overflow: visible; fill: #F2C94C; stroke: #8a6a12; stroke-width: .6; filter: drop-shadow(0 0 calc(var(--s) * .03) rgba(255, 211, 77, .7)); }
+@keyframes laurel { 50% { transform: scale(1.04); } }
+/* V7 huyền bí: 3 vòng xoay ngược nhau */
+.vav.v7 { --ring: conic-gradient(#b46bff, #5ee7ff, #b46bff, #ff7be0, #b46bff); --spd: 2.6s; --vbg: linear-gradient(120deg, #B46BFF, #5EE7FF); --vbc: #12052A; --halo: rgba(180, 107, 255, .5); }
+.vav.v7::before { animation: halo2 2s ease-in-out infinite; }
+/* cánh (V8–V10) */
+.vav .vw { top: 50%; width: calc(var(--s) * .72); height: calc(var(--s) * .54); z-index: 0; }
+.vav .vw svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.vav .vw .w1 { fill: var(--wf, #fff); } .vav .vw .w2 { fill: var(--wh, rgba(255, 255, 255, .55)); }
+.vav .vw.r { left: calc(100% - var(--s) * .16); transform-origin: 0 50%; animation: flapR var(--flap, 2.4s) ease-in-out infinite; }
+.vav .vw.l { right: calc(100% - var(--s) * .16); transform-origin: 100% 50%; animation: flapL var(--flap, 2.4s) ease-in-out infinite; }
+.vav .vw.l svg { transform: scaleX(-1); }
+.vav .vw svg { filter: drop-shadow(0 0 calc(var(--s) * .05) var(--wg, rgba(255, 255, 255, .7))); }
+@keyframes flapR { 0%, 100% { transform: translateY(-70%) rotate(6deg); } 50% { transform: translateY(-70%) rotate(-16deg); } }
+@keyframes flapL { 0%, 100% { transform: translateY(-70%) rotate(-6deg); } 50% { transform: translateY(-70%) rotate(16deg); } }
+/* V8 thiên thần: cánh trắng + vầng hào quang trên đầu */
+.vav.v8 { --ring: conic-gradient(#ffffff, #fff3c4, #ffd76a, #ffffff, #ffe9a8, #ffffff); --spd: 3s; --vbg: linear-gradient(120deg, #FFFFFF, #FFD76A); --vbc: #3a2a00; --halo: rgba(255, 236, 170, .55); --wf: #F8FBFF; --wh: #FFE9A8; --wg: rgba(255, 236, 170, .9); }
+.vav .vh { left: 50%; top: calc(var(--s) * -.2); width: calc(var(--s) * .56); height: calc(var(--s) * .17); margin-left: calc(var(--s) * -.28); border-radius: 50%; border: max(1.5px, calc(var(--s) * .04)) solid #FFE07A; box-shadow: 0 0 calc(var(--s) * .1) #FFD34D, inset 0 0 calc(var(--s) * .05) #FFD34D; z-index: 4; animation: vhalo 2.4s ease-in-out infinite; }
+@keyframes vhalo { 50% { transform: translateY(calc(var(--s) * -.04)); } }
+/* V9 phượng hoàng: cánh lửa + hạt lửa + quầng lửa */
+.vav.v9 { --ring: conic-gradient(#ff3d00, #ffb300, #ff6d00, #ffea00, #ff3d00); --spd: 1.8s; --vbg: linear-gradient(120deg, #FF3D00, #FFB300); --vbc: #fff; --halo: rgba(255, 90, 0, .55); --wf: #FF6D00; --wh: #FFD54F; --wg: rgba(255, 120, 0, .9); --flap: 1.8s; }
 .vav.v9::before { inset: calc(var(--s) * -.2); background: conic-gradient(from 0deg, transparent, rgba(255, 90, 0, .55), transparent 30%, rgba(255, 179, 0, .5), transparent 60%, rgba(255, 61, 0, .55), transparent); filter: blur(calc(var(--s) * .08)); animation: spin 3s linear infinite, flick 1.2s ease-in-out infinite; }
-.vav.v10 { --ring: conic-gradient(#ff5e5e, #ffc94a, #5eff9a, #5ee7ff, #8a7bff, #ff7be0, #ff5e5e); --spd: 1.6s; --vbg: linear-gradient(120deg, #FF7BE0, #FFC94A, #5EE7FF); --vbc: #1b0f2a; --halo: rgba(255, 220, 140, .55); --ring2: rgba(255, 201, 74, .9); --spd2: 3s; }
+.vav.v9 .vw svg { animation: wfire 1.2s ease-in-out infinite; }
+@keyframes wfire { 50% { filter: drop-shadow(0 0 calc(var(--s) * .1) rgba(255, 180, 0, 1)) brightness(1.15); } }
+/* V10 lăng kính: cánh cầu vồng + vương miện + sao bay quanh */
+.vav.v10 { --ring: conic-gradient(#ff5e5e, #ffc94a, #5eff9a, #5ee7ff, #8a7bff, #ff7be0, #ff5e5e); --spd: 1.6s; --vbg: linear-gradient(120deg, #FF7BE0, #FFC94A, #5EE7FF); --vbc: #1b0f2a; --halo: rgba(255, 220, 140, .55); --ring2: rgba(255, 201, 74, .9); --spd2: 3s; --wf: #FF7BE0; --wh: #9FF3FF; --wg: rgba(255, 255, 255, .9); --flap: 2s; }
+.vav.v10 .vw svg { animation: hue 4s linear infinite; }
+@keyframes hue { to { filter: hue-rotate(360deg) drop-shadow(0 0 calc(var(--s) * .06) #fff); } }
 .vav.v10::before { inset: calc(var(--s) * -.22); background: conic-gradient(rgba(255, 94, 94, .5), rgba(255, 201, 74, .5), rgba(94, 255, 154, .5), rgba(94, 231, 255, .5), rgba(138, 123, 255, .5), rgba(255, 123, 224, .5), rgba(255, 94, 94, .5)); filter: blur(calc(var(--s) * .1)); animation: spin 4s linear infinite reverse, halo2 2s ease-in-out infinite; }
-.vav.v10::after { content: ""; position: absolute; z-index: 4; left: 50%; top: calc(var(--s) * -.2); width: calc(var(--s) * .42); height: calc(var(--s) * .26); transform: translateX(-50%); background: linear-gradient(160deg, #FFF3B0, #FFC94A 60%, #B9860F); clip-path: polygon(0 100%, 0 25%, 25% 60%, 50% 0, 75% 60%, 100% 25%, 100% 100%); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .5)); animation: crown 2.4s ease-in-out infinite; }
+.vav.v10::after { content: ""; position: absolute; z-index: 4; left: 50%; top: calc(var(--s) * -.22); width: calc(var(--s) * .44); height: calc(var(--s) * .27); transform: translateX(-50%); background: linear-gradient(160deg, #FFF3B0, #FFC94A 60%, #B9860F); clip-path: polygon(0 100%, 0 25%, 25% 60%, 50% 0, 75% 60%, 100% 25%, 100% 100%); filter: drop-shadow(0 0 4px rgba(255, 201, 74, .9)); animation: crown 2.4s ease-in-out infinite; }
 @keyframes crown { 50% { transform: translateX(-50%) translateY(-2px) rotate(-4deg); } }
-.vsp { position: absolute; inset: calc(var(--s) * -.14); z-index: 3; animation: spin 3.2s linear infinite; pointer-events: none; }
+.vsp { inset: calc(var(--s) * -.14); z-index: 3; animation: spin 3.2s linear infinite; }
 .vsp b { position: absolute; width: max(3px, calc(var(--s) * .07)); height: max(3px, calc(var(--s) * .07)); border-radius: 50%; background: #fff; box-shadow: 0 0 6px 2px var(--halo); }
 .vsp b:nth-child(1) { top: 0; left: 50%; } .vsp b:nth-child(2) { bottom: 12%; left: 6%; } .vsp b:nth-child(3) { bottom: 12%; right: 6%; }
+@media (prefers-reduced-motion: reduce) { .vav *, .vav::before, .vav::after { animation: none !important; } }
 .hud-me .vav { --s: 40px; }
 .av.img { padding: 0; background: #0c1513; }
 .av.img img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1034,3 +1079,11 @@ body:has(.player) .dw, body:has(.tour) .dw, body:has(.gate) .dw, body:has(.pp) .
 .du-prize b { font-size: .98rem; }
 .du-xp { flex: none; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; align-content: center; font-size: .7rem; font-weight: 800; color: #04210f; background: radial-gradient(circle at 35% 30%, #E7FFF1, #3ED598 60%, #18A06A); }
 .du-xp svg { width: 18px; height: 18px; } .du-xp b { font-size: 1.05rem; line-height: 1; }
+/* v31: bảng xem trước khung VIP */
+.vf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 22px 10px; margin-top: 18px; }
+.vf { position: relative; display: grid; justify-items: center; gap: 4px; padding: 26px 6px 12px; border-radius: 18px; background: rgba(255, 255, 255, .04); text-align: center; }
+.vf .vav { margin-bottom: 10px; }
+.vf small { color: var(--muted); font-size: .76rem; line-height: 1.3; }
+.vf.me { background: linear-gradient(180deg, rgba(255, 211, 77, .18), rgba(255, 211, 77, .04)); outline: 1px solid rgba(255, 211, 77, .5); }
+.vf.lock { opacity: .72; }
+.vf em { position: absolute; top: 6px; right: 8px; font-style: normal; font-size: .68rem; font-weight: 900; color: #1b1405; background: var(--gold, #FFD34D); padding: 2px 7px; border-radius: 99px; }

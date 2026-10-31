@@ -2,11 +2,11 @@
 // v23: rương không còn trao hình cố định mà trao VÉ QUAY (gacha.js). Bestie chia sẻ bộ sưu tập để dùng làm nền trang.
 // Quy tắc: rương chủ đề 2★ = 1 hình, 3★ = 2 hình; boss 1★/2★/3★ = 1/2/3 hình. Mỗi khoá (English, 中文, IELTS) chứa đủ 70 hình,
 // vị trí khác nhau giữa các khoá (xem learnbuild/walls.js). Máy chủ (learn_wall_claim) là nơi quyết định cuối cùng khi đã đăng nhập.
-import { I } from './icons.js?v=42';
-import { S, save, LN, unitProgress, unitStars } from './store.js?v=42';
-import { acct, call, push } from './account.js?v=42';
-import { sfx } from './sound.js?v=42';
-import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=42';
+import { I } from './icons.js?v=43';
+import { S, save, LN, unitProgress, unitStars } from './store.js?v=43';
+import { acct, call, push } from './account.js?v=43';
+import { sfx } from './sound.js?v=43';
+import { esc, toast, sheet, overlay, burst, vipAv, avatar, floatText, confirmBox } from './ui.js?v=43';
 
 let C = null; // ngữ cảnh từ app.js
 export function init(ctx) { C = ctx; }
@@ -124,7 +124,14 @@ export function vipPoints(bonus = vipState.bonus) {
 // đã đăng nhập: máy chủ là nơi quyết định cấp VIP; khách: tính trên máy
 export const myVip = () => (vipState.server ? vipState.vip || 0 : vipLevel(vipPoints()));
 export const unitPts = () => (CAT ? { en: 600 / CAT.units.en, zh: 1000 / CAT.units.zh, ielts: 1000 / CAT.units.ielts } : { en: 10, zh: 16, ielts: 19 });
-const VIP_STYLE = ['', 'Ember ring', 'Ember ring', 'Silver spin', 'Silver spin', 'Golden halo', 'Golden halo', 'Arcane twin rings', 'Arcane twin rings', 'Phoenix flame', 'Prism crown'];
+// v31: xem trước cả 10 khung VIP
+export function framesSheet() {
+  const v = myVip(), nm = acct ? acct.name : 'You', av = acct && acct.avatar;
+  sheet(`<h2>VIP frames</h2><p class="sub">Your frame always follows your VIP rank. Earn VIP points from lessons, duels, quizzes and Adventure to unlock the next one.</p>
+    <div class="vf-grid">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((k) => `<div class="vf ${k === v ? 'me' : k > v ? 'lock' : ''}">${vipAv(nm, av, k, 'lg')}<b>VIP ${k}</b><small>${esc(VIP_STYLE[k])}</small>${k === v ? '<em>Yours</em>' : ''}</div>`).join('')}</div>`);
+  sfx('open');
+}
+const VIP_STYLE = ['', 'Copper glint', 'Ember sparks', 'Frost crystals', 'Jade comet', 'Golden stars', 'Royal laurel', 'Arcane triple rings', 'Angel wings', 'Phoenix wings', 'Prism wings and crown'];
 // chúc mừng khi lên VIP
 export function checkVip() {
   if (!CAT) return;
@@ -433,7 +440,7 @@ export async function collectionPage(args = []) {
         <div class="cc-xp">${I.gem}<span><b>${fmt(xpLeft())} XP to spend</b></span></div>
         <div class="cc-r">${byR.map((x) => `<span class="r-${x.r}"><i class="rd"></i>${RAR[x.r]}<b>${x.n}/${x.t}</b></span>`).join('')}</div></div>
       <div class="panel col-vip">${vipAv(acct ? acct.name : 'You', acct && acct.avatar, v, 'lg')}<div class="cv-t"><b>${v ? `VIP ${v}` : 'No VIP yet'}</b><small>${v >= 10 ? 'Top rank' : `${pts} / ${next} points to VIP ${v + 1}`}</small><span class="bar"><i style="width:${v >= 10 ? 100 : Math.round(((pts - prevT) / (next - prevT)) * 100)}%"></i></span></div>
-        <button class="btn sm ${v ? 'acc' : 'ghost'} col-share" type="button">${I.gift} Share</button></div>
+        <button class="btn sm ghost col-frames" type="button">${I.sparkle} All frames</button><button class="btn sm ${v ? 'acc' : 'ghost'} col-share" type="button">${I.gift} Share</button></div>
     </section>
     <div class="col-tabs seg" role="tablist">${tabs.map(([k, l]) => `<button type="button" data-t="${k}" aria-pressed="${colTab === k}" class="${k === 'zh' ? 'zh' : ''}">${l}</button>`).join('')}</div>
     <div class="col-body">${body}</div>`, null, { noCourse: true });
@@ -441,6 +448,7 @@ export async function collectionPage(args = []) {
     app.querySelectorAll('.col-tabs button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); colTab = b.dataset.t; history.replaceState(null, '', '#/collection/' + colTab); draw(); }));
     app.querySelectorAll('.col-flt button').forEach((b) => b.addEventListener('click', () => { sfx('tap'); colFilter = b.dataset.f; draw(); }));
     app.querySelector('.col-share').addEventListener('click', () => shareSheet());
+    app.querySelector('.col-frames').addEventListener('click', () => framesSheet());
     const gp = app.querySelector('.col-gp'); if (gp && C.wireGacha) C.wireGacha(gp);
     if (wantSpin && gp) { gp.scrollIntoView({ block: 'center' }); }
     wireCards(app.querySelector('.col-body'), (id) => { sfx('open'); wallSheet(id); });

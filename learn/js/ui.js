@@ -1,5 +1,5 @@
 // Tiện ích giao diện dùng chung (app.js và social.js)
-import { I } from './icons.js?v=42';
+import { I } from './icons.js?v=43';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const shuffleArr = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -56,9 +56,16 @@ export const initials = (n) => (n || '?').split(/[\s._-]+/).filter(Boolean).slic
 export const isImg = (a) => typeof a === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(a);
 export const avatar = (name, emo, cls = '') => isImg(emo) ? `<span class="av img ${cls}"><img src="${emo}" alt="" loading="lazy" decoding="async"></span>` : emo ? `<span class="av emo ${cls}">${esc(emo)}</span>` : `<span class="av ${cls}">${esc(initials(name))}</span>`;
 // ảnh đại diện có vòng VIP (1–10). Không có VIP thì trả về ảnh thường.
+// v31: khung VIP — mỗi cấp một kiểu riêng: vòng, hạt lửa, pha lê, sao chổi, nguyệt quế, cánh, vương miện
+const WING = '<svg viewBox="0 0 64 48" aria-hidden="true"><path class="w1" d="M2 30C10 12 30 2 62 4C54 9 56 12 60 15C50 17 52 21 56 24C46 25 46 29 50 33C38 33 34 36 33 41C22 40 10 37 2 30Z"/><path class="w2" d="M5 30C14 19 29 11 50 9C40 15 31 21 24 31C16 33 9 32 5 30Z"/></svg>';
+const LAUREL = (() => { let d = ''; for (let i = 0; i < 6; i++) { const a = 116 + i * 19, r = a * Math.PI / 180, x = (50 + Math.cos(r) * 46).toFixed(1), y = (50 + Math.sin(r) * 46).toFixed(1); d += `<ellipse cx="${x}" cy="${y}" rx="7.5" ry="3.3" transform="rotate(${a + 90 - 28} ${x} ${y})"/>`; } return `<svg viewBox="0 0 100 100" aria-hidden="true"><g>${d}</g><g transform="matrix(-1 0 0 1 100 0)">${d}</g></svg>`; })();
+const W2 = `<i class="vw l">${WING}</i><i class="vw r">${WING}</i>`;
+const VX = ['', '', '<i class="vp"><b></b><b></b><b></b></i>', '<i class="vr2"></i><i class="vtw"><b></b><b></b><b></b><b></b></i>', '<i class="vo"><b></b></i>',
+  '<i class="vry"></i><i class="vo"><b></b><b></b></i>', `<i class="vry"></i><i class="vl">${LAUREL}</i>`, '<i class="vr2"></i><i class="vr3"></i>',
+  `${W2}<i class="vh"></i>`, `${W2}<i class="vp"><b></b><b></b><b></b><b></b></i>`, `${W2}<i class="vr2"></i><i class="vsp"><b></b><b></b><b></b></i>`];
 export const vipAv = (name, emo, vip = 0, cls = '') => {
   const v = Math.max(0, Math.min(10, vip | 0));
-  return `<span class="vav v${v} ${cls}" title="VIP ${v}"><i class="vr" aria-hidden="true"></i>${v >= 7 ? '<i class="vr2" aria-hidden="true"></i>' : ''}${v >= 9 ? '<i class="vsp" aria-hidden="true"><b></b><b></b><b></b></i>' : ''}${avatar(name, emo, cls)}<b class="vb">V${v}</b></span>`;
+  return `<span class="vav v${v} ${cls}" title="VIP ${v}"><i class="vr" aria-hidden="true"></i>${VX[v]}${avatar(name, emo, cls)}<b class="vb">V${v}</b></span>`;
 };
 export function ago(t) {
   if (!t) return 'never';

@@ -849,3 +849,20 @@ body.hud-off .rail-col > .rail { max-height: calc(100dvh - 72px - 34px); }
 :where(:root[data-theme="light"]) .np:not(.in-sheet) .np-g h4 { background: rgba(250, 253, 251, .96); }
 :where(:root[data-theme="light"]) .np-seg { background: rgba(20, 44, 34, .05); }
 .pf-more { margin-top: 10px; }
+
+/* v31: danh sách chọn (select) đọc rõ ở cả nền tối và sáng, kể cả tiêu đề nhóm */
+select.input { color-scheme: dark; color: var(--ink); }
+select.input option, select.input optgroup { background: #101816; color: #EAF2EE; }
+select.input optgroup { color: #7CE0B6; font-weight: 800; font-style: normal; }
+:root[data-theme="light"] select.input { color-scheme: light; }
+:root[data-theme="light"] select.input option, :root[data-theme="light"] select.input optgroup { background: #fff; color: #17201D; }
+:root[data-theme="light"] select.input optgroup { color: #1F7A5A; }
+.w-lvl select { border-color: rgba(124, 224, 182, .35); background-color: rgba(124, 224, 182, .08); font-weight: 700; }
+/* v31: cửa sổ mời tạo tài khoản (khách) */
+.gate-h { text-align: center; display: grid; justify-items: center; gap: 6px; margin-bottom: 8px; }
+.gate-em { font-size: 3rem; line-height: 1; animation: popnode .7s var(--spring); }
+.gate-h h2 { margin: 0; }
+.gate-sub { color: var(--ink-2); margin: 0; max-width: 420px; }
+.gate-ben { list-style: none; padding: 0; margin: 8px 0 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+.gate-ben li { padding: 8px 10px; border-radius: 12px; background: rgba(124, 224, 182, .08); font-size: .84rem; font-weight: 700; text-align: left; }
+@media (max-width: 420px) { .gate-ben { grid-template-columns: 1fr; } }

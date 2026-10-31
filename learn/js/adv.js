@@ -2,15 +2,15 @@
 // Bản đồ rộng (kéo / cuộn để phóng to) với các vùng theo cấp độ. Mỗi vùng có 5 boss + 1 vua vùng (chấm đỏ).
 // Đề lấy từ toàn bộ bài học của cấp đó, 4 kiểu vòng phối hợp: Đồng tâm · Mảnh ghép · Tiếp sức · Nối đôi.
 // v24c: người chưa có Bestie chơi chế độ LONELY (một mình, cùng đề; máy chủ learn_adv_* với solo = true).
-import { I } from './icons.js?v=42';
-import { S } from './store.js?v=42';
-import { acct, call } from './account.js?v=42';
-import { sfx } from './sound.js?v=42';
-import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=42';
-import * as bestie from './bestie.js?v=42';
-import * as gacha from './gacha.js?v=42';
-import * as walls from './walls.js?v=42';
-import * as globe from './advglobe.js?v=42';
+import { I } from './icons.js?v=43';
+import { S } from './store.js?v=43';
+import { acct, call } from './account.js?v=43';
+import { sfx } from './sound.js?v=43';
+import { esc, toast, sheet, vipAv, online, shuffleArr, burst, confirmBox } from './ui.js?v=43';
+import * as bestie from './bestie.js?v=43';
+import * as gacha from './gacha.js?v=43';
+import * as walls from './walls.js?v=43';
+import * as globe from './advglobe.js?v=43';
 
 let C = null;
 export function init(ctx) {
@@ -154,7 +154,7 @@ async function wireMap(box) {
     onLocked: (r) => { sfx('tap'); toast(`Beat ${MAPS[map].regions[r - 2].king} in ${MAPS[map].regions[r - 2].name} to open ${MAPS[map].regions[r - 1].name}.`); },
   };
   // v27: bản đồ 2D vẽ sẵn (Blender) theo ảnh mẫu Bestie Map; lỗi tải → bản đồ canvas cũ
-  try { const m2 = await import('./advmap2d.js?v=42'); G = await m2.mount(box, opts); }
+  try { const m2 = await import('./advmap2d.js?v=43'); G = await m2.mount(box, opts); }
   catch (e) { console.error('map image failed', e); if (!box.isConnected) return; box.classList.remove('is2d'); G = globe.mount(box, opts); }
   if (!box.isConnected) { if (G) G.destroy(); return; }
   const wrap = box.parentElement;

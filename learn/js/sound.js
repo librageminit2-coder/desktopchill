@@ -68,6 +68,13 @@ export function sfx(name) {
       case 'beep': tone(N(79), 0, 0.12, { type: 'square', vol: 0.05 }); break;
       case 'wah': tone(N(60), 0, 0.3, { type: 'sawtooth', vol: 0.05, glide: 0.94 }); tone(N(58), 0.3, 0.3, { type: 'sawtooth', vol: 0.05, glide: 0.94 }); tone(N(55), 0.6, 0.8, { type: 'sawtooth', vol: 0.05, glide: 0.85 }); break;
       case 'whoosh': noise(0, 0.35, { vol: 0.12, freq: 1200, q: 0.4 }); break;
+      // v31: đếm ngược 3-2-1, GO!, đếm điểm, hộp quà
+      case 'cd3': tone(N(72), 0, 0.16, { type: 'square', vol: 0.06 }); tone(N(72), 0, 0.3, { type: 'triangle', vol: 0.16 }); noise(0, 0.08, { vol: 0.06, freq: 300, q: 1 }); break;
+      case 'cd2': tone(N(76), 0, 0.16, { type: 'square', vol: 0.06 }); tone(N(76), 0, 0.3, { type: 'triangle', vol: 0.18 }); noise(0, 0.08, { vol: 0.07, freq: 300, q: 1 }); break;
+      case 'cd1': tone(N(79), 0, 0.18, { type: 'square', vol: 0.07 }); tone(N(79), 0, 0.34, { type: 'triangle', vol: 0.2 }); noise(0, 0.1, { vol: 0.08, freq: 300, q: 1 }); break;
+      case 'gogo': [84, 88, 91].forEach((m) => { tone(N(m), 0, 0.5, { type: 'triangle', vol: 0.13 }); tone(N(m), 0, 0.2, { type: 'square', vol: 0.03 }); }); tone(N(96), 0.08, 0.5, { type: 'sine', vol: 0.1 }); noise(0, 0.35, { vol: 0.08, freq: 5000, q: 0.5 }); tone(N(36), 0, 0.3, { type: 'sine', vol: 0.3, glide: 0.6 }); break;
+      case 'cnt': tone(N(88 + Math.floor(Math.random() * 5)), 0, 0.035, { type: 'square', vol: 0.025 }); break;
+      case 'gift': for (let i = 0; i < 6; i++) noise(i * 0.09, 0.06, { vol: 0.08, freq: 900 + i * 120, q: 2 }); tone(N(79), 0.55, 0.12, { type: 'triangle', vol: 0.12, glide: 1.4 }); break;
       case 'stop': tone(N(81), 0, 0.08, { vol: 0.15 }); tone(N(76), 0.07, 0.1, { vol: 0.12 }); break;
     }
   } catch (e) { /* bỏ qua */ }

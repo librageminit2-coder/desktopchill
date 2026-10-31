@@ -1,11 +1,11 @@
 // Hướng dẫn bắt buộc 1 lần cho mỗi tài khoản: đổi hình nền trong Collection, rồi đổi ảnh đại diện.
 // Sau đó là 2 gợi ý (Add friends, Duels): không chặn màn hình, chỉ tắt khi người dùng bấm đúng nút đó.
 // Lưu trong tiến trình (S.guide) nên đồng bộ theo tài khoản: làm xong một lần thì máy khác cũng không hiện lại.
-import { S, save } from './store.js?v=42';
-import { sfx } from './sound.js?v=42';
-import { toast, esc } from './ui.js?v=42';
-import { acct, call } from './account.js?v=42';
-import * as walls from './walls.js?v=42';
+import { S, save } from './store.js?v=43';
+import { sfx } from './sound.js?v=43';
+import { toast, esc } from './ui.js?v=43';
+import { acct, call } from './account.js?v=43';
+import * as walls from './walls.js?v=43';
 
 let C = null;
 export function init(ctx) { C = ctx; }

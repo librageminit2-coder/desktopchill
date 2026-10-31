@@ -1,5 +1,5 @@
 // v30: hiệu ứng cho Live quiz: pháo hoa, mưa giấy màu, hạt theo chủ đề (dơi Halloween, tuyết Noel, hoa mai Tết, bóng bay tiệc)
-import { sfx } from './sound.js?v=42';
+import { sfx } from './sound.js?v=43';
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // 2 lớp: "front" (pháo hoa, giấy màu — nằm trên mọi thứ) và "back" (hạt theo chủ đề — nằm sau nội dung màn quiz)
 const mk = (cls) => ({ cls, cv: null, cx: null, parts: [] });
@@ -38,7 +38,7 @@ function draw(L) {
 }
 function loop(t) {
   raf = 0;
-  if (ambient && t - ambT > ambient.every && back.parts.length < ambient.max) { ambT = t; if (ensure(back)) back.front.parts.push(ambient.make()); }
+  if (ambient && t - ambT > ambient.every && back.parts.length < ambient.max) { ambT = t; if (ensure(back)) back.parts.push(ambient.make()); }
   draw(front); draw(back); parts = front.parts;
   if (front.parts.length || performance.now() < until) raf = requestAnimationFrame(loop);
   else { if (front.cv) { front.cv.remove(); front.cv = null; front.cx = null; } if (ambient || back.parts.length) raf = requestAnimationFrame(loop); }

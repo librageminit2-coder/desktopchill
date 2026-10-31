@@ -1,16 +1,16 @@
 // Thông báo (lời mời kết bạn, mời vào quiz / lớp, khiêu chiến, quà) + danh sách bạn bè ở cạnh phải màn hình.
 // Hỏi máy chủ mỗi 45 giây (learn_me); khi có thông báo mới thì tải danh sách và rung chuông.
-import { I, LOGO } from './icons.js?v=42';
-import { S, save, applyRevoke } from './store.js?v=42';
-import * as chat from './chat.js?v=42';
-import * as acctui from './acctui.js?v=42';
-import { acct, call, onLucky } from './account.js?v=42';
-import { sfx } from './sound.js?v=42';
-import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=42';
-import * as walls from './walls.js?v=42';
-import * as bestie from './bestie.js?v=42';
-import * as gacha from './gacha.js?v=42';
-import * as ctx from './ctx.js?v=42';
+import { I, LOGO } from './icons.js?v=43';
+import { S, save, applyRevoke } from './store.js?v=43';
+import * as chat from './chat.js?v=43';
+import * as acctui from './acctui.js?v=43';
+import { acct, call, onLucky } from './account.js?v=43';
+import { sfx } from './sound.js?v=43';
+import { esc, toast, sheet, vipAv, ago, online, confirmBox } from './ui.js?v=43';
+import * as walls from './walls.js?v=43';
+import * as bestie from './bestie.js?v=43';
+import * as gacha from './gacha.js?v=43';
+import * as ctx from './ctx.js?v=43';
 
 let C = null;
 export const hub = { unread: 0, requests: 0, duels: 0, msgs: 0, items: [], friends: null, me: null, fAt: 0 };
@@ -264,7 +264,8 @@ function text(n) {
     case 'duel_pick': return { t: `${n.name} got a copy of ${w}`, h: `${who} won your duel and got a copy of <b>${esc(w)}</b> at random. You still have it.`, ic: 'swords', go: '#/duel' };
     case 'gift': return { t: `${n.name} sent you ${w}`, h: `${who} sent you <b>${esc(w)}</b>`, ic: 'gift', act: [['View', 'go']], go: '#/collection', wall: p.wall };
     case 'quiz_win': return { t: p.rank === 1 ? `You won ${p.title}!` : `${p.rank === 2 ? '2nd' : '3rd'} place in ${p.title}`, h: p.rank === 1 ? `You won <b>${esc(p.title)}</b>. +${p.pts} VIP points${w ? ` and <b>${esc(w)}</b>` : ''}${p.ticket ? ' and <b>1 lucky spin ticket</b>' : ''}.` : `You finished ${p.rank === 2 ? '2nd' : '3rd'} in <b>${esc(p.title)}</b>. +${p.pts} VIP points.`, ic: 'trophy', go: w ? '#/collection' : '#/quiz', wall: p.wall };
-    case 'update': return +p.v >= 29 ? { t: 'New: Live rooms, power-ups and a big podium', h: '<b>Quiz is now in the main menu.</b> Jump into any live room (some have a password), get random power-ups like ×2, Jackpot ×3 and Mystery box, hear the questions read aloud, and watch the podium with fireworks. Halloween, Christmas and Lunar New Year rooms too.', ic: 'zap', go: '#/quiz' }
+    case 'update': return +p.v >= 30 ? { t: 'New: VIP frames with wings, and a live ranking in quizzes', h: '<b>Every VIP rank now has its own frame:</b> copper glint, ember sparks, frost crystals, jade comet, golden stars, royal laurel, arcane rings, angel wings, phoenix wings and the prism crown. In Live quiz, the podium and the top 10 stay on screen from the first question to the last.', ic: 'sparkle', go: '#/collection' }
+      : +p.v >= 29 ? { t: 'New: Live rooms, power-ups and a big podium', h: '<b>Quiz is now in the main menu.</b> Jump into any live room (some have a password), get random power-ups like ×2, First blood and Mystery box, hear the questions read aloud, and watch the podium with fireworks. Halloween, Christmas and Lunar New Year rooms too.', ic: 'zap', go: '#/quiz' }
       : +p.v >= 28 ? { t: 'New: B1 for Business, Travel and Everyday Life', h: '<b>60 new B1 units.</b> Business &amp; Office, Travel &amp; Hospitality and Everyday Life now go up to B1, with new chests, a boss for each topic and new wallpapers to win. Switch topics above the level list.', ic: 'sparkle', go: '#/' }
       : +p.v >= 27 ? { t: 'New: Lucky lessons', h: '<b>Every lesson can pay.</b> Each lesson you finish on the Journey map has a 10% chance of a lucky spin ticket. In Adventure, the first win on the first boss and on every region king gives a new wallpaper and a spin ticket; other bosses have a 10% chance of a spin ticket.', ic: 'gift', go: '#/' }
       : +p.v >= 26 ? { t: 'New: Adventure rewards', h: '<b>Adventure is now in the main menu.</b> The first win on the first boss and on every region king gives a random wallpaper and a lucky spin ticket, alone or with your Bestie. The Adventure ranking now counts everyone.', ic: 'map', go: '#/adventure' }

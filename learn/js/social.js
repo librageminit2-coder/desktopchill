@@ -1,17 +1,17 @@
 // Học cùng nhau: bạn bè, lớp học (giáo viên / trợ giảng / học viên), quiz trực tiếp kiểu “nhập PIN cùng chơi” và báo cáo.
 // Mọi dữ liệu đi qua các hàm RPC trên Supabase (xem learn/setup/learn_social.sql).
-import { I } from './icons.js?v=42';
-import { S, save, LN, unitProgress } from './store.js?v=42';
-import { acct, call, rpc, ensureToken } from './account.js?v=42';
-import { sfx, unlockAudio } from './sound.js?v=42';
-import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=42';
-import * as hub from './hub.js?v=42';
-import * as chat from './chat.js?v=42';
-import * as walls from './walls.js?v=42';
-import * as bestie from './bestie.js?v=42';
-import * as ctxm from './ctx.js?v=42';
-import * as fx from './fx.js?v=42';
-import { speak, stopSpeak, canSpeak } from './speech.js?v=42';
+import { I } from './icons.js?v=43';
+import { S, save, LN, unitProgress } from './store.js?v=43';
+import { acct, call, rpc, ensureToken } from './account.js?v=43';
+import { sfx, unlockAudio } from './sound.js?v=43';
+import { esc, shuffleArr, toast, sheet, confirmBox, burst, avatar, vipAv, ago, online, fmtDate, copyText, downloadCSV, SHAPES } from './ui.js?v=43';
+import * as hub from './hub.js?v=43';
+import * as chat from './chat.js?v=43';
+import * as walls from './walls.js?v=43';
+import * as bestie from './bestie.js?v=43';
+import * as ctxm from './ctx.js?v=43';
+import * as fx from './fx.js?v=43';
+import { speak, stopSpeak, canSpeak } from './speech.js?v=43';
 
 let C = null; // ngữ cảnh từ app.js
 export const counts = { get requests() { return hub.hub.requests || 0; }, set requests(v) { hub.hub.requests = v; }, rooms: 0 };
@@ -419,7 +419,6 @@ let lastSetup = (() => { try { return { ...QDEF, ...JSON.parse(localStorage.getI
 /* ---------- v30: Live quiz — phòng đang live, power-up, chủ đề, giọng đọc ---------- */
 export const BUFFS = {
   x2: { ic: '✖2', em: '⚡', name: 'Double points', d: 'Correct answers score ×2' },
-  x3: { ic: '✖3', em: '💎', name: 'Jackpot ×3', d: 'Correct answers score ×3' },
   first: { ic: '🥇', em: '🥇', name: 'First blood', d: 'The first correct answer gets +500' },
   mystery: { ic: '🎁', em: '🎁', name: 'Mystery box', d: 'Every correct answer opens a box: +100 to +800' },
   risky: { ic: '💣', em: '💣', name: 'Risky round', d: 'Right = ×2 points, wrong = −300' },
@@ -481,13 +480,13 @@ export async function quizHub() {
   <div class="qz-hub2">
     <section class="panel lr-wrap"><div class="lr-h"><h3 class="sec-h">${I.zap} Live rooms <em class="lr-count">${live.length}</em></h3><span class="lr-pulse"><i></i>updates live</span></div>
       <div class="lr-list">${live.length ? live.map(roomCard).join('') : ''}</div>
-      <div class="lr-empty" ${live.length ? 'hidden' : ''}><span>🎈</span><p>No public rooms right now.</p><button class="btn sm acc host2" type="button">${I.plus} Open the first one</button></div></section>
+      <div class="lr-empty" ${live.length ? 'hidden' : ''}><span>🎈</span><p>No public rooms right now. Tap <b>Create a quiz</b> above to open the first one.</p></div></section>
     <aside class="qz-side">
       <section class="panel qz-join"><h3 class="sec-h">${I.pin} Join with a PIN</h3><p class="muted" style="font-size:.88rem">For rooms that are not in the list: type the PIN on the host’s screen.</p>
         <form class="jf" novalidate><input class="input pin-in" inputmode="numeric" maxlength="6" placeholder="000000" aria-label="Game PIN" /><button class="btn acc wide" type="submit" style="margin-top:10px">Enter</button></form></section>
       <section class="panel qz-join"><h3 class="sec-h">${I.play} Host a game</h3>
-        <ul class="qz-feat"><li>🎲 Random power-ups: ×2, ×3, First blood, Mystery box, Risky, Lightning</li><li>▶ Auto-play: questions, answers and the podium run by themselves</li><li>🎃🎄🧧 Halloween, Christmas and Lunar New Year rooms</li><li>🔒 Optional room password</li></ul>
-        <button class="btn acc wide host" type="button">${I.zap} Create a quiz</button><button class="btn ghost wide sets" type="button">${I.edit} My question sets${mine && mine.sets.length ? ` (${mine.sets.length})` : ''}</button>
+        <ul class="qz-feat"><li>🎲 Random power-ups: ×2, First blood, Mystery box, Risky, Lightning</li><li>▶ Auto-play: questions, answers and the podium run by themselves</li><li>🎃🎄🧧 Halloween, Christmas and Lunar New Year rooms</li><li>🔒 Optional room password</li></ul>
+        <button class="btn ghost wide sets" type="button">${I.edit} My question sets${mine && mine.sets.length ? ` (${mine.sets.length})` : ''}</button>
         ${acct ? '' : '<p class="muted" style="font-size:.84rem">Hosting needs a free account so you can see reports later. Joining does not.</p>'}</section>
     </aside>
   </div>
@@ -509,7 +508,7 @@ export async function quizHub() {
   }, 5000);
   app.querySelector('.jf').addEventListener('submit', (e) => { e.preventDefault(); const v = app.querySelector('.pin-in').value.replace(/\D/g, ''); if (v.length !== 6) return toast('The PIN has 6 digits'); location.hash = '#/play/' + v; });
   const host = () => { if (!acct) return C.authSheet('new'); quizSetupSheet({ sets: mine ? mine.sets : [] }); };
-  app.querySelectorAll('.host, .host2').forEach((b) => b.addEventListener('click', host));
+  app.querySelectorAll('.host').forEach((b) => b.addEventListener('click', host));
   app.querySelector('.sets').addEventListener('click', () => { if (!acct) return C.authSheet('new'); setsSheet(mine ? mine.sets : []); });
   if (sub === 'create') { history.replaceState(null, '', '#/quiz'); host(); }
   else if (sub === 'sets') { history.replaceState(null, '', '#/quiz'); if (!acct) C.authSheet('new'); else setsSheet(mine ? mine.sets : []); }
@@ -577,10 +576,10 @@ async function quizSetupSheet(o = {}) {
     <h3 class="gh">Make it fun</h3>
     <div class="field"><label>Room theme</label><div class="th-pick" role="group" aria-label="Room theme">${Object.entries(THEMES).map(([k, [e, l]]) => `<button type="button" class="th-o th-${k}" data-th="${k}" aria-pressed="${(st.theme || 'classic') === k}"><span>${e}</span><b>${l}</b></button>`).join('')}</div></div>
     <div class="set-grid">
-      ${[['buffs', 'Random power-ups', '×2, Jackpot ×3, First blood, Mystery box, Risky and Lightning rounds'], ['auto', 'Auto-play', 'Questions, answers, scores and the podium run by themselves'], ['voice', 'Read questions aloud', 'The host screen reads each question, like in lessons']].map(([k, t, d]) => `<label class="row"><span class="grow"><b>${t}</b><small>${d}</small></span><span class="switch"><input type="checkbox" class="s-${k}" ${st[k] !== false ? 'checked' : ''}><span></span></span></label>`).join('')}
+      ${[['buffs', 'Random power-ups', '×2, First blood, Mystery box, Risky and Lightning rounds'], ['auto', 'Auto-play', 'Questions, answers, scores and the podium run by themselves'], ['voice', 'Read questions aloud', 'The host screen reads each question, like in lessons']].map(([k, t, d]) => `<label class="row"><span class="grow"><b>${t}</b><small>${d}</small></span><span class="switch"><input type="checkbox" class="s-${k}" ${st[k] !== false ? 'checked' : ''}><span></span></span></label>`).join('')}
       <div class="row s-gap-row"><span class="grow"><b>Pause on each screen</b><small>How long answers and scores stay up in auto-play</small></span><select class="input s-gap" style="width:auto;height:38px">${[4, 6, 8, 12].map((t) => `<option value="${t}" ${(st.gap || 6) === t ? 'selected' : ''}>${t}s</option>`).join('')}</select></div>
       ${room ? '' : `<label class="row"><span class="grow"><b>Show in Live rooms</b><small>Anyone on desktopchill can see the room and join</small></span><span class="switch"><input type="checkbox" class="s-public" ${st.public !== false ? 'checked' : ''}><span></span></span></label>
-      <div class="row"><span class="grow"><b>Room password</b><small>Optional. People joining from the list must type it. The PIN on your screen still works.</small></span><input class="input s-pass" type="text" maxlength="20" autocomplete="off" placeholder="None" style="width:150px;height:38px" /></div>`}
+      <div class="row s-pass-row"><span class="pw-h"><b>${I.lock} Room password</b><small>Optional. Players who join from Live rooms must type it. The PIN on your screen always works.</small></span><input class="input s-pass" type="text" maxlength="20" autocomplete="off" placeholder="No password" /></div>`}
     </div>
     <h3 class="gh">Game settings</h3>
     <div class="set-grid">
@@ -699,14 +698,14 @@ function closeStage() { const el = document.querySelector('.qz-stage'); if (el) 
 addEventListener('hashchange', () => { const h = location.hash; if (!h.startsWith('#/host/') && !h.startsWith('#/play')) closeStage(); });
 const setTheme = (el, th) => { th = THEMES[th] ? th : 'classic'; if (el.dataset.th === th) return; el.dataset.th = th; el.className = el.className.replace(/\bth-\w+/g, '').trim() + ' th-' + th; fx.theme(th); };
 // đếm số tăng dần (điểm)
-const countUp = (node, to, ms = 900) => { if (!node) return; const from = 0, t0 = performance.now(); const step = (t) => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); node.textContent = (to < 0 ? '−' : '+') + Math.abs(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); };
+const countUp = (node, to, ms = 900) => { if (!node) return; const from = 0, t0 = performance.now(); const step = (t) => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); node.textContent = (to < 0 ? '−' : '+') + Math.abs(Math.round(from + (to - from) * e)); if (to && t - lastT > 60 && k < 1) { lastT = t; sfx('cnt'); } if (k < 1) requestAnimationFrame(step); }; let lastT = 0; requestAnimationFrame(step); };
 // thanh đếm ngược của chế độ tự chạy
 const autoBar = (leftMs, totalMs, label) => `<div class="ab" role="status"><span class="ab-t">${label}</span><span class="ab-bar"><i style="animation-duration:${Math.max(200, leftMs)}ms;--from:${Math.max(0, Math.min(1, 1 - leftMs / totalMs))}"></i></span></div>`;
 const pAv = (x, cls = '') => x.member ? vipAv(x.nick, x.avatar || '', x.vip || 0, cls) : avatar(x.nick, '', cls);
 // podium: 3 người đứng trên 3 bục + top 10 bên dưới
 function podiumHTML(P, total, meNick) {
   const col = (rank) => { const x = P[rank - 1]; if (!x) return `<div class="pdm-col r${rank} empty"><div class="pdm-blk"><span>${rank}</span></div></div>`;
-    return `<div class="pdm-col r${rank} hide"><div class="pdm-who">${rank === 1 ? '<span class="pdm-crown" aria-hidden="true">👑</span>' : ''}<span class="pdm-av">${pAv(x, 'lg')}</span><b>${esc(x.nick)}</b><em>${x.score.toLocaleString('en-US')}</em></div>
+    return `<div class="pdm-col r${rank} hide"><div class="pdm-who">${rank === 1 ? '<span class="pdm-crown" aria-hidden="true">👑</span>' : ''}<span class="pdm-av">${pAv(x, 'lg')}</span><b>${esc(x.nick)}</b><em data-v="${x.score}">0</em></div>
       <div class="pdm-blk"><span>${rank}</span><small>${x.correct}/${total} correct${x.best_streak >= 2 ? ` · 🔥${x.best_streak}` : ''}</small></div></div>`; };
   return `<div class="pdm"><div class="pdm-rays" aria-hidden="true"></div><div class="pdm-stage">${col(2)}${col(1)}${col(3)}</div>
     <ol class="pdm-list">${P.map((x, i) => `<li class="${meNick && x.nick === meNick ? 'me' : ''} ${i < 3 ? 't' + (i + 1) : ''}" style="--i:${i}"><span class="r">${i + 1}</span>${pAv(x, 'sm')}<b>${esc(x.nick)}${meNick && x.nick === meNick ? ' <small>(you)</small>' : ''}</b><small>${x.correct}/${total}</small><span class="s">${x.score.toLocaleString('en-US')}</span></li>`).join('')}</ol></div>`;
@@ -715,11 +714,72 @@ function podiumHTML(P, total, meNick) {
 function playPodium(root, th) {
   const cols = [...root.querySelectorAll('.pdm-col.hide')], by = (r) => root.querySelector('.pdm-col.r' + r + '.hide');
   sfx('drum');
-  const show = (r, t, s) => later(() => { const c = by(r); if (!c) return; c.classList.remove('hide'); c.classList.add('in'); sfx(s); const b = c.querySelector('.pdm-av').getBoundingClientRect(); fx.pop(b.left + b.width / 2, b.top, r === 1 ? 70 : 30); }, t);
+  const show = (r, t, s) => later(() => { const c = by(r); if (!c) return; c.classList.remove('hide'); c.classList.add('in'); sfx(s); const b = c.querySelector('.pdm-av').getBoundingClientRect(); fx.pop(b.left + b.width / 2, b.top, r === 1 ? 70 : 30); const em = c.querySelector('.pdm-who em'); if (em) { const v = +em.dataset.v || 0; later(() => countNum(em, 0, v, 1000, true), 250); } }, t);
   show(3, 1700, 'whoosh'); show(2, 2500, 'whoosh'); show(1, 3500, 'fanfare');
   later(() => { root.querySelector('.pdm').classList.add('done'); fx.fireworks(10, 5000); fx.confetti(160); if (THEME_SFX[th] && th !== 'party') sfx(THEME_SFX[th]); }, 3700);
   later(() => fx.fireworks(6, 3000), 9500);
+  // quà rơi xuống 3 bục
+  later(() => { [1, 2, 3].forEach((r, i) => { const c = root.querySelector('.pdm-col.r' + r + ':not(.empty) .pdm-blk'); if (!c) return; const b = c.getBoundingClientRect(); later(() => giftDrop(document.body, b.left + b.width / 2, b.top - 30, { em: '🎁', burst: r === 1 ? '💎' : r === 2 ? '⭐' : '🪙' }), i * 450); }); }, 5200);
   if (!cols.length) later(() => fx.confetti(120), 400);
+}
+
+// v31: bảng xếp hạng sống — podium mini (top 3) + top 4–10 hiện suốt ván, từ câu 1 đến khi trao giải
+function liveBoard(stageEl, { meNick = null, host = false } = {}) {
+  stageEl.insertAdjacentHTML('beforeend', `<aside class="lv" hidden aria-label="Live ranking"><div class="lv-h"><b>🏆 Live ranking</b><button class="lv-tg" type="button" aria-expanded="false">Top 10 <span>▾</span></button></div>
+    <div class="lv-pd"></div><ol class="lv-ls"></ol><div class="lv-me" hidden></div></aside>`);
+  const box = stageEl.querySelector('.lv'), pd = box.querySelector('.lv-pd'), ls = box.querySelector('.lv-ls'), meEl = box.querySelector('.lv-me'), tg = box.querySelector('.lv-tg');
+  tg.addEventListener('click', () => { const on = !box.classList.contains('open'); box.classList.toggle('open', on); tg.setAttribute('aria-expanded', on); sfx('tap'); });
+  let sig = '', prevScore = {}, prevRank = {}, first = true;
+  const fmt = (n) => (+n || 0).toLocaleString('en-US');
+  const col = (x, r) => x ? `<div class="lv-c r${r}" data-id="${x.id}">${r === 1 ? '<span class="lv-crown" aria-hidden="true">👑</span>' : ''}<span class="lv-a">${pAv(x, 'sm')}</span><b class="lv-n">${esc(x.nick)}${meNick && x.nick === meNick ? ' <small>you</small>' : ''}</b><em class="lv-s" data-v="${x.score}">${fmt(prevScore[x.id] ?? x.score)}</em><span class="lv-b"><i>${r}</i></span></div>`
+    : `<div class="lv-c r${r} empty"><span class="lv-a"><span class="av sm">?</span></span><b class="lv-n">—</b><em class="lv-s">0</em><span class="lv-b"><i>${r}</i></span></div>`;
+  const update = (T, me) => {
+    if (!Array.isArray(T)) { box.hidden = true; stageEl.classList.remove('has-lv'); return; }
+    box.hidden = false; stageEl.classList.add('has-lv');
+    const s = T.map((x) => x.id + ':' + x.score + ':' + (x.vip || 0)).join('|') + '|' + (me ? me.rank + ':' + me.score : '');
+    if (s === sig) return; sig = s;
+    // FLIP: nhớ vị trí cũ theo id để animate khi đổi hạng
+    const old = {}; box.querySelectorAll('[data-id]').forEach((n) => { old[n.dataset.id] = n.getBoundingClientRect(); });
+    pd.innerHTML = col(T[1], 2) + col(T[0], 1) + col(T[2], 3);
+    ls.innerHTML = T.slice(3, 10).map((x, i) => `<li data-id="${x.id}" class="${meNick && x.nick === meNick ? 'me' : ''}"><span class="r">${i + 4}</span>${pAv(x, 'sm')}<b>${esc(x.nick)}</b><em class="lv-s" data-v="${x.score}">${fmt(prevScore[x.id] ?? x.score)}</em></li>`).join('') || '<li class="lv-none">Top 4–10 appear here</li>';
+    const inTop = me && T.some((x) => x.nick === meNick);
+    meEl.hidden = !me || inTop || !me.rank;
+    if (me && !inTop && me.rank) meEl.innerHTML = `<span class="r">${me.rank}</span><b>You</b><em>${fmt(me.score)}</em>`;
+    let moved = 0, upMe = false, gained = 0;
+    T.forEach((x, i) => {
+      const n = box.querySelector(`[data-id="${x.id}"]`); if (!n) return;
+      const o = old[x.id], r = n.getBoundingClientRect();
+      if (o && !first && (Math.abs(o.top - r.top) > 2 || Math.abs(o.left - r.left) > 2)) { n.animate([{ transform: `translate(${o.left - r.left}px, ${o.top - r.top}px)` }, { transform: 'none' }], { duration: 700, easing: 'cubic-bezier(.2,.9,.25,1.15)' }); moved++; }
+      else if (!o && !first) n.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.2,.9,.25,1.3)' });
+      if (prevRank[x.id] && prevRank[x.id] > i + 1) { n.classList.add('up'); if (meNick && x.nick === meNick) upMe = true; }
+      const sc = n.querySelector('.lv-s'), from = prevScore[x.id];
+      if (sc && from != null && from !== x.score) { gained++; countNum(sc, from, x.score, 1100, false); n.classList.add('gain'); setTimeout(() => n.classList.remove('gain', 'up'), 1400); }
+    });
+    if (!first) { if (host && gained) tickRun(Math.min(14, 4 + gained * 2)); if (moved && host) sfx('whoosh'); if (upMe) sfx('combo'); }
+    const lead = T[0]; if (!first && lead && prevRank[lead.id] !== 1 && lead.score > 0) { const c = pd.querySelector('.lv-c.r1'); if (c) { c.classList.add('newlead'); if (host) later(() => sfx('star'), 500); } }
+    prevScore = {}; prevRank = {}; T.forEach((x, i) => { prevScore[x.id] = x.score; prevRank[x.id] = i + 1; });
+    first = false;
+  };
+  return { update, hide: () => { box.hidden = true; stageEl.classList.remove('has-lv'); } };
+}
+// chữ GO! loé lên khi câu hỏi bắt đầu
+function goFlash(stageEl) { const d = document.createElement('div'); d.className = 'go-flash'; d.innerHTML = '<b>GO!</b>'; stageEl.appendChild(d); setTimeout(() => d.remove(), 900); }
+// đếm số từ a → b (có thể kèm tiếng tích tắc)
+function countNum(node, a, b, ms = 900, snd = true) {
+  const t0 = performance.now(); let lastT = 0;
+  const step = (t) => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); node.textContent = Math.round(a + (b - a) * e).toLocaleString('en-US'); if (snd && t - lastT > 70 && k < 1) { lastT = t; sfx('cnt'); } if (k < 1) requestAnimationFrame(step); else if (snd) sfx('coin'); };
+  requestAnimationFrame(step);
+}
+// chuỗi tiếng đếm điểm (cho cả bảng)
+function tickRun(n) { for (let i = 0; i < n; i++) later(() => sfx('cnt'), i * 65); later(() => sfx('coin'), n * 65 + 40); }
+// hộp quà rơi xuống, rung rồi bung ra
+function giftDrop(host, x, y, { em = '🎁', burst: bem = '🪙', label = '' } = {}) {
+  const g = document.createElement('div'); g.className = 'gift-drop'; g.style.left = x + 'px'; g.style.top = y + 'px';
+  g.innerHTML = `<span class="gd-box">${em}</span>${label ? `<b class="gd-l">${label}</b>` : ''}`; host.appendChild(g);
+  sfx('whoosh');
+  later(() => { g.classList.add('shake'); sfx('gift'); }, 650);
+  later(() => { g.classList.add('open'); sfx('chest'); const r = g.getBoundingClientRect(); fx.pop(r.left + r.width / 2, r.top + 10, 34); fx.emoji(bem, r.left + r.width / 2, r.top, 10); }, 1500);
+  later(() => g.remove(), 4200);
 }
 
 /* ---------- host ---------- */
@@ -729,6 +789,7 @@ export async function hostPage(key) {
   const el = stage(`<div class="qz-top"><span class="ttl">Loading…</span></div><div class="qz-body"><div class="qz-in"></div></div><div class="qz-bot"></div>`);
   let g = null, lastState = '', lastQ = -2, revealing = false, base = 0, baseAt = 0, pBase = 0, pAt = 0, prevPlayers = 0, prevRanks = {}, pollT = 0, clockT = 0;
   const top = el.querySelector('.qz-top'), inner = el.querySelector('.qz-in'), bot = el.querySelector('.qz-bot');
+  const lv = liveBoard(el, { host: true });
   const doAct = async (a, arg = {}) => { try { const j = await rpc('learn_quiz_host_action', { p_key: key, p_action: a, p_arg: arg }); if (j && j.ok) { apply(j); } else toast(errMsg(j)); } catch (e) { toast(e.message); } };
   const leftMs = () => g && g.time ? g.time * 1000 - (base + (performance.now() - baseAt)) : 0;
   const auto = () => !!(g && g.settings && g.settings.auto), gapMs = () => ((g && g.settings && g.settings.gap) || 6) * 1000;
@@ -784,7 +845,7 @@ export async function hostPage(key) {
         : `<div class="lb-empty"><span class="lb-dots"><i></i><i></i><i></i></span><p>Players appear here as soon as they join.</p></div>`}
       </section>
     </div>`;
-    if (!qrMod) import('./qr.js?v=42').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
+    if (!qrMod) import('./qr.js?v=43').then((m) => { qrMod = m.default; const box = inner.querySelector('.lb-qr'); if (box) box.insertAdjacentHTML('afterbegin', qrSVG(link)); }).catch(() => { const box = inner.querySelector('.lb-qr'); if (box) box.remove(); });
     const cp = inner.querySelector('.lb-copy');
     cp.addEventListener('click', async () => { await copyText(link, 'Join link copied'); cp.classList.add('done'); cp.querySelector('span').textContent = 'Copied'; setTimeout(() => { cp.classList.remove('done'); cp.querySelector('span').textContent = 'Copy join link'; }, 1600); });
     inner.querySelector('.lb-lock').addEventListener('click', () => doAct('lock'));
@@ -847,12 +908,13 @@ export async function hostPage(key) {
     if (g.elapsed_ms != null) { base = g.elapsed_ms; baseAt = performance.now(); }
     if (g.phase_ms != null) { pBase = g.phase_ms; pAt = performance.now(); }
     drawTop();
+    if (g.state === 'lobby' || g.state === 'ended') lv.hide(); else lv.update(g.top);
     const phase = g.state === 'question' && base < 0 ? 'count' : g.state;
     const changed = phase !== lastState || g.q_index !== lastQ;
     if (g.state !== 'lobby') lobbySig = '';
     if (g.state === 'lobby') { drawLobby(); }
     else if (changed) {
-      if (phase === 'count') drawCountdown(); else if (phase === 'question') { drawQuestion(); sfx('go'); } else if (phase === 'reveal') drawReveal(); else if (phase === 'board') drawBoard(); else if (phase === 'ended') { drawEnd(); clearInterval(pollT); }
+      if (phase === 'count') drawCountdown(); else if (phase === 'question') { drawQuestion(); sfx('gogo'); goFlash(el); } else if (phase === 'reveal') drawReveal(); else if (phase === 'board') drawBoard(); else if (phase === 'ended') { drawEnd(); clearInterval(pollT); }
     } else if (phase === 'question') { const n = inner.querySelector('.ans-n'); if (n) n.textContent = g.answered; if (g.answered > (prev ? prev.answered : 0)) sfx('tap'); }
     else if ((phase === 'reveal' || phase === 'board') && prev && prev.settings && !!prev.settings.auto !== auto()) { if (phase === 'reveal') nextBtn('Leaderboard', 'board'); else nextBtn(g.q_index + 1 >= g.total ? 'Show the podium' : 'Next question', 'next'); }
     lastState = phase; lastQ = g.q_index;
@@ -865,7 +927,7 @@ export async function hostPage(key) {
   let lastSec = -1;
   clockT = every(() => {
     if (!g) return;
-    if (lastState === 'count') { const s = Math.ceil(-(base + (performance.now() - baseAt)) / 1000); const cd = inner.querySelector('.countdown'); if (cd && s > 0 && cd.textContent !== String(s)) { cd.textContent = s; cd.style.animation = 'none'; void cd.offsetWidth; cd.style.animation = ''; sfx('beep'); } if (s <= 0) poll(); return; }
+    if (lastState === 'count') { const s = Math.ceil(-(base + (performance.now() - baseAt)) / 1000); const cd = inner.querySelector('.countdown'); if (cd && s > 0 && cd.textContent !== String(s)) { cd.textContent = s; cd.style.animation = 'none'; void cd.offsetWidth; cd.style.animation = ''; sfx(s === 1 ? 'cd1' : s === 2 ? 'cd2' : 'cd3'); cd.dataset.n = s; } if (s <= 0) poll(); return; }
     if (lastState !== 'question') return;
     const left = leftMs(), t = inner.querySelector('.qz-timer'); if (!t) return;
     const s = Math.max(0, Math.ceil(left / 1000)); t.querySelector('b').textContent = s; t.querySelector('.fg').style.strokeDasharray = TC; t.querySelector('.fg').style.strokeDashoffset = TC * (1 - Math.max(0, left) / (g.time * 1000)); t.classList.toggle('low', s <= 5);
@@ -915,6 +977,7 @@ function playStage(pin, me) {
   el.querySelector('.pl-chat').addEventListener('click', () => { sfx('tap'); chat.openGame({ pin, pkey: me.pkey, title: 'Game chat' }); });
   wireVoice(el.querySelector('.pl-vb'));
   const top = el.querySelector('.ttl'), inner = el.querySelector('.qz-in'), sc = el.querySelector('.sc');
+  const lv = liveBoard(el, { meNick: me.nick }); let lvMe = null;
   let st = null, phase = '', qi = -2, sent = null, base = 0, baseAt = 0, prevScore = 0, endPolls = 0, pollT = 0, ended = false;
   const pads = (n, showText) => `<div class="pl-pads ${n === 2 ? 'n2' : ''} ${showText ? 'txt' : ''}">${[...Array(n)].map((_, i) => `<button class="qa c${i} ${showText && /[㐀-鿿]/.test(st.opts[i]) ? 'zh' : ''}" data-i="${i}" type="button" style="--i:${i}">${shp(i)}${showText ? `<span>${esc(st.opts[i])}</span>` : ''}</button>`).join('')}</div>`;
   const drawQ = () => {
@@ -935,7 +998,7 @@ function playStage(pin, me) {
     if (!r.answered) { inner.innerHTML = `<div class="pl-res bad"><span class="mk">${I.timer}</span><h2>Time’s up</h2><p class="note">No answer this time. Your streak resets.</p><p class="muted">You are ${ordinal(st.rank)} of ${st.players}</p></div>`; sfx('wah'); return; }
     const extra = r.correct && r.bonus > 0 ? (b === 'mystery' ? `<div class="bf-box"><span class="box">🎁</span><b class="amt">+${r.bonus}</b></div>` : `<div class="bf-bonus bf-${b}">${B ? B.em + ' ' + B.name : '✨ Bonus'} <b>+${r.bonus}</b></div>`)
       : !r.correct && b === 'risky' && r.points < 0 ? `<div class="bf-bonus bf-risky">💣 Risky round <b>${r.points}</b></div>` : '';
-    const stamp = r.correct && (b === 'x2' || b === 'x3' || b === 'risky') ? `<span class="bf-stamp bf-${b}">${b === 'x3' ? '×3' : '×2'}</span>` : '';
+    const stamp = r.correct && (b === 'x2' || b === 'risky') ? `<span class="bf-stamp bf-${b}">×2</span>` : '';
     inner.innerHTML = `<div class="pl-res ${r.correct ? 'ok' : 'bad'}"><span class="mk">${r.correct ? I.check : I.x}${stamp}</span><h2>${r.correct ? pickOne(['Correct!', 'Nailed it!', 'Yes!', 'Brilliant!', 'Spot on!']) : pickOne(['Not this time', 'So close!', 'Oops!', 'Next one!'])}</h2><span class="pts">${r.points > 0 ? '+0' : r.points < 0 ? '−0' : '+0'}</span>${extra}
       ${r.correct && st.streak >= 2 ? `<p class="stk-big">🔥 ${st.streak} correct in a row</p>` : ''}${!r.correct && st.opts ? `<p class="note">Answer: <b>${esc(st.opts[r.a])}</b></p>` : ''}${r.note && !r.fun ? `<p class="note">${esc(r.note)}</p>` : ''}${r.fun ? `<p class="qz-fun sm"><span>😄</span>${esc(r.fun)}</p>` : ''}<p class="muted">You are ${ordinal(st.rank)} of ${st.players}</p></div>`;
     countUp(inner.querySelector('.pts'), r.points);
@@ -953,8 +1016,11 @@ function playStage(pin, me) {
     inner.innerHTML = `<div class="pdm-head"><small>${esc(st.title)}</small><h2>${st.rank === 1 ? 'You won! 🏆' : st.rank <= 3 ? `You finished ${ordinal(st.rank)}!` : 'Final results'}</h2></div>
       ${P.length ? podiumHTML(P, st.total, st.nick) : ''}
       <div class="pl-me"><span class="pl-me-r">${ordinal(st.rank)}<small>of ${st.players}</small></span><span><b>${st.score.toLocaleString('en-US')}</b><small>points</small></span><span><b>${st.correct}/${st.total}</b><small>correct</small></span><span><b>🔥${st.best_streak || 0}</b><small>best streak</small></span></div>
-      ${st.award ? `<div class="qz-award">${st.award.wall ? walls.card(st.award.wall, { state: 'got', cls: 'aw', tag: 'Prize' }) : ''}<p><b>${st.award.rank === 1 ? 'Winner’s prize' : 'Podium bonus'}</b>${st.award.wall ? ` · ${esc(walls.wallOf(st.award.wall).name)} is in your collection` : ''} · +${st.award.pts} VIP points${st.award.ticket ? ' · +1 spin ticket' : ''}</p></div>` : st.rank === 1 && !acct ? '<p class="muted" style="text-align:center">Sign in next time: winners of games with 3+ players get VIP points and a spin ticket.</p>' : ''}
-      <div class="foot-row" style="max-width:420px;width:100%;margin:0 auto">${acct ? '<a class="btn ghost" href="#/quiz">More live rooms</a>' : ''}<a class="btn acc" href="${S.onboarded ? '#/' : '#/'}">${S.onboarded ? 'Back to learning' : 'Try desktopchill learn'}</a></div>`;
+      ${st.award ? `<div class="qz-award">${st.award.wall ? walls.card(st.award.wall, { state: 'got', cls: 'aw', tag: 'Prize' }) : ''}<p><b>${st.award.rank === 1 ? 'Winner’s prize' : 'Podium bonus'}</b>${st.award.wall ? ` · ${esc(walls.wallOf(st.award.wall).name)} is in your collection` : ''} · +${st.award.pts} VIP points${st.award.ticket ? ' · +1 spin ticket' : ''}</p></div>` : ''}
+      ${acct ? '' : `<div class="qz-cta"><span class="qz-cta-em">🎓</span><span class="grow"><b>${st.rank <= 3 ? 'You made the podium! Keep the prize next time' : 'Keep your scores and win prizes'}</b><small>Create a free account with a name and a PIN. Winners get VIP points, wallpapers and spin tickets, and you can host your own quiz.</small></span><button class="btn acc qz-cta-go" type="button">${I.sparkle || ''} Create free account</button></div>`}
+      <div class="foot-row" style="max-width:420px;width:100%;margin:0 auto">${acct ? '<a class="btn ghost" href="#/quiz">More live rooms</a><a class="btn acc" href="#/">Back to learning</a>' : '<a class="btn ghost" href="#/quiz">More live rooms</a>'}</div>`;
+    if (!acct) { const go = () => { if (!acct && C && C.gateSheet) C.gateSheet('quiz'); }; inner.querySelector('.qz-cta-go').addEventListener('click', go); later(() => { if (document.querySelector('.qz-stage') && !document.querySelector('.sheet-bg')) go(); }, 9000); }
+    if (st.rank <= 3 && P.length) later(() => { const b = inner.querySelector('.pl-me'); if (b) { const r = b.getBoundingClientRect(); giftDrop(document.body, r.left + r.width / 2, r.top - 40, { burst: st.rank === 1 ? '💎' : '⭐' }); } }, 6200);
     if (P.length) playPodium(inner, st.theme); else fx.confetti(120);
     if (st.award) { walls.loadCat().then(() => { const c = inner.querySelector('.qz-award .wcard'); if (c) { c.outerHTML = walls.card(st.award.wall, { state: 'got', cls: 'aw', tag: 'Prize' }); } walls.syncWalls(); }); later(() => { const c = inner.querySelector('.qz-award .wcard'); if (c) walls.flyToCollection([c]); }, 6500); }
     try { sessionStorage.removeItem('dcl_play_' + pin); localStorage.removeItem('dcl_play_' + pin); } catch (e) {}
@@ -969,12 +1035,14 @@ function playStage(pin, me) {
     if (st.elapsed_ms != null) { base = st.elapsed_ms; baseAt = performance.now(); }
     sc.textContent = st.score.toLocaleString('en-US'); if (st.score > prevScore) { sc.animate([{ transform: 'scale(1.35)', color: 'var(--gold)' }, { transform: 'scale(1)' }], { duration: 500 }); } prevScore = st.score;
     const ph = st.state === 'question' && base < 0 ? 'count' : st.state;
+    if (st.top_rank) lvMe = { rank: st.top_rank, score: st.score };
+    if (st.state === 'lobby' || st.state === 'ended') lv.hide(); else lv.update(st.top, lvMe);
     if (st.q_index !== qi) sent = null;
     if (ph === 'ended' && phase === 'ended' && st.award && !inner.querySelector('.qz-award')) { const a = st.award; const box = document.createElement('div'); box.className = 'qz-award'; box.innerHTML = `${a.wall ? walls.card(a.wall, { state: 'got', cls: 'aw', tag: 'Prize' }) : ''}<p><b>${a.rank === 1 ? 'Winner’s prize' : 'Podium bonus'}</b> · +${a.pts} VIP points${a.ticket ? ' · +1 spin ticket' : ''}</p>`; const me2 = inner.querySelector('.pl-me'); if (me2) me2.after(box); sfx('badge'); }
     if (ph !== phase || st.q_index !== qi) {
       if (ph === 'lobby') inner.innerHTML = `<div class="pl-wait"><span class="pl-big">${(THEMES[st.theme] || THEMES.classic)[0]}</span><h2>You’re in!</h2><p>See your nickname on the big screen?</p><p class="pl-count">${I.users} ${st.players} players</p><p class="muted">The game starts when the host is ready.</p></div>`;
       else if (ph === 'count') { inner.innerHTML = `${st.buff ? buffCard(st.buff) : ''}<div class="countdown">${Math.max(1, Math.ceil(-base / 1000))}</div><p style="text-align:center;color:var(--ink-2);font-weight:700">Question ${st.q_index + 1} of ${st.total}</p>`; if (st.buff) { sfx('buff'); const c = inner.querySelector('.bf-card').getBoundingClientRect(); fx.emoji(BUFFS[st.buff].em, c.left + c.width / 2, c.top + 30, 10); } }
-      else if (ph === 'question') { if (st.answered) { sent = st.choice; inner.innerHTML = '<div class="pl-wait"><h2>Answer locked in</h2><p>Waiting for the others…</p></div>'; } else { drawQ(); sfx('go'); } }
+      else if (ph === 'question') { if (st.answered) { sent = st.choice; inner.innerHTML = '<div class="pl-wait"><h2>Answer locked in</h2><p>Waiting for the others…</p></div>'; } else { drawQ(); sfx('gogo'); goFlash(el); } }
       else if (ph === 'reveal') drawResult();
       else if (ph === 'board') drawBoard();
       else if (ph === 'ended') { ended = true; drawEnd(); }
@@ -989,7 +1057,7 @@ function playStage(pin, me) {
   let lastSec = -1;
   every(() => {
     if (!st) return;
-    if (phase === 'count') { const s = Math.ceil(-(base + (performance.now() - baseAt)) / 1000); const cd = inner.querySelector('.countdown'); if (cd && s > 0 && cd.textContent !== String(s)) { cd.textContent = s; cd.style.animation = 'none'; void cd.offsetWidth; cd.style.animation = ''; sfx('beep'); } if (s <= 0) poll(); return; }
+    if (phase === 'count') { const s = Math.ceil(-(base + (performance.now() - baseAt)) / 1000); const cd = inner.querySelector('.countdown'); if (cd && s > 0 && cd.textContent !== String(s)) { cd.textContent = s; cd.style.animation = 'none'; void cd.offsetWidth; cd.style.animation = ''; sfx(s === 1 ? 'cd1' : s === 2 ? 'cd2' : 'cd3'); cd.dataset.n = s; } if (s <= 0) poll(); return; }
     if (phase !== 'question') return;
     const t = inner.querySelector('.qz-timer'); if (!t) return;
     const left = st.time * 1000 - (base + (performance.now() - baseAt)), s = Math.max(0, Math.ceil(left / 1000));
